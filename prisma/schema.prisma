@@ -67,6 +67,6 @@ model PositiveMsg {
     id String @id @default(cuid())
     msg String
     slug String @unique
-    hash String @unique
+    hashedMessage String @unique
     createdAt DateTime @default(now())
 }
