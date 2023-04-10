@@ -15,13 +15,8 @@ function defineNextConfig(config) {
 export default defineNextConfig({
   reactStrictMode: true,
   swcMinify: true,
-  // webpack: config => {
-  //   config.experiments = { ...config.experiments, topLevelAwait: true };
-  //   return config;
-  // },
   webpack: config => {
-    config.experiments = undefined;
-    config.experiments.topLevelAwait = true;
+    config.experiments = { ...config.experiments, topLevelAwait: true };
     return config;
   },
 });

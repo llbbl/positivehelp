@@ -1,12 +1,11 @@
 import type { NextPage } from "next";
 import Head from "next/head";
-// import { trpc } from "../utils/trpc";
 import React from 'react';
 import slug from 'slugify';
-import { PrismaClient } from '@prisma/client';
 import { MessageData } from "../schema/msg.schema"
+import { createHash, Hash } from "crypto"
+import { getCsrfToken, useSession } from "next-auth/react"
 
-import { createHash} from "crypto"
 
 const Home: NextPage = () => {
 
@@ -16,16 +15,17 @@ const Home: NextPage = () => {
     event.preventDefault();
     // Add code to store the message in the database here
 
-    const prisma = new PrismaClient();
-
-    const hash = createHash('sha1');
+    const hash: Hash = createHash('sha256');
+    const result = useSession();
+    const session = result.data;
+    const csrfToken = await getCsrfToken()
 
     try {
-      let slugifiedMessage = slug(message);
-      let hashed = hash.update(message);
+      let slugifiedMessage: string = slug(message);
+      let hashed: Hash = hash.update(message);
 
       //convert hashed to string
-      let hashedMessage = hashed.digest('hex');
+      let hashedMessage: string = hashed.digest('hex');
 
       const data: MessageData = {
         msg: message,
@@ -33,11 +33,19 @@ const Home: NextPage = () => {
         hashedMessage: hashedMessage,
       };
 
-      // await prisma.positiveMsg.create({
-      //   // data: data,
-      // });
 
-      console.log('Message stored successfully');
+      // pass message to api SaveMessage
+      const response: Response = await fetch('/api/SaveMessage', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // Authorization: `Bearer ${csrfToken}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      console.log(response);
+
     } catch (err) {
       console.error(err);
     } finally {
