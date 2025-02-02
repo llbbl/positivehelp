@@ -3,6 +3,10 @@ import { DrizzleAdapter } from "@auth/drizzle-adapter"
 import { db } from "@/db/client"
 import GithubProvider from "next-auth/providers/github"
 
+if (!process.env.GITHUB_ID || !process.env.GITHUB_SECRET || !process.env.AUTH_SECRET) {
+  throw new Error('Missing environment variables for authentication')
+}
+
 export const {
   handlers: { GET, POST },
   auth,
@@ -12,10 +16,11 @@ export const {
   adapter: DrizzleAdapter(db),
   providers: [
     GithubProvider({
-      clientId: process.env.GITHUB_ID!,
-      clientSecret: process.env.GITHUB_SECRET!,
+      clientId: process.env.GITHUB_ID,
+      clientSecret: process.env.GITHUB_SECRET,
     }),
   ],
+  secret: process.env.AUTH_SECRET,
   pages: {
     signIn: '/auth/signin',  // custom signin page path
   },
