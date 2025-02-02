@@ -32,11 +32,6 @@ export default async function MessagePage({ params }: { params: Promise<{ slug: 
   } catch (error) {
     return (
       <div className="min-h-screen bg-green-200">
-        <nav className="flex items-center justify-between p-4 bg-green-300">
-          <Link href="/" className="text-xl font-semibold hover:text-green-800">
-            positive.help
-          </Link>
-        </nav>
         <main className="container mx-auto p-6">
           <div className="bg-white rounded-lg p-6 shadow-sm">
             <p className="text-red-600">Failed to load message. Please try again later.</p>
