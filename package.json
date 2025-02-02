@@ -25,6 +25,7 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
+    "@next/env": "^15.1.6",
     "@types/better-sqlite3": "^7.6.12",
     "@types/node": "^20",
     "@types/react": "^19",

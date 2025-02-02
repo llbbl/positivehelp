@@ -48,6 +48,9 @@ importers:
         specifier: ^1.0.7
         version: 1.0.7(tailwindcss@3.4.17)
     devDependencies:
+      '@next/env':
+        specifier: ^15.1.6
+        version: 15.1.6
       '@types/better-sqlite3':
         specifier: ^7.6.12
         version: 7.6.12
