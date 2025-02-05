@@ -18,8 +18,7 @@ export default async function AddPage() {
     );
   }
 
-  // You'll need to implement this function to check if user is admin
-  const isAdmin = await checkIfUserIsAdmin(user.id);
+  const isAdmin = await checkIfUserIsAdmin(user);
   
   if (!isAdmin) {
     return (
@@ -45,10 +44,13 @@ export default async function AddPage() {
   );
 }
 
-async function checkIfUserIsAdmin(userId: string) {
-  // Implement your admin check logic here
-  // This could be a database query or an API call
-  // For now, returning false as placeholder
-  return true;
+async function checkIfUserIsAdmin(user: any) {
+  try {
+    const metadata = user.publicMetadata;
+    return metadata?.isAdmin === "true" || metadata?.isAdmin === true;
+  } catch (error) {
+    console.error('Error checking admin status:', error);
+    return false;
+  }
 }
 
