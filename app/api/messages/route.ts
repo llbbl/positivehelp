@@ -12,7 +12,7 @@ export interface Message {
 
 export async function GET() {
   try {
-    const result = await client.execute('SELECT id, msg as text, slug as url, date FROM messages');
+    const result = await client.execute('SELECT id, msg as text, slug as url, date FROM messages ORDER BY id DESC');
     const messages = result.rows.map((row: Row) => ({
       id: row.id as number,
       text: row.text as string,
@@ -37,7 +37,21 @@ export async function POST(request: Request) {
     const { text } = await request.json();
     const currentDate = new Date().toISOString().split('T')[0];
     
-    console.log(text);
+    // Generate hash first to check for duplicates
+    const hash = generateMD5(text);
+
+    // Check if message with this hash already exists
+    const existing = await client.execute({
+      sql: 'SELECT slug FROM messages WHERE hash = ?',
+      args: [hash]
+    });
+
+    if (existing.rows.length > 0) {
+      return NextResponse.json(
+        { error: 'This message already exists', slug: existing.rows[0].slug }, 
+        { status: 409 }  // 409 Conflict is appropriate for duplicate resources
+      );
+    }
     
     // Create URL-friendly slug from the text
     const slug = text
@@ -45,8 +59,6 @@ export async function POST(request: Request) {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '')
       .substring(0, 50);
-    
-    const hash = generateMD5(text);
 
     const result = await client.execute({
       sql: 'INSERT INTO messages (msg, date, slug, hash) VALUES (?, ?, ?, ?)',
