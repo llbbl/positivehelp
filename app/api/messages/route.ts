@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import client from '@/lib/db';
 import { Row } from '@libsql/client';
+import { createHash } from 'crypto';
 
 export interface Message {
   id: number;
@@ -24,3 +25,37 @@ export async function GET() {
     return NextResponse.json({ error: 'Failed to fetch messages' }, { status: 500 });
   }
 } 
+
+function generateMD5(content: string): string {
+  return createHash('md5')
+    .update(content)
+    .digest('hex');
+}
+
+export async function POST(request: Request) {
+  try {
+    const { text } = await request.json();
+    const currentDate = new Date().toISOString().split('T')[0];
+    
+    console.log(text);
+    
+    // Create URL-friendly slug from the text
+    const slug = text
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .substring(0, 50);
+    
+    const hash = generateMD5(text);
+
+    const result = await client.execute({
+      sql: 'INSERT INTO messages (msg, date, slug, hash) VALUES (?, ?, ?, ?)',
+      args: [text, currentDate, slug, hash]
+    });
+
+    return NextResponse.json({ success: true, slug });
+  } catch (error) {
+    console.error('Error creating message:', error);
+    return NextResponse.json({ error: 'Failed to create message' }, { status: 500 });
+  }
+}

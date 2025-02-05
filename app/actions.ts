@@ -6,9 +6,14 @@ export async function createMessage(formData: FormData) {
   if (!content || typeof content !== 'string') {
     return { error: 'Message content is required' }
   }
+    
+//   console.log(content);
 
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/messages`, {
+    const apiUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/messages`;
+    console.log('Attempting to post to:', apiUrl);
+    
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -17,12 +22,15 @@ export async function createMessage(formData: FormData) {
     })
 
     if (!response.ok) {
-      throw new Error('Failed to create message')
+      const errorText = await response.text();
+      console.error('API Error:', response.status, errorText);
+      throw new Error(`Failed to create message: ${response.status} ${errorText}`);
     }
 
     return { success: true }
   } catch (error) {
-    return { error: 'Failed to create message' }
+    console.error('Error details:', error);
+    return { error: error instanceof Error ? error.message : 'Failed to create message' }
   }
 }
 
