@@ -37,4 +37,4 @@ export async function GET(request: Request) {
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch message' }, { status: 500 });
   }
-} 
+}
