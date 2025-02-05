@@ -38,7 +38,9 @@ export default function RootLayout({
             <div className="flex items-center gap-4">
               <Button className="bg-white text-green-800 hover:bg-green-50">
                 <PlusCircle className="w-4 h-4 mr-2" />
-                Add Positivity
+                <Link href="/add">
+                  Add Positivity
+                </Link>
               </Button>
               <SignedOut>
                 <SignInButton mode="modal" />
