@@ -13,25 +13,49 @@ const charMap: { [key: string]: string } = {
   'Œ': 'OE', 'Š': 'S', 'š': 's', 'Ÿ': 'Y', 'ƒ': 'f'
 };
 
+// Create a Set of all characters that can be transliterated
+const transliterableChars = new Set(Object.keys(charMap));
+
+export function containsNonLatinCharacters(text: string): boolean {
+  return text.split('').some(char => {
+    // If it's a basic Latin char, number, space, or hyphen, it's fine
+    if (/^[a-zA-Z0-9\s-]$/.test(char)) return false;
+    // If it's in our transliteration map, it's also fine
+    if (transliterableChars.has(char)) return true;
+    // Everything else is considered non-Latin
+    return true;
+  });
+}
+
 export function generateMD5(content: string): string {
   return createHash('md5')
     .update(content)
     .digest('hex');
 }
 
-export function generateSlug(text: string): string {
-  return text
-    // Convert special characters to their ASCII equivalents
-    .split('')
-    .map(char => charMap[char] || char)
-    .join('')
-    .toLowerCase()
-    // Replace non-word chars (except spaces and hyphens) with empty string
-    .replace(/[^\w\s-]/g, '')
-    // Replace multiple spaces or hyphens with single hyphen
-    .replace(/[\s_-]+/g, '-')
-    // Remove leading/trailing hyphens
-    .replace(/^-+|-+$/g, '')
-    // Limit length
-    .substring(0, 50);
-} 
+export function generateSlug(text: string, hash?: string): string {
+  if (containsNonLatinCharacters(text)) {
+    return hash || generateMD5(text);
+  }
+
+  // 1. Map characters using charMap
+  const mappedText = text.split('').map(char => charMap[char] || char).join('');
+
+  // 2. Convert to lowercase
+  const lowercasedText = mappedText.toLowerCase();
+
+  // 3. Remove all characters except a-z, 0-9, spaces, and hyphens
+  const cleanedText = lowercasedText.replace(/[^a-z0-9\s-]/g, '');
+
+  // 4. Replace multiple spaces or hyphens with a single hyphen
+  const hyphenatedText = cleanedText.replace(/[\s_-]+/g, '-');
+
+  // 5. Trim leading/trailing hyphens
+  const trimmedText = hyphenatedText.replace(/^-+|-+$/g, '');
+
+  // 6. Handle empty string case
+  if (!trimmedText) return '';
+
+  // 7. Limit length
+  return trimmedText.substring(0, 50);
+}

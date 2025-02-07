@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     const currentDate = new Date().toISOString().split('T')[0];
     
     const hash = generateMD5(text);
-    const slug = generateSlug(text);
+    const slug = generateSlug(text, hash);
 
     // Check if message with this hash already exists
     const existing = await client.execute({

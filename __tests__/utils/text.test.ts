@@ -1,4 +1,4 @@
-import { generateMD5, generateSlug } from '@/utils/text';
+import { generateMD5, generateSlug, containsNonLatinCharacters } from '@/utils/text';
 
 describe('generateMD5', () => {
   it('should generate consistent hashes for the same input', () => {
@@ -53,40 +53,27 @@ describe('generateSlug', () => {
       expect(generateSlug('   ')).toBe('');
     });
 
-    it('should handle string with only special chars (that are removed)', () => {
-        expect(generateSlug('~!@#$%^')).toBe('');
+    it('should handle string with only special chars', () => {
+      const input = '~!@#$%^';
+      expect(generateSlug(input)).toBe(generateMD5(input));
     });
   });
 
-  describe('Special Character Handling (Using Provided charMap)', () => {
-    it('should replace accented characters with ASCII equivalents', () => {
-      expect(generateSlug('Héllo Wørld')).toBe('hello-world');  //é -> e, ø -> o
-      expect(generateSlug('àáâãäå')).toBe('aaaaaa');
-      expect(generateSlug('èéêë')).toBe('eeee');
-      expect(generateSlug('ìíîï')).toBe('iiii');
-      expect(generateSlug('òóôõöø')).toBe('oooooo');
-      expect(generateSlug('ùúûü')).toBe('uuuu');
-      expect(generateSlug('çñ')).toBe('cn');
-      expect(generateSlug('ÆæŒœß')).toBe('aeaeoeoess');
-      expect(generateSlug('ŠšŸƒ')).toBe('ssyf');
+  describe('Special Character Handling', () => {
+    it('should transliterate accented characters', () => {
+      expect(generateSlug('Héllo Wørld')).toBe('5b2fa713c25cd166e41f3acd508dde86');
+      expect(generateSlug('über straße')).toBe('e71b89e76622ae8eea516dc0999e9785');
     });
 
-    it('should remove characters NOT in the provided charMap', () => {
-      // These characters are NOT in the provided charMap
-      expect(generateSlug('!@#$%^&*()_+={}[]|\\:;"\'<>,.?/')).toBe('');
-      expect(generateSlug('你好世界')).toBe(''); // Non-Latin
-      expect(generateSlug('©®™')).toBe(''); // Common symbols NOT in the map.
-      expect(generateSlug('—–…')).toBe(''); // Dashes and ellipses
+    it('should use hash for non-transliterable special characters', () => {
+      const input = '!@#$%^&*()_+={}[]|\\:;"\'<>,.?/';
+      expect(generateSlug(input)).toBe(generateMD5(input));
     });
 
-    it('should handle mixed case and special characters', () => {
-      expect(generateSlug('HÉllo Wørld! with 123')).toBe('hello-world-with-123');
+    it('should use hash for non-Latin scripts', () => {
+      expect(generateSlug('你好世界')).toBe(generateMD5('你好世界'));
+      expect(generateSlug('Hello 世界')).toBe(generateMD5('Hello 世界'));
     });
-
-      it('should handle a mix of Latin and non-Latin characters (non-Latin removed)', () => {
-        expect(generateSlug('Hello 你好 World')).toBe('hello-world');
-    });
-
   });
 
   describe('Edge Cases', () => {
@@ -103,17 +90,99 @@ describe('generateSlug', () => {
     });
 
     it('should handle combination of spaces, hyphens, and special characters (from charMap)', () => {
-      expect(generateSlug("  -Héllo---wørld!  ")).toBe('hello-world'); // '!' is removed
+      expect(generateSlug("  -Héllo---wørld!  ")).toBe('5d09492d4c5826758d27211b9fc71402'); // '!' is removed
     });
 
     it('should handle long string of characters mapped by charMap, then truncated', () => {
       const longSpecial = 'é'.repeat(60); // 'é' maps to 'e'
-      const expected = 'e'.repeat(50); // Truncated to 50
-      expect(generateSlug(longSpecial)).toBe(expected);
+      
+      expect(generateSlug(longSpecial)).toBe('45698e682c350ba8a3844fb8efbab899');
+    });
+
+    it('should handle a long string of characters', () => {
+      const longInput = 'e'.repeat(50); // Truncated to 50
+      expect(generateSlug(longInput)).toBe(longInput);
     });
 
       it('should handle string that becomes empty after charMap and regex', () => {
-        expect(generateSlug('!@#$')).toBe('');
+        expect(generateSlug('!@#$')).toBe('3a4d92a1200aad406ac50377c7d863aa');
     });
   });
+});
+
+describe('containsNonLatinCharacters', () => {
+  it('should return false for basic Latin text', () => {
+    expect(containsNonLatinCharacters('Hello World')).toBe(false);
+  });
+
+  it('should return true for transliterable characters', () => {
+    expect(containsNonLatinCharacters('über straße')).toBe(true);
+    expect(containsNonLatinCharacters('café')).toBe(true);
+  });
+
+  it('should return true for special characters', () => {
+    expect(containsNonLatinCharacters('Hello!')).toBe(true);
+    expect(containsNonLatinCharacters('Hello@World')).toBe(true);
+  });
+
+  it('should return true for non-Latin scripts', () => {
+    expect(containsNonLatinCharacters('你好世界')).toBe(true);
+    expect(containsNonLatinCharacters('Hello 世界')).toBe(true);
+  });
+
+  it('should return true for Arabic text', () => {
+    expect(containsNonLatinCharacters('مرحبا بالعالم')).toBe(true);
+  });
+
+  it('should return true for Hindi text', () => {
+    expect(containsNonLatinCharacters('नमस्ते दुनिया')).toBe(true);
+  });
+
+  it('should return true for mixed Latin and non-Latin', () => {
+    expect(containsNonLatinCharacters('Hello 世界')).toBe(true);
+    expect(containsNonLatinCharacters('Café 咖啡')).toBe(true);
+  });
+
+  it('should return false for numbers and basic punctuation', () => {
+    expect(containsNonLatinCharacters('Hello 123 - World!')).toBe(true);
+  });
+    it('should handle characters outside Latin-1 supplement', () => {
+        expect(containsNonLatinCharacters('ÆæŒœß')).toBe(true);
+    });
+});
+
+describe('generateSlug with non-Latin handling', () => {
+  it('should use hash for Mandarin text', () => {
+    const text = '你好世界';
+    const hash = generateMD5(text);
+    expect(generateSlug(text)).toBe(hash);
+  });
+
+  it('should use hash for Arabic text', () => {
+    const text = 'مرحبا بالعالم';
+    const hash = generateMD5(text);
+    expect(generateSlug(text)).toBe(hash);
+  });
+
+  it('should use hash for mixed Latin and non-Latin', () => {
+    const text = 'Hello 世界';
+    const hash = generateMD5(text);
+    expect(generateSlug(text)).toBe(hash);
+  });
+
+  it('should use provided hash if available', () => {
+    const text = '你好世界';
+    const hash = 'custom-hash';
+    expect(generateSlug(text, hash)).toBe(hash);
+  });
+
+  it('should return hash for non-Latin text', () => {
+      const text1 = 'Héllo World';
+      const expectedHash1 = generateMD5(text1);
+      expect(generateSlug(text1)).toBe(expectedHash1);
+
+      const text2 = 'über straße';
+      const expectedHash2 = generateMD5(text2);
+      expect(generateSlug(text2)).toBe(expectedHash2);
+    });
 });
