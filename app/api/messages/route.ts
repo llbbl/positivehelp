@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import client from '@/lib/db';
 import { Row } from '@libsql/client';
-import { createHash } from 'crypto';
+import { generateMD5, generateSlug } from '@/utils/text';
 
 export interface Message {
   id: number;
@@ -26,19 +26,13 @@ export async function GET() {
   }
 } 
 
-function generateMD5(content: string): string {
-  return createHash('md5')
-    .update(content)
-    .digest('hex');
-}
-
 export async function POST(request: Request) {
   try {
     const { text } = await request.json();
     const currentDate = new Date().toISOString().split('T')[0];
     
-    // Generate hash first to check for duplicates
     const hash = generateMD5(text);
+    const slug = generateSlug(text);
 
     // Check if message with this hash already exists
     const existing = await client.execute({
@@ -53,13 +47,6 @@ export async function POST(request: Request) {
       );
     }
     
-    // Create URL-friendly slug from the text
-    const slug = text
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '')
-      .substring(0, 50);
-
     const result = await client.execute({
       sql: 'INSERT INTO messages (msg, date, slug, hash) VALUES (?, ?, ?, ?)',
       args: [text, currentDate, slug, hash]
