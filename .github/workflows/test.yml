@@ -21,6 +21,9 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
+      - name: corepack prepare  
+        run: corepack prepare pnpm@latest --activate
+
       - name: Enable Corepack
         run: corepack enable
 
