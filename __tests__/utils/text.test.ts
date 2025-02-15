@@ -1,4 +1,4 @@
-import { generateMD5, generateSlug, containsNonLatinCharacters } from '@/utils/text';
+import { generateMD5, generateSlug, containsNonLatinCharacters, transliterableChars } from '@/utils/text';
 
 describe('generateMD5', () => {
   it('should generate consistent hashes for the same input', () => {
@@ -185,4 +185,32 @@ describe('generateSlug with non-Latin handling', () => {
       const expectedHash2 = generateMD5(text2);
       expect(generateSlug(text2)).toBe(expectedHash2);
     });
+});
+
+describe('transliterableChars', () => {
+  it('should contain expected transliterable characters', () => {
+    const testCases = [
+      'À', 'Á', 'Â', 'Ã', 'Ä', 'Å', 'Æ',
+      'Ç', 'È', 'É', 'Ê', 'Ë', 'Ì', 'Í',
+      'Î', 'Ï', 'Ð', 'Ñ', 'Ò', 'Ó', 'Ô',
+      'Õ', 'Ö', 'Ø', 'Ù', 'Ú', 'Û', 'Ü',
+      'Ý', 'Þ', 'ß', 'à', 'á', 'â', 'ã',
+      'ä', 'å', 'æ', 'ç', 'è', 'é', 'ê',
+      'ë', 'ì', 'í', 'î', 'ï', 'ð', 'ñ',
+      'ò', 'ó', 'ô', 'õ', 'ö', 'ø', 'ù',
+      'ú', 'û', 'ü', 'ý', 'þ', 'ÿ', 'œ',
+      'Œ', 'Š', 'š', 'Ÿ', 'ƒ'
+    ];
+
+    testCases.forEach(char => {
+      expect(transliterableChars.has(char)).toBe(true);
+    });
+  });
+
+  it('should not contain non-transliterable characters', () => {
+    const testCases = ['@', '#', '你', '好', '世', '界'];
+    testCases.forEach(char => {
+      expect(transliterableChars.has(char)).toBe(false);
+    });
+  });
 });

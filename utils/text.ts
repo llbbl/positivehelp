@@ -14,7 +14,7 @@ const charMap: { [key: string]: string } = {
 };
 
 // Create a Set of all characters that can be transliterated
-const transliterableChars = new Set(Object.keys(charMap));
+export const transliterableChars = new Set(Object.keys(charMap));
 
 export function containsNonLatinCharacters(text: string): boolean {
   return text.split('').some(char => {
