@@ -19,10 +19,10 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: corepack prepare  
-        run: corepack prepare pnpm@latest --activate
+      - name: Update Corepack
+        run: npm install -g corepack@latest
 
       - name: Enable Corepack
         run: corepack enable
