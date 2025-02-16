@@ -8,47 +8,90 @@ Positive.help is a place where people share positivity. Currently, the ability t
 
 - Node.js (version 18 or later)
 - pnpm
-- Turso database credentials
-- Clerk API keys (e.g., CLERK_API_KEY, CLERK_FRONTEND_API)
+- Turso database credentials (URL and authentication token)
+- Clerk API keys (e.g., `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`)
 
 ### Setup Instructions
 
-1. Clone the repository:
+1.  Clone the repository:
 
-   ```bash
-   git clone <repository_url>
-   cd positivehelp
-   ```
+```bash
+git clone <repository_url>
+cd positivehelp
+```
 
-2. Install dependencies:
+2.  Install dependencies:
 
-   ```bash
-   pnpm install
-   ```
+```bash
+pnpm install
+```
 
-3. Create a `.env` file in the root directory (you can use a provided `.env.example` as a reference if it exists) and add your environment variables for Turso and Clerk. For example:
+3.  Create a `.env` file in the root directory (you can use a provided `.env.example` as a reference if it exists) and add your environment variables for Turso and Clerk.  **Important:** Use `NEXT_PUBLIC_` prefix for Clerk's publishable key so it's available in the browser. For example:
 
-   ```env
-   TURSO_DB_URL=your_turso_db_url
-   CLERK_API_KEY=your_clerk_api_key
-   CLERK_FRONTEND_API=your_clerk_frontend_api
-   ```
+```env
+DATABASE_URL="libsql://<your-database-url>"
+DATABASE_AUTH_TOKEN="<your-auth-token>"
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="your_clerk_publishable_key"
+CLERK_SECRET_KEY="your_clerk_secret_key"
+```
 
-4. Start the development server:
+4.  Start the development server:
 
-   ```bash
-   pnpm run dev
-   ```
+```bash
+pnpm run dev
+```
 
-5. Run the unit tests to ensure everything is working properly:
+5.  Run the unit tests to ensure everything is working properly:
 
-   ```bash
-   pnpm run test
-   ```
+```bash
+pnpm run test
+```
 
-6. Open your browser and visit http://localhost:3000 to view the application.
+6.  Open your browser and visit http://localhost:3000 to view the application.
 
-### Note
+## Database Setup (Drizzle ORM with Turso)
 
-Enjoy building a positive community with Positive.help!
+This project uses Drizzle ORM for database management and is configured to work with a [Turso](https://turso.tech/) database.
+
+### Prerequisites (for database management)
+
+*   You should have a Turso database created and have the database URL and authentication token (already covered in the main setup).
+*   You need to have the Drizzle CLI installed globally or use pnpm dlx (`pnpx` is the alias for `pnpm dlx`)
+
+```bash
+# Install Drizzle CLI (globally or locally)
+npm install -g drizzle-kit 
+
+# or
+pnpm add -g drizzle-kit
+```
+
+* Ensure `drizzle.config.ts` file is correctly configured.
+
+### 1. Generating a New Migration
+
+After modifying your Drizzle schema (e.g., `src/db/schema.ts`), generate a migration:
+
+```bash
+pnpx drizzle-kit generate
+
+# Or if Drizzle CLI is installed globally
+drizzle-kit generate
+```
+
+### 2. Applying Migrations
+
+To apply the migrations to your database:
+
+```bash
+drizzle-kit migrate
+```
+
+### 3. Resetting the Database
+
+To reset the database to the latest migration:
+
+```bash
+drizzle-kit reset
+```
 
