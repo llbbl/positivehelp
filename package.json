@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
+    "vercel-build": "pnpm db:migrate && next build",
     "start": "pnpm db:migrate && next start",
     "lint": "next lint",
     "db:generate": "drizzle-kit generate --config drizzle.config.ts",
