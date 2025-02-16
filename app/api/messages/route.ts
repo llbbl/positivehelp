@@ -14,11 +14,9 @@ export interface Message {
 export async function GET() {
   try {
     const result = await client.execute(`
-      SELECT m.id, m.msg as text, m.slug as url, m.date, a.name as author 
-      FROM messages m 
-      LEFT JOIN message_authors ma ON m.id = ma.messageId 
-      LEFT JOIN authors a ON ma.authorId = a.id 
-      ORDER BY m.id DESC
+      SELECT id, msg as text, slug as url, date
+      FROM messages
+      ORDER BY id DESC
     `);
 
     const messages = result.rows.map((row: Row) => ({
@@ -26,12 +24,42 @@ export async function GET() {
       text: row.text as string,
       date: row.date as string,
       url: row.url as string,
-      author: row.author as string | undefined
     }));
 
     return NextResponse.json(messages);
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch messages' }, { status: 500 });
+  }
+}
+
+
+// --- Helper Function: getOrCreateAuthor ---
+async function getOrCreateAuthor(authorName: string | null | undefined): Promise<number | bigint | null> {
+  if (!authorName) {
+    return null;
+  }
+
+  let authorResult = await client.execute({
+    sql: 'SELECT id FROM authors WHERE name = ?',
+    args: [authorName],
+  });
+
+  if (authorResult.rows.length > 0) {
+    const authorId = authorResult.rows[0].id;
+     if (typeof authorId !== 'bigint' && typeof authorId !== 'number'){
+        throw new Error("author id invalid")
+    }
+    return authorId;
+  } else {
+    const newAuthorResult = await client.execute({
+      sql: 'INSERT INTO authors (name) VALUES (?)',
+      args: [authorName],
+    });
+      if (typeof newAuthorResult.lastInsertRowid !== 'bigint' && typeof newAuthorResult.lastInsertRowid !== 'number')
+    {
+        throw new Error ("Failed to insert author")
+    }
+    return newAuthorResult.lastInsertRowid;
   }
 }
 
@@ -44,63 +72,66 @@ export async function POST(request: Request) {
     const slug = generateSlug(text, hash);
 
     const existing = await client.execute({
-      sql: 'SELECT slug FROM messages WHERE hash = ?',
+      sql: 'SELECT id, slug FROM messages WHERE hash = ?',
       args: [hash],
     });
 
     if (existing.rows.length > 0) {
-      return NextResponse.json(
-        { error: 'This message already exists', slug: existing.rows[0].slug },
-        { status: 409 }
-      );
-    }
-
-    // Insert the message (this part remains the same)
-    const messageResult = await client.execute({
-      sql: 'INSERT INTO messages (msg, date, slug, hash, clerkUserId) VALUES (?, ?, ?, ?, ?)',
-      args: [text, currentDate, slug, hash, clerkUserId],
-    });
-
-    if (typeof messageResult.lastInsertRowid !== 'bigint' && typeof messageResult.lastInsertRowid !== 'number') {
-      throw new Error('Failed to get inserted message ID');
-    }
-    const messageId = messageResult.lastInsertRowid;
-
-    // --- Author Handling (Conditional Logic) ---
-    if (author) { // Only proceed if author is provided and not null
-      // Check if author exists
-      let authorResult = await client.execute({
-        sql: 'SELECT id FROM authors WHERE name = ?',
-        args: [author],
-      });
-
-      let authorId;
-      if (authorResult.rows.length === 0) {
-        // Insert new author
-        const newAuthorResult = await client.execute({
-          sql: 'INSERT INTO authors (name) VALUES (?)',
-          args: [author],
-        });
-        if (typeof newAuthorResult.lastInsertRowid !== 'bigint' && typeof newAuthorResult.lastInsertRowid !== 'number') {
-            throw new Error("Failed to get author id")
+      // --- Message Exists ---
+      const existingMessageId = existing.rows[0].id;
+      const existingSlug = existing.rows[0].slug;
+        if (typeof existingMessageId !== 'bigint' && typeof existingMessageId !== 'number'){
+            throw new Error ("Invalid message id")
         }
-        authorId = newAuthorResult.lastInsertRowid;
-      } else {
-          authorId = authorResult.rows[0].id;
-          if (typeof authorId !== 'bigint' && typeof authorId !== 'number'){
-            throw new Error("Failed to get author id")
-          }
+
+      if (author) {
+          const authorId = await getOrCreateAuthor(author); // Use the helper function
+
+          // IMPORTANT: Handle null authorId
+          if (authorId !== null) {
+              const attributionExists = await client.execute({
+                sql: 'SELECT 1 FROM message_authors WHERE messageId = ? AND authorId = ?',
+                args: [existingMessageId, authorId],
+              });
+
+              if (attributionExists.rows.length === 0) {
+                await client.execute({
+                  sql: 'INSERT INTO message_authors (messageId, authorId) VALUES (?, ?)',
+                  args: [existingMessageId, authorId],
+                });
+              }
+            }
       }
 
-      // Create message-author relationship
-      await client.execute({
-        sql: 'INSERT INTO message_authors (messageId, authorId) VALUES (?, ?)',
-        args: [messageId, authorId],
+      return NextResponse.json({ success: true, slug: existingSlug });
+
+    } else {
+      // --- Message Doesn't Exist ---
+      const messageResult = await client.execute({
+        sql: 'INSERT INTO messages (msg, date, slug, hash, clerkUserId) VALUES (?, ?, ?, ?, ?)',
+        args: [text, currentDate, slug, hash, clerkUserId],
       });
-    } // No `else` needed.  If author is null, we simply skip the author-related inserts.
 
-    return NextResponse.json({ success: true, slug });
+      if (typeof messageResult.lastInsertRowid !== 'bigint' && typeof messageResult.lastInsertRowid !== 'number') {
+        throw new Error('Failed to get inserted message ID');
+      }
+      const messageId = messageResult.lastInsertRowid;
 
+      if (author) {
+        const authorId = await getOrCreateAuthor(author); // Use the helper function
+
+         // IMPORTANT: Handle null authorId
+        if (authorId !== null) {
+            await client.execute({
+                sql: 'INSERT INTO message_authors (messageId, authorId) VALUES (?, ?)',
+                args: [messageId, authorId],
+            });
+        }
+      }
+
+
+      return NextResponse.json({ success: true, slug });
+    }
   } catch (error) {
     console.error('Error creating message:', error);
     return NextResponse.json({ error: 'Failed to create message' }, { status: 500 });
