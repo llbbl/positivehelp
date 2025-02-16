@@ -5,15 +5,28 @@ import { useRouter } from "next/navigation"
 import { createMessage } from "@/app/actions"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
+import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "@clerk/nextjs"
 
 export function AddMessageForm() {
   const [isPending, setIsPending] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
+  const { userId } = useAuth()
 
   async function handleSubmit(formData: FormData) {
+    if (!userId) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "You must be logged in to add a message",
+      })
+      return
+    }
+
     setIsPending(true)
+    formData.append("userId", userId)
     const result = await createMessage(formData)
     setIsPending(false)
 
@@ -48,6 +61,20 @@ export function AddMessageForm() {
           name="content"
           placeholder="Share something positive..."
           className="min-h-[100px]"
+          required
+        />
+      </div>
+      <div className="space-y-2">
+        <label
+          htmlFor="author"
+          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+        >
+          Author
+        </label>
+        <Input
+          id="author"
+          name="author"
+          placeholder="Who said or wrote this or leave blank for anonymous."
           required
         />
       </div>

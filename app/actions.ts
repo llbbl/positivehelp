@@ -4,9 +4,19 @@ import { sanitizeContent } from '@/utils/sanitize';
 
 export async function createMessage(formData: FormData) {
   const content = formData.get('content')
+  const author = formData.get('author')
+  const userId = formData.get('userId')
   
   if (!content || typeof content !== 'string') {
     return { error: 'Message content is required' }
+  }
+
+  if (!author || typeof author !== 'string') {
+    return { error: 'Author is required' }
+  }
+
+  if (!userId || typeof userId !== 'string') {
+    return { error: 'You must be logged in to add a message' }
   }
 
   const sanitizedContent = sanitizeContent(content);
@@ -24,7 +34,11 @@ export async function createMessage(formData: FormData) {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ text: sanitizedContent }),
+      body: JSON.stringify({ 
+        text: sanitizedContent,
+        author,
+        clerkUserId: userId
+      }),
     })
 
     if (!response.ok) {
