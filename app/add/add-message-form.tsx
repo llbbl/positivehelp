@@ -10,45 +10,45 @@ import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@clerk/nextjs"
 
 export function AddMessageForm() {
-  const [isPending, setIsPending] = useState(false)
+  const [ isPending, setIsPending ] = useState( false )
   const router = useRouter()
   const { toast } = useToast()
   const { userId } = useAuth()
 
-  async function handleSubmit(formData: FormData) {
-    if (!userId) {
-      toast({
+  async function handleSubmit( formData: FormData ) {
+    if ( !userId ) {
+      toast( {
         variant: "destructive",
         title: "Error",
         description: "You must be logged in to add a message",
-      })
+      } )
       return
     }
 
-    setIsPending(true)
-    formData.append("userId", userId)
-    const result = await createMessage(formData)
-    setIsPending(false)
+    setIsPending( true )
+    formData.append( "userId", userId )
+    const result = await createMessage( formData )
+    setIsPending( false )
 
-    if (result.error) {
-      toast({
+    if ( result.error ) {
+      toast( {
         variant: "destructive",
         title: "Error",
         description: result.error,
-      })
+      } )
       return
     }
 
-    toast({
+    toast( {
       title: "Success",
       description: "Your message has been added!",
-    })
-    router.push("/")
+    } )
+    router.push( "/" )
     router.refresh()
   }
 
   return (
-    <form action={handleSubmit} className="space-y-4 max-w-2xl">
+    <form action={ handleSubmit } className="space-y-4 max-w-2xl">
       <div className="space-y-2">
         <label
           htmlFor="content"
@@ -77,8 +77,8 @@ export function AddMessageForm() {
           placeholder="Who said or wrote this? Leave blank for anonymous."
         />
       </div>
-      <Button type="submit" disabled={isPending}>
-        {isPending ? "Adding..." : "Add Message"}
+      <Button type="submit" disabled={ isPending }>
+        { isPending ? "Adding..." : "Add Message" }
       </Button>
     </form>
   )

@@ -10,20 +10,20 @@ export interface Message {
   url: string;
 }
 
-export async function GET(request: Request) {
+export async function GET( request: Request ) {
   try {
-    const slug = request.url.split('/').pop();
-    if (!slug) {
-      return NextResponse.json({ error: 'Invalid slug' }, { status: 400 });
+    const slug = request.url.split( '/' ).pop();
+    if ( !slug ) {
+      return NextResponse.json( { error: 'Invalid slug' }, { status: 400 } );
     }
-    
-    const result = await client.execute({
+
+    const result = await client.execute( {
       sql: 'SELECT id, msg as text, slug as url, date FROM messages WHERE slug = ?',
-      args: [slug]
-    });
-    
-    if (!result.rows.length) {
-      return NextResponse.json({ error: 'Message not found' }, { status: 404 });
+      args: [ slug ]
+    } );
+
+    if ( !result.rows.length ) {
+      return NextResponse.json( { error: 'Message not found' }, { status: 404 } );
     }
 
     const message = {
@@ -32,9 +32,9 @@ export async function GET(request: Request) {
       date: result.rows[0].date as string,
       url: result.rows[0].url as string,
     };
-    
-    return NextResponse.json(message);
+
+    return NextResponse.json( message );
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch message' }, { status: 500 });
+    return NextResponse.json( { error: 'Failed to fetch message' }, { status: 500 } );
   }
 }
