@@ -55,7 +55,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Insert the message
+    // Insert the message (this part remains the same)
     const messageResult = await client.execute({
       sql: 'INSERT INTO messages (msg, date, slug, hash, clerkUserId) VALUES (?, ?, ?, ?, ?)',
       args: [text, currentDate, slug, hash, clerkUserId],
@@ -66,36 +66,38 @@ export async function POST(request: Request) {
     }
     const messageId = messageResult.lastInsertRowid;
 
-
-    // Check if author exists
-    let authorResult = await client.execute({
-      sql: 'SELECT id FROM authors WHERE name = ?',
-      args: [author],
-    });
-
-    let authorId;
-    if (authorResult.rows.length === 0) {
-      // Insert new author
-      const newAuthorResult = await client.execute({
-        sql: 'INSERT INTO authors (name) VALUES (?)',
+    // --- Author Handling (Conditional Logic) ---
+    if (author) { // Only proceed if author is provided and not null
+      // Check if author exists
+      let authorResult = await client.execute({
+        sql: 'SELECT id FROM authors WHERE name = ?',
         args: [author],
       });
+
+      let authorId;
+      if (authorResult.rows.length === 0) {
+        // Insert new author
+        const newAuthorResult = await client.execute({
+          sql: 'INSERT INTO authors (name) VALUES (?)',
+          args: [author],
+        });
         if (typeof newAuthorResult.lastInsertRowid !== 'bigint' && typeof newAuthorResult.lastInsertRowid !== 'number') {
             throw new Error("Failed to get author id")
         }
-      authorId = newAuthorResult.lastInsertRowid;
-    } else {
-      authorId = authorResult.rows[0].id;
-      if (typeof authorId !== 'bigint' && typeof authorId !== 'number'){
-        throw new Error("Failed to get author id")
+        authorId = newAuthorResult.lastInsertRowid;
+      } else {
+          authorId = authorResult.rows[0].id;
+          if (typeof authorId !== 'bigint' && typeof authorId !== 'number'){
+            throw new Error("Failed to get author id")
+          }
       }
-    }
 
-    // Create message-author relationship
-    await client.execute({
-      sql: 'INSERT INTO message_authors (messageId, authorId) VALUES (?, ?)',
-      args: [messageId, authorId],
-    });
+      // Create message-author relationship
+      await client.execute({
+        sql: 'INSERT INTO message_authors (messageId, authorId) VALUES (?, ?)',
+        args: [messageId, authorId],
+      });
+    } // No `else` needed.  If author is null, we simply skip the author-related inserts.
 
     return NextResponse.json({ success: true, slug });
 

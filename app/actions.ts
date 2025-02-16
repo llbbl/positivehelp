@@ -6,21 +6,19 @@ export async function createMessage(formData: FormData) {
   const content = formData.get('content')
   const author = formData.get('author')
   const userId = formData.get('userId')
-  
+
   if (!content || typeof content !== 'string') {
     return { error: 'Message content is required' }
   }
 
-  if (!author || typeof author !== 'string') {
-    return { error: 'Author is required' }
-  }
+  // Author is now OPTIONAL, so we remove the check.
 
   if (!userId || typeof userId !== 'string') {
     return { error: 'You must be logged in to add a message' }
   }
 
   const sanitizedContent = sanitizeContent(content);
-  
+
   if (sanitizedContent.length < 3) {
     return { error: 'Message is too short' }
   }
@@ -28,15 +26,15 @@ export async function createMessage(formData: FormData) {
   try {
     const apiUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/messages`;
     console.log('Attempting to post to:', apiUrl);
-    
+
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         text: sanitizedContent,
-        author,
+        author: author && typeof author === 'string' ? author : null, 
         clerkUserId: userId
       }),
     })

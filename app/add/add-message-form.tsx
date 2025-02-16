@@ -74,8 +74,7 @@ export function AddMessageForm() {
         <Input
           id="author"
           name="author"
-          placeholder="Who said or wrote this or leave blank for anonymous."
-          required
+          placeholder="Who said or wrote this? Leave blank for anonymous."
         />
       </div>
       <Button type="submit" disabled={isPending}>
