@@ -5,9 +5,11 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
-    "start": "next start",
+    "start": "pnpm db:migrate && next start",
     "lint": "next lint",
-    "db:generate": "drizzle-kit generate:sqlite --schema=./src/db/schema.ts --out=./drizzle/migrations",
+    "db:generate": "drizzle-kit generate --config drizzle.config.ts",
+    "db:migrate": "drizzle-kit migrate --config drizzle.config.ts",
+    "db:reset": "drizzle-kit reset --config drizzle.config.ts",
     "test": "jest",
     "test:watch": "jest --watch"
   },

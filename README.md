@@ -56,15 +56,7 @@ This project uses Drizzle ORM for database management and is configured to work 
 ### Prerequisites (for database management)
 
 *   You should have a Turso database created and have the database URL and authentication token (already covered in the main setup).
-*   You need to have the Drizzle CLI installed globally or use pnpm dlx (`pnpx` is the alias for `pnpm dlx`)
-
-```bash
-# Install Drizzle CLI (globally or locally)
-npm install -g drizzle-kit 
-
-# or
-pnpm add -g drizzle-kit
-```
+*   We will be using the drizzle-kit CLI in the node_modules/.bin directory.
 
 * Ensure `drizzle.config.ts` file is correctly configured.
 
@@ -73,10 +65,7 @@ pnpm add -g drizzle-kit
 After modifying your Drizzle schema (e.g., `src/db/schema.ts`), generate a migration:
 
 ```bash
-pnpx drizzle-kit generate
-
-# Or if Drizzle CLI is installed globally
-drizzle-kit generate
+pnpm drizzle-kit generate
 ```
 
 ### 2. Applying Migrations
@@ -84,7 +73,7 @@ drizzle-kit generate
 To apply the migrations to your database:
 
 ```bash
-drizzle-kit migrate
+pnpm drizzle-kit migrate
 ```
 
 ### 3. Resetting the Database
@@ -92,6 +81,6 @@ drizzle-kit migrate
 To reset the database to the latest migration:
 
 ```bash
-drizzle-kit reset
+pnpm drizzle-kit reset
 ```
 

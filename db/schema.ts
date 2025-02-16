@@ -1,4 +1,5 @@
 import { sqliteTable, integer, text, numeric, primaryKey } from "drizzle-orm/sqlite-core"
+import { relations } from 'drizzle-orm'; 
 
 export const messages = sqliteTable("messages", {
 	id: integer().primaryKey(),
@@ -10,14 +11,33 @@ export const messages = sqliteTable("messages", {
 });
 
 export const authors = sqliteTable("authors", {
-	id: integer().primaryKey(),
-	name: text('name')
+    id: integer("id", { mode: "number" }).primaryKey(),
+    name: text('name')
 });
 
 export const message_authors = sqliteTable("message_authors", {
-	messageId: integer().notNull(),
-	authorId: integer().notNull()
+    messageId: integer('messageId', { mode: "number" }).notNull().references(() => messages.id),
+    authorId: integer('authorId', { mode: "number" }).notNull().references(() => authors.id),
 }, (table) => ({
-	pk: primaryKey(table.messageId, table.authorId)
+    pk: primaryKey(table.messageId, table.authorId),
+}));
+
+export const messagesRelations = relations(messages, ({ many }) => ({
+	authors: many(message_authors),
+}));
+
+export const authorsRelations = relations(authors, ({ many }) => ({
+	messages: many(message_authors),
+}));
+
+export const messageAuthorsRelations = relations(message_authors, ({ one }) => ({
+	message: one(messages, {
+		fields: [message_authors.messageId],
+		references: [messages.id],
+	}),
+	author: one(authors, {
+		fields: [message_authors.authorId],
+		references: [authors.id],
+	}),
 }));
 
