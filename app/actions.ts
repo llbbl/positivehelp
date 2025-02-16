@@ -1,5 +1,6 @@
 "use server"
 
+import { sanitizeContent } from '@/utils/sanitize';
 
 export async function createMessage(formData: FormData) {
   const content = formData.get('content')
@@ -8,10 +9,8 @@ export async function createMessage(formData: FormData) {
     return { error: 'Message content is required' }
   }
 
-  // Sanitize the content
   const sanitizedContent = sanitizeContent(content);
   
-  // Check if content is too short after sanitization
   if (sanitizedContent.length < 3) {
     return { error: 'Message is too short' }
   }
@@ -39,22 +38,4 @@ export async function createMessage(formData: FormData) {
     console.error('Error details:', error);
     return { error: error instanceof Error ? error.message : 'Failed to create message' }
   }
-}
-
-function sanitizeContent(text: string): string {
-  return text
-    // Convert to plain text, remove HTML
-    .replace(/<[^>]*>/g, '')
-    // Remove URLs
-    .replace(/(?:https?|ftp):\/\/[\n\S]+/g, '')
-    // Remove script tags and contents
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    // Remove special characters but keep basic punctuation
-    .replace(/[^\w\s.,!?-]/g, '')
-    // Remove SQL keywords
-    .replace(/\b(SELECT|INSERT|UPDATE|DELETE|DROP|UNION|WHERE|FROM)\b/gi, '')
-    // Trim whitespace
-    .trim()
-    // Normalize whitespace
-    .replace(/\s+/g, ' ');
 }
