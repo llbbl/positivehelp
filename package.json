@@ -28,7 +28,7 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
-    "@next/env": "^15.1.6",
+    "@next/env": "^15.1.7",
     "@testing-library/jest-dom": "^6.6.3",
     "@types/better-sqlite3": "^7.6.12",
     "@types/jest": "^29.5.14",
