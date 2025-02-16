@@ -2,7 +2,7 @@ import { sqliteTable, integer, text, numeric, primaryKey } from "drizzle-orm/sql
 import { relations } from 'drizzle-orm'; 
 
 export const messages = sqliteTable("messages", {
-	id: integer().primaryKey(),
+	id: integer("id", { mode: "number" }).primaryKey(),
 	msg: text('msg'),
 	hash: text('hash'),
 	slug: text('slug'),
@@ -18,9 +18,13 @@ export const authors = sqliteTable("authors", {
 export const message_authors = sqliteTable("message_authors", {
     messageId: integer('messageId', { mode: "number" }).notNull().references(() => messages.id),
     authorId: integer('authorId', { mode: "number" }).notNull().references(() => authors.id),
-}, (table) => ({
-    pk: primaryKey(table.messageId, table.authorId),
-}));
+}, (table) => [ // Changed: Now returns an array
+    primaryKey({ columns: [table.messageId, table.authorId] }), // Put the primaryKey inside the array
+]);
+
+
+
+// Relations
 
 export const messagesRelations = relations(messages, ({ many }) => ({
 	authors: many(message_authors),
