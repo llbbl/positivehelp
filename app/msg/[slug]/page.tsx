@@ -44,8 +44,14 @@ export default async function MessagePage( { params }: { params: Promise<{ slug:
       <div className={ `min-h-screen ${ bgColor }` }>
         <main className="relative min-h-[calc(100vh-4rem)] p-6 flex items-center justify-center">
           <div className="max-w-[90%]">
-            <h1 className="text-[8vw] leading-tight font-medium text-center">{ message.text }</h1>
+            <h1 className="text-[8vw] leading-tight font-medium text-center">{message.text}</h1>
+            {message.authors?.length > 0 && (
+              <p className="text-right mt-4 text-sm text-gray-700">
+                  — {message.authors.map(author => author.name).join(', ')}
+              </p>
+            )}
           </div>
+          
           <span className="absolute bottom-6 left-6 text-sm text-gray-600">{ message.date }</span>
         </main>
       </div>

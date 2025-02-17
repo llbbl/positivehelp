@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import client from '@/lib/db';
 
+const isString = (value: unknown): value is string => typeof value === 'string';
 
 // Export the Message interface
 export interface Message {
@@ -8,6 +9,7 @@ export interface Message {
   text: string;
   date: string;
   url: string;
+  authors: Array<{ id: number; name: string }>;
 }
 
 export async function GET( request: Request ) {
@@ -18,7 +20,30 @@ export async function GET( request: Request ) {
     }
 
     const result = await client.execute( {
-      sql: 'SELECT id, msg as text, slug as url, date FROM messages WHERE slug = ?',
+      sql: `
+        SELECT 
+          m.id, 
+          m.msg as text, 
+          m.slug as url, 
+          m.date,
+          CASE
+            WHEN COUNT(a.id) = 0 THEN '[]'
+            ELSE CONCAT('[',
+                GROUP_CONCAT(
+                  CASE
+                    WHEN a.id IS NOT NULL THEN
+                      json_object('id', a.id, 'name', a.name)
+                    ELSE NULL
+                  END
+                )
+              ,']')
+            END as authors
+        FROM messages m
+        LEFT JOIN message_authors ma ON m.id = ma.messageId
+        LEFT JOIN authors a ON ma.authorId = a.id
+        WHERE m.slug = ?
+        GROUP BY m.id, m.msg, m.slug, m.date
+      `,
       args: [ slug ]
     } );
 
@@ -26,11 +51,15 @@ export async function GET( request: Request ) {
       return NextResponse.json( { error: 'Message not found' }, { status: 404 } );
     }
 
+    const row = result.rows[0];
+    const authors = isString(row.authors) ? JSON.parse(row.authors as string) : [];
+
     const message = {
-      id: result.rows[0].id as number,
-      text: result.rows[0].text as string,
-      date: result.rows[0].date as string,
-      url: result.rows[0].url as string,
+      id: row.id as number,
+      text: row.text as string,
+      date: row.date as string,
+      url: row.url as string,
+      authors,
     };
 
     return NextResponse.json( message );
