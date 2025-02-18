@@ -19,6 +19,34 @@ export async function GET( request: Request ) {
       return NextResponse.json( { error: 'Invalid slug' }, { status: 400 } );
     }
 
+    // First get the current message's ID
+    const currentMessage = await client.execute( {
+      sql: `SELECT id FROM messages WHERE slug = ?`,
+      args: [ slug ]
+    } );
+
+    if ( !currentMessage.rows.length ) {
+      return NextResponse.json( { error: 'Message not found' }, { status: 404 } );
+    }
+
+    const currentId = currentMessage.rows[0].id;
+
+    // Get navigation info
+    const navigationResult = await client.execute( {
+      sql: `
+        SELECT 
+          (SELECT slug FROM messages WHERE id < ? ORDER BY id DESC LIMIT 1) as prevSlug,
+          (SELECT slug FROM messages WHERE id > ? ORDER BY id ASC LIMIT 1) as nextSlug
+      `,
+      args: [ currentId, currentId ]
+    } );
+
+    const navigation = {
+      prevSlug: navigationResult.rows[0].prevSlug,
+      nextSlug: navigationResult.rows[0].nextSlug
+    };
+
+    // Get the message details as before
     const result = await client.execute( {
       sql: `
         SELECT 
@@ -60,6 +88,7 @@ export async function GET( request: Request ) {
       date: row.date as string,
       url: row.url as string,
       authors,
+      navigation
     };
 
     return NextResponse.json( message );
