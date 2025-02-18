@@ -1,6 +1,6 @@
 import type { Message } from "@/app/api/messages/[slug]/route";
 import MessageDisplay from './message-display';
-import RunTimeLogger from "@/components/RunTimelogger";
+import RunTimeLogger from "@/components/RunTimeLogger";
 
 // Define your custom colors
 const bgColors = [
