@@ -3,7 +3,7 @@
 
 import { useEffect } from 'react';
 
-export default function RunTimeLogger() {
+export default function RuntimeLogger() {
   useEffect(() => {
     console.log("--- RuntimeLogger: Client-Side Logging ---");
     console.log("process.env.NEXT_PUBLIC_APP_URL:", process.env.NEXT_PUBLIC_APP_URL);
