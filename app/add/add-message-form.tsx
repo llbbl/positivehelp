@@ -75,7 +75,7 @@ export function AddMessageForm() {
           htmlFor="author"
           className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
         >
-          Author
+          Author or Attribution
         </label>
         <Input
           id="author"
