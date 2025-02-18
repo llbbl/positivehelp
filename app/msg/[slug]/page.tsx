@@ -1,6 +1,6 @@
 import type { Message } from "@/app/api/messages/[slug]/route";
 import MessageDisplay from './message-display';
-import RuntimeLogger from '@/components/RunTimelogger';
+import RunTimeLogger from "@/components/RunTimelogger";
 
 // Define your custom colors
 const bgColors = [
@@ -43,7 +43,7 @@ export default async function MessagePage({ params }: { params: Promise<{ slug: 
 
     return (
       <>
-        <RuntimeLogger /> 
+        <RunTimeLogger /> 
         <MessageDisplay message={message} bgColor={bgColor} />
       </>
     );
