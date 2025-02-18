@@ -23,13 +23,15 @@ export default async function MessagePage({ params }: { params: Promise<{ slug: 
   const { slug } = resolvedParams;
   const bgColor = getRandomColor();
 
-  try {
-    // --- LOGGING: Environment Variables ---
+      // --- LOGGING: Environment Variables ---
     console.log("--- MessagePage: Server-Side Logging ---");
     console.log("process.env.NEXT_PUBLIC_APP_URL:", process.env.NEXT_PUBLIC_APP_URL);
     console.log("process.env.VERCEL_ENV:", process.env.VERCEL_ENV);
     console.log("process.env.NEXT_PUBLIC_VERCEL_BRANCH_URL:", process.env.NEXT_PUBLIC_VERCEL_BRANCH_URL);
     console.log("process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL:", process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL);
+
+
+  try {
 
     const apiUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/messages/${slug}`;
     // --- LOGGING: Constructed URL ---
