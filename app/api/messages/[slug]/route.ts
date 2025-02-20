@@ -1,5 +1,7 @@
+// app/api/messages/[slug]/route.ts
 import { NextResponse } from 'next/server';
 import client from '@/lib/db';
+import logger from '@/lib/logger'; // Import your logger
 
 const isString = (value: unknown): value is string => typeof value === 'string';
 
@@ -12,26 +14,40 @@ export interface Message {
   authors: Array<{ id: number; name: string }>;
 }
 
-export async function GET( request: Request ) {
+export async function GET(
+  request: Request,
+  { params }: { params: { slug: string } }
+) {
+  const slug = params.slug; // Get slug directly from params
   try {
-    const slug = request.url.split( '/' ).pop();
+    logger.info('API Route: /api/messages/[slug] - Entry', { slug });
+
+
     if ( !slug ) {
+      logger.warn('API Route: Invalid slug (empty)', { slug });
       return NextResponse.json( { error: 'Invalid slug' }, { status: 400 } );
     }
 
     // First get the current message's ID
+        logger.info('API Route: Before currentMessage query', { slug });
     const currentMessage = await client.execute( {
       sql: `SELECT id FROM messages WHERE slug = ?`,
       args: [ slug ]
     } );
+        logger.info('API Route: After currentMessage query', { currentMessage });
+
 
     if ( !currentMessage.rows.length ) {
+        logger.warn('API Route: Message not found (currentMessage)', { slug });
       return NextResponse.json( { error: 'Message not found' }, { status: 404 } );
     }
 
-    const currentId = currentMessage.rows[0].id;
+    const currentId = currentMessage.rows[0].id as number;
+        logger.info('API Route: Current message ID', { currentId });
+
 
     // Get navigation info
+        logger.info('API Route: Before navigation query', { currentId });
     const navigationResult = await client.execute( {
       sql: `
         SELECT 
@@ -40,13 +56,16 @@ export async function GET( request: Request ) {
       `,
       args: [ currentId, currentId ]
     } );
+    logger.info('API Route: After navigation query', { navigationResult });
+
 
     const navigation = {
-      prevSlug: navigationResult.rows[0].prevSlug,
-      nextSlug: navigationResult.rows[0].nextSlug
+      prevSlug: navigationResult.rows[0].prevSlug as string | null,
+      nextSlug: navigationResult.rows[0].nextSlug as string | null,
     };
 
     // Get the message details as before
+    logger.info('API Route: Before message details query', { slug });
     const result = await client.execute( {
       sql: `
         SELECT 
@@ -74,8 +93,11 @@ export async function GET( request: Request ) {
       `,
       args: [ slug ]
     } );
+    logger.info('API Route: After message details query', { result });
+
 
     if ( !result.rows.length ) {
+      logger.warn('API Route: Message not found (result)', { slug });
       return NextResponse.json( { error: 'Message not found' }, { status: 404 } );
     }
 
@@ -91,8 +113,15 @@ export async function GET( request: Request ) {
       navigation
     };
 
+    logger.info('API Route: Returning message', { messageId: message.id });
     return NextResponse.json( message );
+
   } catch (error) {
+    logger.error('API Route: Error', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined, // Log the stack trace
+      slug,
+    });
     return NextResponse.json( { error: 'Failed to fetch message' }, { status: 500 } );
   }
 }
