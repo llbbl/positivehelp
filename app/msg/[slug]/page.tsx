@@ -18,8 +18,9 @@ function getRandomColor() {
   return bgColors[randomIndex];
 }
 
-export default async function MessagePage({ params }: { params: { slug: string } }) {
-  const { slug } = params;
+export default async function MessagePage({ params }: { params: Promise<{ slug: string }> }) {
+  const resolvedParams = await params;
+  const { slug } = resolvedParams;
   const bgColor = getRandomColor();
 
   try {
