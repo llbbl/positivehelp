@@ -16,9 +16,9 @@ export interface Message {
 
 export async function GET(
   request: Request,
-  { params }: { params: { slug: string } }
+  context: { params: { slug: string } }
 ) {
-  const slug = params.slug; // Get slug directly from params
+  const { slug } = context.params;
   try {
     logger.info('API Route: /api/messages/[slug] - Entry', { slug });
 
