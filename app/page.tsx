@@ -17,7 +17,7 @@ export default async function Home() {
             <Link
               href={ `/msg/${ message.url }` }
               key={ message.id }
-              className="block text-gray-800 hover:text-gray-600 transition-colors"
+              className="block p-1 rounded-lg text-gray-800 hover:bg-gray-100/60 transition-all"
             >
               <p>{ message.text }</p>
               <span className="text-sm text-gray-600">({ message.date })</span>
