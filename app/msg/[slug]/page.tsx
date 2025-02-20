@@ -1,6 +1,6 @@
 import type { Message } from "@/app/api/messages/[slug]/route";
 import MessageDisplay from './message-display';
-import RuntimeLogger from "@/components/RuntimeLogger";
+import logger from '@/lib/logger';
 
 // Define your custom colors
 const bgColors = [
@@ -26,7 +26,10 @@ export default async function MessagePage({ params }: { params: Promise<{ slug: 
   const bgColor = getRandomColor();
 
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/messages/${slug}`, {
+    logger.info(`Fetching message with slug: ${slug}`);
+    const apiUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/messages/${slug}`;
+    
+    const response = await fetch(apiUrl, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -34,26 +37,42 @@ export default async function MessagePage({ params }: { params: Promise<{ slug: 
     });
 
     if (!response.ok) {
-      throw new Error(`Error: ${response.status}`);
+      logger.error(`API request failed for slug ${slug}`, {
+        status: response.status,
+        statusText: response.statusText,
+        url: apiUrl
+      });
+      throw new Error(`Failed to fetch message: ${response.status} ${response.statusText}`);
     }
 
     const message = await response.json() as Message & { 
       navigation: { prevSlug: string | null, nextSlug: string | null } 
     };
 
+    logger.info(`Successfully fetched message for slug: ${slug}`, {
+      messageId: message.id
+    });
+
     return (
       <>
-        <RuntimeLogger /> 
         <MessageDisplay message={message} bgColor={bgColor} />
       </>
     );
 
   } catch (error) {
+    logger.error('Error in MessagePage:', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      slug
+    });
+
     return (
       <div className={`min-h-screen ${bgColor}`}>
         <main className="container mx-auto p-6">
           <div className="bg-white rounded-lg p-6 shadow-sm">
             <p className="text-red-600">Failed to load message. Please try again later.</p>
+            {process.env.NODE_ENV !== 'production' && error instanceof Error && (
+              <p className="text-sm text-gray-600 mt-2">{error.message}</p>
+            )}
           </div>
         </main>
       </div>
