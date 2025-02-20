@@ -7,15 +7,19 @@ console.log("process.env.NEXT_PUBLIC_VERCEL_BRANCH_URL:", process.env.NEXT_PUBLI
 console.log("process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL:", process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL);
 console.log("process.env.NEXT_PUBLIC_APP_URL (before config):", process.env.NEXT_PUBLIC_APP_URL);
 
+let appUrl: string;
+
+if (process.env.NEXT_PUBLIC_VERCEL_BRANCH_URL) {
+  appUrl = `https://${process.env.NEXT_PUBLIC_VERCEL_BRANCH_URL}`;
+} else if (process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL) {
+  appUrl = `https://${process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL}`;
+} else {
+  appUrl = "http://localhost:3000";
+}
+
 const nextConfig: NextConfig = {
   env: {
-    NEXT_PUBLIC_APP_URL:
-      process.env.VERCEL_ENV === "preview" &&
-      process.env.NEXT_PUBLIC_VERCEL_BRANCH_URL
-        ? `https://${process.env.NEXT_PUBLIC_VERCEL_BRANCH_URL}`
-        : process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL
-        ? `https://${process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL}`
-        : "http://localhost:3000",
+    NEXT_PUBLIC_APP_URL: appUrl,
   },
   reactStrictMode: true,
 };
