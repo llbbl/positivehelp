@@ -26,8 +26,16 @@ export default async function MessagePage({ params }: { params: Promise<{ slug: 
   try {
     logger.info(`Page: Fetching message for slug: ${slug}`);
 
-    const apiUrl = `/api/messages/${slug}`;
-    const response = await fetch(apiUrl);
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const apiUrl = new URL(`/api/messages/${slug}`, baseUrl).toString();
+    
+    logger.info('Page: Making API request', { apiUrl });
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
     if (!response.ok) {
       logger.error('API request failed', {
