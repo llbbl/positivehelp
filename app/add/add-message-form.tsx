@@ -48,7 +48,13 @@ export function AddMessageForm() {
   }
 
   return (
-    <form action={ handleSubmit } className="space-y-4 max-w-2xl">
+    <form 
+      onSubmit={(e) => {
+        e.preventDefault();
+        handleSubmit(new FormData(e.currentTarget));
+      }} 
+      className="space-y-4 max-w-2xl"
+    >
       <div className="space-y-2">
         <label
           htmlFor="content"
@@ -69,7 +75,7 @@ export function AddMessageForm() {
           htmlFor="author"
           className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
         >
-          Author
+          Author or Attribution
         </label>
         <Input
           id="author"

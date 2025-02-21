@@ -1,7 +1,8 @@
+// page component
 import type { Message } from "@/app/api/messages/[slug]/route";
+import MessageDisplay from './message-display';
+import logger from '@/lib/logger';
 
-
-// Define your custom colors
 const bgColors = [
   'bg-custom-green',
   'bg-custom-mint',
@@ -13,55 +14,66 @@ const bgColors = [
   'bg-custom-red',
 ] as const;
 
-// Function to get random color
 function getRandomColor() {
-  const randomIndex = Math.floor( Math.random() * bgColors.length );
+  const randomIndex = Math.floor(Math.random() * bgColors.length);
   return bgColors[randomIndex];
 }
 
-export default async function MessagePage( { params }: { params: Promise<{ slug: string }> } ) {
+export default async function MessagePage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = await params;
   const { slug } = resolvedParams;
-
-  // Get a random background color
   const bgColor = getRandomColor();
 
   try {
-    const response = await fetch( `${ process.env.NEXT_PUBLIC_APP_URL }/api/messages/${ slug }`, {
+    logger.info(`Page: Fetching message for slug: ${slug}`);
+
+    // Construct the absolute URL using NEXT_PUBLIC_APP_URL
+    const absoluteUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/messages/${slug}`;
+
+    const response = await fetch(absoluteUrl, { 
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
-    } );
+      cache: 'no-store'
+    });
 
-    if ( !response.ok ) {
-      throw new Error( `Error: ${ response.status }` );
+    if (!response.ok) {
+      logger.error('API request failed', {
+        status: response.status,
+        statusText: response.statusText,
+        url: absoluteUrl
+      });
+      throw new Error(`Failed to fetch message: ${response.status} ${response.statusText}`);
     }
 
-    const message = await response.json() as Message;
+    const message = await response.json() as Message & {
+      navigation: { prevSlug: string | null, nextSlug: string | null }
+    };
+
+    logger.info(`Page: Successfully fetched message`, { messageId: message.id });
 
     return (
-      <div className={ `min-h-screen ${ bgColor }` }>
-        <main className="relative min-h-[calc(100vh-4rem)] p-6 flex items-center justify-center">
-          <div className="max-w-[90%]">
-            <h1 className="text-[8vw] leading-tight font-medium text-center">{message.text}</h1>
-            {message.authors?.length > 0 && (
-              <p className="text-right mt-4 text-sm text-gray-700">
-                  — {message.authors.map(author => author.name).join(', ')}
-              </p>
-            )}
-          </div>
-          
-          <span className="absolute bottom-6 left-6 text-sm text-gray-600">{ message.date }</span>
-        </main>
-      </div>
+      <>
+        <MessageDisplay message={message} bgColor={bgColor} />
+      </>
     );
+
   } catch (error) {
+    logger.error('Page: Error fetching message', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      slug,
+      url: `${process.env.NEXT_PUBLIC_APP_URL}/api/messages/${slug}`
+    });
+
     return (
-      <div className={ `min-h-screen ${ bgColor }` }>
+      <div className={`min-h-screen ${bgColor}`}>
         <main className="container mx-auto p-6">
           <div className="bg-white rounded-lg p-6 shadow-sm">
             <p className="text-red-600">Failed to load message. Please try again later.</p>
+            {process.env.NODE_ENV !== 'production' && error instanceof Error && (
+              <p className="text-sm text-gray-600 mt-2">{error.message}</p>
+            )}
           </div>
         </main>
       </div>
