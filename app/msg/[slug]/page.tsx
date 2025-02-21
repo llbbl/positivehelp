@@ -1,3 +1,4 @@
+// page component
 import type { Message } from "@/app/api/messages/[slug]/route";
 import MessageDisplay from './message-display';
 import logger from '@/lib/logger';
@@ -26,7 +27,10 @@ export default async function MessagePage({ params }: { params: Promise<{ slug: 
   try {
     logger.info(`Page: Fetching message for slug: ${slug}`);
 
-    const response = await fetch(`/api/messages/${slug}`, {
+    // Construct the absolute URL using NEXT_PUBLIC_APP_URL
+    const absoluteUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/messages/${slug}`;
+
+    const response = await fetch(absoluteUrl, { 
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -38,7 +42,7 @@ export default async function MessagePage({ params }: { params: Promise<{ slug: 
       logger.error('API request failed', {
         status: response.status,
         statusText: response.statusText,
-        url: `/api/messages/${slug}`
+        url: absoluteUrl
       });
       throw new Error(`Failed to fetch message: ${response.status} ${response.statusText}`);
     }
@@ -58,7 +62,8 @@ export default async function MessagePage({ params }: { params: Promise<{ slug: 
   } catch (error) {
     logger.error('Page: Error fetching message', {
       error: error instanceof Error ? error.message : 'Unknown error',
-      slug
+      slug,
+      url: `${process.env.NEXT_PUBLIC_APP_URL}/api/messages/${slug}`
     });
 
     return (
