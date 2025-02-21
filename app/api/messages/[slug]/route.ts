@@ -15,6 +15,7 @@ export interface Message {
 
 export async function GET(request: Request) {
   try {
+
     const slug = request.url.split('/').pop();
     logger.info('API Route: Processing request', { url: request.url, slug });
 
@@ -24,7 +25,8 @@ export async function GET(request: Request) {
     }
 
     // First get the current message's ID
-    logger.info('API Route: Fetching message ID', { slug });
+    // logger.info('API Route: Fetching message ID', { slug });
+
     const currentMessage = await client.execute({
       sql: `SELECT id FROM messages WHERE slug = ?`,
       args: [slug]
@@ -36,10 +38,9 @@ export async function GET(request: Request) {
     }
 
     const currentId = currentMessage.rows[0].id;
-    logger.info('API Route: Found message ID', { slug, messageId: currentId });
+    // logger.info('API Route: Found message ID', { slug, messageId: currentId });
+    // logger.info('API Route: Fetching navigation', { messageId: currentId });
 
-    // Get navigation info
-    logger.info('API Route: Fetching navigation', { messageId: currentId });
     const navigationResult = await client.execute({
       sql: `
         SELECT 
@@ -53,10 +54,11 @@ export async function GET(request: Request) {
       prevSlug: navigationResult.rows[0].prevSlug,
       nextSlug: navigationResult.rows[0].nextSlug
     };
-    logger.info('API Route: Navigation fetched', { navigation });
+    // logger.info('API Route: Navigation fetched', { navigation });
 
     // Get the message details as before
-    logger.info('API Route: Fetching full message details', { slug });
+    // logger.info('API Route: Fetching full message details', { slug });
+
     const result = await client.execute({
       sql: `
         SELECT 
@@ -102,11 +104,11 @@ export async function GET(request: Request) {
       navigation
     };
 
-    logger.info('API Route: Successfully returning message', { 
-      messageId: message.id,
-      hasAuthors: authors.length > 0,
-      hasNavigation: !!navigation.prevSlug || !!navigation.nextSlug
-    });
+    // logger.info('API Route: Successfully returning message', { 
+    //   messageId: message.id,
+    //   hasAuthors: authors.length > 0,
+    //   hasNavigation: !!navigation.prevSlug || !!navigation.nextSlug
+    // });
     return NextResponse.json(message);
 
   } catch (error) {
