@@ -6,13 +6,15 @@ export default async function AddPage() {
 
   if ( !user ) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="max-w-2xl mx-auto bg-custom-cream rounded-lg p-6 shadow-sm">
-          <h2 className="text-xl font-semibold mb-4">Please Log In</h2>
-          <p className="text-gray-600">
-            Currently, only a limited number of people are allowed to add new messages.
-            Please log in to check if you have access. Thank you for your understanding.
-          </p>
+      <div className="min-h-screen bg-custom-cream">
+        <div className="container mx-auto p-6">
+          <div className="max-w-2xl mx-auto rounded-lg p-6 shadow-sm">
+            <h2 className="text-xl font-semibold mb-4">Please Log In</h2>
+            <p className="text-gray-600">
+              Currently, only a limited number of people are allowed to add new messages.
+              Please log in to check if you have access. Thank you for your understanding.
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -22,23 +24,27 @@ export default async function AddPage() {
 
   if ( !isAdmin ) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="max-w-2xl mx-auto bg-custom-cream rounded-lg p-6 shadow-sm">
-          <h2 className="text-xl font-semibold mb-4">Limited Access</h2>
-          <p className="text-gray-600">
-            Currently, only a limited number of people are allowed to add new messages.
-            Thank you for your understanding.
-          </p>
+      <div className="min-h-screen bg-custom-cream">
+        <div className="container mx-auto p-6">
+          <div className="max-w-2xl mx-auto rounded-lg p-6 shadow-sm">
+            <h2 className="text-xl font-semibold mb-4">Limited Access</h2>
+            <p className="text-gray-600">
+              Currently, only a limited number of people are allowed to add new messages.
+              Thank you for your understanding.
+            </p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-6 bg-custom-cream">
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold mb-6">Add New Message</h1>
-        <AddMessageForm/>
+    <div className="min-h-screen bg-custom-cream">
+      <div className="container mx-auto p-6">
+        <div className="max-w-2xl mx-auto">
+          <h1 className="text-2xl font-bold mb-6">Add New Message</h1>
+          <AddMessageForm/>
+        </div>
       </div>
     </div>
   );
