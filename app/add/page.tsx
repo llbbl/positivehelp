@@ -7,7 +7,7 @@ export default async function AddPage() {
   if ( !user ) {
     return (
       <div className="container mx-auto p-6">
-        <div className="max-w-2xl mx-auto bg-white rounded-lg p-6 shadow-sm">
+        <div className="max-w-2xl mx-auto bg-custom-cream rounded-lg p-6 shadow-sm">
           <h2 className="text-xl font-semibold mb-4">Please Log In</h2>
           <p className="text-gray-600">
             Currently, only a limited number of people are allowed to add new messages.
@@ -23,7 +23,7 @@ export default async function AddPage() {
   if ( !isAdmin ) {
     return (
       <div className="container mx-auto p-6">
-        <div className="max-w-2xl mx-auto bg-white rounded-lg p-6 shadow-sm">
+        <div className="max-w-2xl mx-auto bg-custom-cream rounded-lg p-6 shadow-sm">
           <h2 className="text-xl font-semibold mb-4">Limited Access</h2>
           <p className="text-gray-600">
             Currently, only a limited number of people are allowed to add new messages.
@@ -35,7 +35,7 @@ export default async function AddPage() {
   }
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto p-6 bg-custom-cream">
       <div className="max-w-2xl mx-auto">
         <h1 className="text-2xl font-bold mb-6">Add New Message</h1>
         <AddMessageForm/>
