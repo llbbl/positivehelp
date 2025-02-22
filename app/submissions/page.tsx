@@ -67,31 +67,32 @@ export default async function SubmissionsPage() {
     });
 
     return (
-      <div className="container mx-auto py-10">
-        <h1 className="text-2xl font-bold mb-8">Your Submissions</h1>
-        <div className="space-y-8">
-          <div>
-            <h2 className="text-xl font-semibold mb-4">Pending Review</h2>
-            <SubmissionsTable 
-              submissions={pendingSubmissions}
-              type="pending"
-            />
+      <div className="min-h-screen bg-custom-solitude">
+        <div className="container mx-auto py-10">
+          <h1 className="text-2xl font-bold mb-8">Your Submissions</h1>
+          <div className="space-y-8">
+            <div>
+              <h2 className="text-xl font-semibold mb-4">Pending Review</h2>
+              <SubmissionsTable 
+                submissions={pendingSubmissions}
+                type="pending"
+              />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold mb-4">Approved</h2>
+              <SubmissionsTable 
+                submissions={approvedSubmissions}
+                type="approved"
+              />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold mb-4">Not Approved</h2>
+              <SubmissionsTable 
+                submissions={deniedSubmissions}
+                type="denied"
+              />
+            </div>
           </div>
-          <div>
-            <h2 className="text-xl font-semibold mb-4">Approved</h2>
-            <SubmissionsTable 
-              submissions={approvedSubmissions}
-              type="approved"
-            />
-          </div>
-          <div>
-            <h2 className="text-xl font-semibold mb-4">Not Approved</h2>
-            <SubmissionsTable 
-              submissions={deniedSubmissions}
-              type="denied"
-            />
-          </div>
-
         </div>
       </div>
     );
@@ -101,9 +102,11 @@ export default async function SubmissionsPage() {
       userId: user.id,
     });
     return (
-      <div className="container mx-auto py-10">
-        <h1 className="text-2xl font-bold mb-4">Your Submissions</h1>
-        <p className="text-red-600">Failed to load submissions. Please try again later.</p>
+      <div className="min-h-screen bg-custom-solitude">
+        <div className="container mx-auto py-10">
+          <h1 className="text-2xl font-bold mb-4">Your Submissions</h1>
+          <p className="text-red-600">Failed to load submissions. Please try again later.</p>
+        </div>
       </div>
     );
   }
