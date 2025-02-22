@@ -26,6 +26,8 @@ export default {
 			'custom-yellow': '#f8f8c7',
 			'custom-orange': '#f8d7c7',
 			'custom-red': '#f8c7c7',
+			'custom-cream': '#EDF1D7',
+			'custom-solitude': '#88D3E0',
   			border: 'hsl(var(--border))',
   			input: 'hsl(var(--input))',
   			ring: 'hsl(var(--ring))',

@@ -36,6 +36,13 @@ export default function RootLayout({
             </Link>
 
             <div className="flex items-center gap-4">
+              <SignedIn>
+                <Button variant="ghost" className="text-green-800 hover:bg-green-50">
+                  <Link href="/submissions">
+                    Submissions
+                  </Link>
+                </Button>
+              </SignedIn>
               <Button className="bg-white text-green-800 hover:bg-green-50">
                 <PlusCircle className="w-4 h-4 mr-2" />
                 <Link href="/add">

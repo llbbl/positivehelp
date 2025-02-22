@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import client from '@/lib/db';
 import { Row } from '@libsql/client';
 import { generateMD5, generateSlug } from '@/utils/text';
+import { isUserAdmin } from '@/lib/auth';
 
 export interface Message {
   id: number;
@@ -62,77 +63,88 @@ async function getOrCreateAuthor( authorName: string | null | undefined ): Promi
   }
 }
 
-export async function POST( request: Request ) {
+export async function POST(request: Request) {
   try {
     const { text, author, clerkUserId } = await request.json();
-    const currentDate = new Date().toISOString().split( 'T' )[0];
+    const currentDate = new Date().toISOString().split('T')[0];
 
-    const hash = generateMD5( text );
-    const slug = generateSlug( text, hash );
+    const hash = generateMD5(text);
+    const slug = generateSlug(text, hash);
 
-    const existing = await client.execute( {
+    // Check if message already exists
+    const existing = await client.execute({
       sql: 'SELECT id, slug FROM messages WHERE hash = ?',
-      args: [ hash ],
-    } );
+      args: [hash],
+    });
 
-    if ( existing.rows.length > 0 ) {
+    if (existing.rows.length > 0) {
       // --- Message Exists ---
       const existingMessageId = existing.rows[0].id;
       const existingSlug = existing.rows[0].slug;
-      if ( typeof existingMessageId !== 'bigint' && typeof existingMessageId !== 'number' ) {
-        throw new Error( "Invalid message id" )
+      if (typeof existingMessageId !== 'bigint' && typeof existingMessageId !== 'number') {
+        throw new Error("Invalid message id")
       }
 
-      if ( author ) {
-        const authorId = await getOrCreateAuthor( author ); // Use the helper function
-
-        // IMPORTANT: Handle null authorId
-        if ( authorId !== null ) {
-          const attributionExists = await client.execute( {
+      if (author) {
+        const authorId = await getOrCreateAuthor(author);
+        if (authorId !== null) {
+          const attributionExists = await client.execute({
             sql: 'SELECT 1 FROM message_authors WHERE messageId = ? AND authorId = ?',
-            args: [ existingMessageId, authorId ],
-          } );
+            args: [existingMessageId, authorId],
+          });
 
-          if ( attributionExists.rows.length === 0 ) {
-            await client.execute( {
+          if (attributionExists.rows.length === 0) {
+            await client.execute({
               sql: 'INSERT INTO message_authors (messageId, authorId) VALUES (?, ?)',
-              args: [ existingMessageId, authorId ],
-            } );
+              args: [existingMessageId, authorId],
+            });
           }
         }
       }
 
-      return NextResponse.json( { success: true, slug: existingSlug } );
+      return NextResponse.json({ success: true, slug: existingSlug });
 
     } else {
       // --- Message Doesn't Exist ---
-      const messageResult = await client.execute( {
-        sql: 'INSERT INTO messages (msg, date, slug, hash, clerkUserId) VALUES (?, ?, ?, ?, ?)',
-        args: [ text, currentDate, slug, hash, clerkUserId ],
-      } );
+      const isAdmin = await isUserAdmin(clerkUserId);
+      
+      if (isAdmin) {
+        // Direct insert into messages for admins
+        const messageResult = await client.execute({
+          sql: 'INSERT INTO messages (msg, date, slug, hash, clerkUserId, approvalClerkUserId, approvalDate) VALUES (?, ?, ?, ?, ?, ?, ?)',
+          args: [text, currentDate, slug, hash, clerkUserId, clerkUserId, currentDate],
+        });
 
-      if ( typeof messageResult.lastInsertRowid !== 'bigint' && typeof messageResult.lastInsertRowid !== 'number' ) {
-        throw new Error( 'Failed to get inserted message ID' );
-      }
-      const messageId = messageResult.lastInsertRowid;
+        if (typeof messageResult.lastInsertRowid !== 'bigint' && typeof messageResult.lastInsertRowid !== 'number') {
+          throw new Error('Failed to get inserted message ID');
+        }
+        const messageId = messageResult.lastInsertRowid;
 
-      if ( author ) {
-        const authorId = await getOrCreateAuthor( author ); // Use the helper function
+        if (author) {
+          const authorId = await getOrCreateAuthor(author);
+          if (authorId !== null) {
+            await client.execute({
+              sql: 'INSERT INTO message_authors (messageId, authorId) VALUES (?, ?)',
+              args: [messageId, authorId],
+            });
+          }
+        }
+      } else {
+        // Insert into submissions for non-admins
+        const submissionResult = await client.execute({
+          sql: 'INSERT INTO submissions (msg, date, slug, hash, clerkUserId) VALUES (?, ?, ?, ?, ?)',
+          args: [text, currentDate, slug, hash, clerkUserId],
+        });
 
-        // IMPORTANT: Handle null authorId
-        if ( authorId !== null ) {
-          await client.execute( {
-            sql: 'INSERT INTO message_authors (messageId, authorId) VALUES (?, ?)',
-            args: [ messageId, authorId ],
-          } );
+        if (typeof submissionResult.lastInsertRowid !== 'bigint' && typeof submissionResult.lastInsertRowid !== 'number') {
+          throw new Error('Failed to get inserted submission ID');
         }
       }
 
-
-      return NextResponse.json( { success: true, slug } );
+      return NextResponse.json({ success: true, slug });
     }
   } catch (error) {
-    console.error( 'Error creating message:', error );
-    return NextResponse.json( { error: 'Failed to create message' }, { status: 500 } );
+    console.error('Error creating message:', error);
+    return NextResponse.json({ error: 'Failed to create message' }, { status: 500 });
   }
 }

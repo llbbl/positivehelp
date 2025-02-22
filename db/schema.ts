@@ -8,6 +8,19 @@ export const messages = sqliteTable("messages", {
 	slug: text('slug'),
 	date: numeric('date'),
 	clerkUserId: text('clerkUserId'),
+	approvalClerkUserId: text('approvalClerkUserId'),
+	approvalDate: numeric('approvalDate'),
+});
+
+export const submissions = sqliteTable("submissions", {
+	id: integer("id", { mode: "number" }).primaryKey(),
+	msg: text('msg'),
+	hash: text('hash'),
+	slug: text('slug'),
+	date: numeric('date'),
+	clerkUserId: text('clerkUserId'),
+	positivityScore: numeric('positivityScore'),
+	status: integer('status', { mode: "number" }).default(1).notNull(), // 1 = not reviewed, 0 = denied
 });
 
 export const authors = sqliteTable("authors", {
@@ -27,6 +40,10 @@ export const message_authors = sqliteTable("message_authors", {
 // Relations
 
 export const messagesRelations = relations(messages, ({ many }) => ({
+	authors: many(message_authors),
+}));
+
+export const submissionsRelations = relations(submissions, ({ many }) => ({
 	authors: many(message_authors),
 }));
 
