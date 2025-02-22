@@ -7,12 +7,25 @@ type RawSubmission = {
   id: number
   message: string | null
   date: string | null
-  status: "pending" | "approved"
+  submissionStatus: number
 }
 
 interface SubmissionsTableProps {
   submissions: RawSubmission[]
-  type: "pending" | "approved"
+  type: "pending" | "denied" | "approved"
+}
+
+function getStatusDisplay(status: number): string {
+  switch (status) {
+    case 0:
+      return "Not Approved";
+    case 1:
+      return "Pending Review";
+    case 2:
+      return "Approved";
+    default:
+      return "Unknown";
+  }
 }
 
 export function SubmissionsTable({ submissions, type }: SubmissionsTableProps) {
@@ -20,7 +33,7 @@ export function SubmissionsTable({ submissions, type }: SubmissionsTableProps) {
     id: sub.id,
     message: sub.message || '',
     date: sub.date?.toString() || '',
-    status: type
+    status: getStatusDisplay(sub.submissionStatus)
   }));
 
   return (

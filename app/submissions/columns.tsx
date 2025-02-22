@@ -6,7 +6,7 @@ export type Submission = {
   id: number
   message: string
   date: string
-  status: "pending" | "approved"
+  status: string
 }
 
 export const columns: ColumnDef<Submission>[] = [
@@ -29,7 +29,9 @@ export const columns: ColumnDef<Submission>[] = [
       const status = row.getValue("status") as string;
       return (
         <div className={`capitalize ${
-          status === "approved" ? "text-green-600" : "text-yellow-600"
+          status === "Approved" ? "text-green-600" : 
+          status === "Not Approved" ? "text-red-600" : 
+          "text-yellow-600"
         }`}>
           {status}
         </div>

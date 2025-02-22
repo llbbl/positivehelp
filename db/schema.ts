@@ -20,6 +20,7 @@ export const submissions = sqliteTable("submissions", {
 	date: numeric('date'),
 	clerkUserId: text('clerkUserId'),
 	positivityScore: numeric('positivityScore'),
+	status: integer('status', { mode: "number" }).default(1).notNull(), // 1 = not reviewed, 0 = denied
 });
 
 export const authors = sqliteTable("authors", {
