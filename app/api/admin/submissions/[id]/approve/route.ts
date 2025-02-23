@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import { currentUser } from "@clerk/nextjs/server";
 import { isUserAdmin } from '@/lib/auth';
 import { db } from '@/db/client';
-import { submissions, messages } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { submissions, messages, authors, message_authors } from '@/db/schema';
+import { eq, and } from 'drizzle-orm';
 import logger from '@/lib/logger';
 
 export async function POST(
@@ -43,15 +43,48 @@ export async function POST(
     // Start a transaction
     await db.transaction(async (tx) => {
       // Insert into messages
-      await tx.insert(messages).values({
-        msg: submission.msg,
-        hash: submission.hash,
-        slug: submission.slug,
-        date: submission.date,
-        clerkUserId: submission.clerkUserId,
-        approvalClerkUserId: user.id,
-        approvalDate: new Date().toISOString(),
-      });
+      const [insertedMessage] = await tx
+        .insert(messages)
+        .values({
+          msg: submission.msg,
+          hash: submission.hash,
+          slug: submission.slug,
+          date: submission.date,
+          clerkUserId: submission.clerkUserId,
+          approvalClerkUserId: user.id,
+          approvalDate: new Date().toISOString(),
+        })
+        .returning();
+
+      if (!insertedMessage?.id) {
+        throw new Error('Failed to get inserted message ID');
+      }
+
+      // Handle author mapping if there's an author name
+      if (submission.authorName) {
+        // Find or create author
+        let [existingAuthor] = await tx
+          .select()
+          .from(authors)
+          .where(eq(authors.name, submission.authorName));
+
+        if (!existingAuthor) {
+          [existingAuthor] = await tx
+            .insert(authors)
+            .values({ name: submission.authorName })
+            .returning();
+        }
+
+        if (existingAuthor?.id) {
+          // Create message-author association
+          await tx
+            .insert(message_authors)
+            .values({
+              messageId: insertedMessage.id,
+              authorId: existingAuthor.id,
+            });
+        }
+      }
 
       // Update submission status
       await tx
