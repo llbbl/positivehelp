@@ -3,6 +3,8 @@ import client from '@/lib/db';
 import { Row } from '@libsql/client';
 import { generateMD5, generateSlug } from '@/utils/text';
 import { isUserAdmin } from '@/lib/auth';
+import { auth, currentUser } from "@clerk/nextjs/server";
+import logger from '@/lib/logger';
 
 export interface Message {
   id: number;
@@ -103,10 +105,31 @@ export async function POST(request: Request) {
       }
 
       return NextResponse.json({ success: true, slug: existingSlug });
-
     } else {
       // --- Message Doesn't Exist ---
-      const isAdmin = await isUserAdmin(clerkUserId);
+      // Get the auth session
+      const session = await auth();
+      if (!session || !session.userId) {
+        throw new Error('No authenticated user');
+      }
+
+      if (session.userId !== clerkUserId) {
+        throw new Error('User ID mismatch');
+      }
+
+      // Get the full user object for admin check
+      const user = await currentUser();
+      if (!user) {
+        throw new Error('Failed to get user details');
+      }
+
+      // console.log('Debug - Admin check:', {
+      //   userId: user.id,
+      //   metadata: user.publicMetadata,
+      //   isAdmin: await isUserAdmin(user)
+      // });
+
+      const isAdmin = await isUserAdmin(user);
       
       if (isAdmin) {
         // Direct insert into messages for admins
@@ -144,7 +167,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, slug });
     }
   } catch (error) {
-    console.error('Error creating message:', error);
+    logger.error('Error creating message:', error);
     return NextResponse.json({ error: 'Failed to create message' }, { status: 500 });
   }
 }
