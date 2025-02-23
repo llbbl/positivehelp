@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { AdminDataTable } from "./admin-data-table"
 import { ColumnDef } from "@tanstack/react-table"
@@ -20,10 +20,43 @@ interface AdminSubmissionsTableProps {
   submissions: AdminSubmission[]
 }
 
+type UserInfo = {
+  id: string
+  firstName: string | null
+  lastName: string | null
+  username: string | null
+}
+
 export function AdminSubmissionsTable({ submissions }: AdminSubmissionsTableProps) {
   const router = useRouter()
   const { toast } = useToast()
   const [processingIds, setProcessingIds] = useState<Set<number>>(new Set())
+  const [userInfo, setUserInfo] = useState<Record<string, UserInfo>>({})
+
+  useEffect(() => {
+    const fetchUserInfo = async (userId: string) => {
+      try {
+        const response = await fetch(`/api/admin/users/${userId}`);
+        if (response.ok) {
+          const data = await response.json();
+          setUserInfo(prev => ({
+            ...prev,
+            [userId]: data
+          }));
+        }
+      } catch (error) {
+        console.error('Error fetching user info:', error);
+      }
+    };
+
+    // Fetch user info for all unique user IDs
+    const uniqueUserIds = new Set(submissions.map(sub => sub.clerkUserId));
+    uniqueUserIds.forEach(userId => {
+      if (userId && !userInfo[userId]) {
+        fetchUserInfo(userId);
+      }
+    });
+  }, [submissions]);
 
   const handleApprove = async (id: number) => {
     setProcessingIds(prev => new Set([...prev, id]))
@@ -103,6 +136,14 @@ export function AdminSubmissionsTable({ submissions }: AdminSubmissionsTableProp
     {
       accessorKey: "clerkUserId",
       header: "Submitted By",
+      cell: ({ row }) => {
+        const userId = row.getValue("clerkUserId") as string;
+        const user = userInfo[userId];
+        if (!user) return userId;
+        return user.firstName && user.lastName 
+          ? `${user.firstName} ${user.lastName} (${user.username})`
+          : user.username || userId;
+      }
     },
     {
       id: "actions",
