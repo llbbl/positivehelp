@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { currentUser } from "@clerk/nextjs/server";
 import { isUserAdmin } from '@/lib/auth';
 import { db } from '@/db/client';
@@ -7,9 +7,11 @@ import { eq, and } from 'drizzle-orm';
 import logger from '@/lib/logger';
 
 export async function POST(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+  request: NextRequest
+): Promise<NextResponse> {
+  const url = new URL(request.url);
+  const id = parseInt(url.pathname.split('/').pop() || '');
+
   try {
     const user = await currentUser();
     
@@ -25,8 +27,7 @@ export async function POST(
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const submissionId = parseInt(params.id);
-    if (isNaN(submissionId)) {
+    if (isNaN(id)) {
       return new NextResponse("Invalid submission ID", { status: 400 });
     }
 
@@ -34,7 +35,7 @@ export async function POST(
     const [submission] = await db
       .select()
       .from(submissions)
-      .where(eq(submissions.id, submissionId));
+      .where(eq(submissions.id, id));
 
     if (!submission) {
       return new NextResponse("Submission not found", { status: 404 });
@@ -90,11 +91,11 @@ export async function POST(
       await tx
         .update(submissions)
         .set({ status: 2 }) // 2 = approved
-        .where(eq(submissions.id, submissionId));
+        .where(eq(submissions.id, id));
     });
 
     logger.info("Submission approved successfully", { 
-      submissionId,
+      submissionId: id,
       approvedBy: user.id 
     });
 
@@ -102,7 +103,7 @@ export async function POST(
   } catch (error) {
     logger.error("Error approving submission", {
       error: error instanceof Error ? error.message : "Unknown error",
-      submissionId: params.id,
+      submissionId: id,
     });
     return new NextResponse("Internal Server Error", { status: 500 });
   }
