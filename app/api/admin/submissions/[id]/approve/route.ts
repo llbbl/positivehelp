@@ -10,7 +10,14 @@ export async function POST(
   request: NextRequest
 ): Promise<NextResponse> {
   const url = new URL(request.url);
-  const id = parseInt(url.pathname.split('/').pop() || '');
+  const segments = url.pathname.split('/');
+  const id = parseInt(segments[4]);
+  
+  logger.info("Processing approval request", { 
+    pathname: url.pathname,
+    segments,
+    id
+  });
 
   try {
     const user = await currentUser();
