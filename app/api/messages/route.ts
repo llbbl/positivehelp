@@ -132,8 +132,8 @@ export async function POST(request: Request) {
       } else {
         // Insert into submissions for non-admins
         const submissionResult = await client.execute({
-          sql: 'INSERT INTO submissions (msg, date, slug, hash, clerkUserId) VALUES (?, ?, ?, ?, ?)',
-          args: [text, currentDate, slug, hash, clerkUserId],
+          sql: 'INSERT INTO submissions (msg, date, slug, hash, clerkUserId, authorName) VALUES (?, ?, ?, ?, ?, ?)',
+          args: [text, currentDate, slug, hash, clerkUserId, author],
         });
 
         if (typeof submissionResult.lastInsertRowid !== 'bigint' && typeof submissionResult.lastInsertRowid !== 'number') {
