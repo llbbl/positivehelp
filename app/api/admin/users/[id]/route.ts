@@ -5,9 +5,10 @@ import logger from '@/lib/logger';
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id: userId } = await context.params;
     const requestingUser = await currentUser();
 
     if (!requestingUser) {
@@ -24,7 +25,7 @@ export async function GET(
 
     try {
       const clerk = await clerkClient();
-      const requestedUser = await clerk.users.getUser(params.id);
+      const requestedUser = await clerk.users.getUser(userId);
       return NextResponse.json({
         id: requestedUser.id,
         firstName: requestedUser.firstName,
@@ -32,7 +33,7 @@ export async function GET(
         username: requestedUser.username,
       });
     } catch (error) {
-      logger.warn("User not found", { userId: params.id });
+      logger.warn("User not found", { userId });
       return new NextResponse("User not found", { status: 404 });
     }
 

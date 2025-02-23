@@ -8,9 +8,12 @@ import logger from '@/lib/logger';
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  let id = '';
+  
   try {
+    ({ id } = await context.params);
     const user = await currentUser();
     
     if (!user) {
@@ -25,7 +28,7 @@ export async function POST(
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const submissionId = parseInt(params.id);
+    const submissionId = parseInt(id);
     if (isNaN(submissionId)) {
       return new NextResponse("Invalid submission ID", { status: 400 });
     }
@@ -49,7 +52,7 @@ export async function POST(
   } catch (error) {
     logger.error("Error rejecting submission", {
       error: error instanceof Error ? error.message : "Unknown error",
-      submissionId: params.id,
+      submissionId: id,
     });
     return new NextResponse("Internal Server Error", { status: 500 });
   }
