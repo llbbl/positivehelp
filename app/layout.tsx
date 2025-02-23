@@ -1,15 +1,17 @@
+import React from 'react'
 import {
   ClerkProvider,
   SignInButton,
   SignedIn,
   SignedOut,
-  UserButton
+  UserButton,
 } from '@clerk/nextjs'
 import './globals.css'
 import { Geist, Geist_Mono } from "next/font/google"
 import Link from 'next/link'
 import { Button } from "@/components/ui/button"
 import { PlusCircle } from "lucide-react"
+import { AdminLink } from '@/components/admin-link'
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -49,6 +51,9 @@ export default function RootLayout({
                   Add Positivity
                 </Link>
               </Button>
+              <SignedIn>
+                <AdminLink />
+              </SignedIn>
               <SignedOut>
                 <SignInButton mode="modal" />
               </SignedOut>

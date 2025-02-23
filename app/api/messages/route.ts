@@ -3,6 +3,9 @@ import client from '@/lib/db';
 import { Row } from '@libsql/client';
 import { generateMD5, generateSlug } from '@/utils/text';
 import { isUserAdmin } from '@/lib/auth';
+import { auth, currentUser } from "@clerk/nextjs/server";
+import logger from '@/lib/logger';
+import { getOrCreateAuthor } from '@/lib/authors';
 
 export interface Message {
   id: number;
@@ -30,36 +33,6 @@ export async function GET() {
     return NextResponse.json( messages );
   } catch (error) {
     return NextResponse.json( { error: 'Failed to fetch messages' }, { status: 500 } );
-  }
-}
-
-
-// --- Helper Function: getOrCreateAuthor ---
-async function getOrCreateAuthor( authorName: string | null | undefined ): Promise<number | bigint | null> {
-  if ( !authorName ) {
-    return null;
-  }
-
-  let authorResult = await client.execute( {
-    sql: 'SELECT id FROM authors WHERE name = ?',
-    args: [ authorName ],
-  } );
-
-  if ( authorResult.rows.length > 0 ) {
-    const authorId = authorResult.rows[0].id;
-    if ( typeof authorId !== 'bigint' && typeof authorId !== 'number' ) {
-      throw new Error( "author id invalid" )
-    }
-    return authorId;
-  } else {
-    const newAuthorResult = await client.execute( {
-      sql: 'INSERT INTO authors (name) VALUES (?)',
-      args: [ authorName ],
-    } );
-    if ( typeof newAuthorResult.lastInsertRowid !== 'bigint' && typeof newAuthorResult.lastInsertRowid !== 'number' ) {
-      throw new Error( "Failed to insert author" )
-    }
-    return newAuthorResult.lastInsertRowid;
   }
 }
 
@@ -103,10 +76,31 @@ export async function POST(request: Request) {
       }
 
       return NextResponse.json({ success: true, slug: existingSlug });
-
     } else {
       // --- Message Doesn't Exist ---
-      const isAdmin = await isUserAdmin(clerkUserId);
+      // Get the auth session
+      const session = await auth();
+      if (!session || !session.userId) {
+        throw new Error('No authenticated user');
+      }
+
+      if (session.userId !== clerkUserId) {
+        throw new Error('User ID mismatch');
+      }
+
+      // Get the full user object for admin check
+      const user = await currentUser();
+      if (!user) {
+        throw new Error('Failed to get user details');
+      }
+
+      // console.log('Debug - Admin check:', {
+      //   userId: user.id,
+      //   metadata: user.publicMetadata,
+      //   isAdmin: await isUserAdmin(user)
+      // });
+
+      const isAdmin = await isUserAdmin(user);
       
       if (isAdmin) {
         // Direct insert into messages for admins
@@ -132,8 +126,8 @@ export async function POST(request: Request) {
       } else {
         // Insert into submissions for non-admins
         const submissionResult = await client.execute({
-          sql: 'INSERT INTO submissions (msg, date, slug, hash, clerkUserId) VALUES (?, ?, ?, ?, ?)',
-          args: [text, currentDate, slug, hash, clerkUserId],
+          sql: 'INSERT INTO submissions (msg, date, slug, hash, clerkUserId, authorName) VALUES (?, ?, ?, ?, ?, ?)',
+          args: [text, currentDate, slug, hash, clerkUserId, author],
         });
 
         if (typeof submissionResult.lastInsertRowid !== 'bigint' && typeof submissionResult.lastInsertRowid !== 'number') {
@@ -144,7 +138,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, slug });
     }
   } catch (error) {
-    console.error('Error creating message:', error);
+    logger.error('Error creating message:', error);
     return NextResponse.json({ error: 'Failed to create message' }, { status: 500 });
   }
 }

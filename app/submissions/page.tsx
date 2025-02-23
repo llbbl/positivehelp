@@ -58,7 +58,8 @@ export default async function SubmissionsPage() {
         submissionStatus: sql<2>`2`.as('submissionStatus'), // approved
       })
       .from(messages)
-      .where(eq(messages.clerkUserId, user.id));
+      .where(eq(messages.clerkUserId, user.id))
+      .orderBy(sql`${messages.date} DESC`);
 
     logger.info("Successfully fetched submissions", {
       pendingCount: pendingSubmissions.length,
