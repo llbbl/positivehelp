@@ -23,11 +23,14 @@ export function Navigation() {
 
       <div className="flex items-center gap-2 md:gap-4">
         {/* Always visible Add button */}
-        <Button size="sm" className="bg-white text-green-800 hover:bg-green-50 px-2 md:px-4">
-          <PlusCircle className="w-4 h-4" />
-          <Link href="/add" className="ml-0 md:ml-2">
-            <span className="hidden md:inline">Add Positivity</span>
-          </Link>
+
+        <Button size="sm" className="bg-white text-green-800 hover:bg-green-50 px-4 md:px-6 leading-none">
+          <div className="flex items-center"> 
+            <PlusCircle className="w-4 h-4 block" />
+            <Link href="/add" className="ml-0 md:ml-2">
+              <span className="hidden md:inline">Add Positivity</span>
+            </Link>
+          </div>
         </Button>
 
         {/* Mobile Menu Button */}
