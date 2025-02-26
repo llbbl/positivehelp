@@ -22,16 +22,15 @@ export function Navigation() {
       </Link>
 
       <div className="flex items-center gap-2 md:gap-4">
-        {/* Always visible Add button */}
-
-        <Button size="sm" className="bg-white text-green-800 hover:bg-green-50 px-4 md:px-6 leading-none">
-          <div className="flex items-center"> 
-            <PlusCircle className="w-4 h-4 block" />
-            <Link href="/add" className="ml-0 md:ml-2">
-              <span className="hidden md:inline">Add Positivity</span>
-            </Link>
-          </div>
-        </Button>
+        
+      <Button size="sm" className="md:hidden bg-white text-green-800 hover:bg-green-50 px-4 leading-none relative">
+        <div className="flex items-center">
+          <PlusCircle className="w-4 h-4 block" />
+          <Link href="/add" className="ml-0 md:ml-2 absolute inset-0 flex items-center">
+            <span className="hidden md:inline">Add Positivity</span>
+          </Link>
+        </div>
+      </Button>
 
         {/* Mobile Menu Button */}
         <button
@@ -47,13 +46,22 @@ export function Navigation() {
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-4">
-          <SignedIn>
-            <Button variant="ghost" className="text-green-800 hover:bg-green-50">
-              <Link href="/submissions">
-                Submissions
-              </Link>
-            </Button>
-          </SignedIn>
+
+        <SignedIn>
+          <Button variant="ghost" className="text-green-800 hover:bg-green-50">
+            <Link href="/submissions">
+              Submissions
+            </Link>
+          </Button>
+        </SignedIn>
+        <Button size="sm" className="bg-white text-green-800 hover:bg-green-50 px-4 md:px-6 leading-none">
+          <div className="flex items-center"> 
+            <PlusCircle className="w-4 h-4 block" />
+            <Link href="/add" className="ml-0 md:ml-2">
+              <span className="hidden md:inline">Add Positivity</span>
+            </Link>
+          </div>
+        </Button>          
           <SignedIn>
             <AdminLink />
           </SignedIn>
