@@ -17,26 +17,47 @@ export interface Message {
 
 export async function GET(request?: Request) {
   try {
-    // Check if this is a request that explicitly wants to bypass cache
-    const bypassCache = request ? new URL(request.url).searchParams.has('t') : false;
-    
-    // Check if we're only requesting new messages after a specific ID
     const url = request ? new URL(request.url) : null;
-    const lastId = url?.searchParams.get('lastId') ? parseInt(url.searchParams.get('lastId')!) : null;
     
-    // Build the SQL query based on whether we're fetching all messages or just new ones
+    // Safely parse the t parameter as an integer
+    let bypassCache = false;
+    if (url?.searchParams.has('t')) {
+      const tParam = url.searchParams.get('t');
+      // Only consider it valid if it can be parsed as a number
+      const tValue = tParam ? parseInt(tParam, 10) : NaN;
+      bypassCache = !isNaN(tValue);
+    }
+    
+    // Safely parse the lastId parameter as an integer
+    let lastId = null;
+    if (url?.searchParams.has('lastId')) {
+      const lastIdParam = url.searchParams.get('lastId');
+      const lastIdValue = lastIdParam ? parseInt(lastIdParam, 10) : NaN;
+      // Only set lastId if it's a valid number
+      if (!isNaN(lastIdValue) && lastIdValue > 0) {
+        lastId = lastIdValue;
+      }
+    }
+    
+    // Build the SQL query using parameterized queries instead of string interpolation
     let sql = `
         SELECT id, msg as text, slug as url, date
         FROM messages
     `;
     
-    if (lastId) {
-      sql += ` WHERE id > ${lastId} `;
+    let params: any[] = [];
+    
+    if (lastId !== null) {
+      sql += ` WHERE id > ? `;
+      params.push(lastId);
     }
     
     sql += ` ORDER BY id DESC `;
     
-    const result = await client.execute(sql);
+    const result = await client.execute({
+      sql,
+      args: params
+    });
 
     const messages = result.rows.map((row: Row) => ({
       id: row.id as number,
@@ -48,7 +69,7 @@ export async function GET(request?: Request) {
     // Set appropriate cache control headers based on the request
     const headers = new Headers();
     
-    if (bypassCache || lastId) {
+    if (bypassCache || lastId !== null) {
       // For requests with timestamp parameter or lastId, disable caching
       headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
       headers.set('Pragma', 'no-cache');
@@ -60,6 +81,7 @@ export async function GET(request?: Request) {
 
     return NextResponse.json(messages, { headers });
   } catch (error) {
+    logger.error('Error fetching messages:', error);
     return NextResponse.json({ error: 'Failed to fetch messages' }, { status: 500 });
   }
 }
