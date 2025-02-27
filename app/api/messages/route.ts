@@ -15,8 +15,11 @@ export interface Message {
   author?: string;
 }
 
-export async function GET() {
+export async function GET(request?: Request) {
   try {
+    // Check if this is a request that explicitly wants to bypass cache
+    const bypassCache = request ? new URL(request.url).searchParams.has('t') : false;
+
     const result = await client.execute( `
         SELECT id, msg as text, slug as url, date
         FROM messages
@@ -30,7 +33,20 @@ export async function GET() {
       url: row.url as string,
     }) );
 
-    return NextResponse.json( messages );
+    // Set appropriate cache control headers based on the request
+    const headers = new Headers();
+    
+    if (bypassCache) {
+      // For requests with timestamp parameter, disable caching
+      headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      headers.set('Pragma', 'no-cache');
+      headers.set('Expires', '0');
+    } else {
+      // For normal requests, allow caching for a short period (5 minutes)
+      headers.set('Cache-Control', 'public, max-age=300, s-maxage=300');
+    }
+
+    return NextResponse.json(messages, { headers });
   } catch (error) {
     return NextResponse.json( { error: 'Failed to fetch messages' }, { status: 500 } );
   }
