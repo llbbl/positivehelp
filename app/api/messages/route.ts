@@ -19,25 +19,37 @@ export async function GET(request?: Request) {
   try {
     // Check if this is a request that explicitly wants to bypass cache
     const bypassCache = request ? new URL(request.url).searchParams.has('t') : false;
-
-    const result = await client.execute( `
+    
+    // Check if we're only requesting new messages after a specific ID
+    const url = request ? new URL(request.url) : null;
+    const lastId = url?.searchParams.get('lastId') ? parseInt(url.searchParams.get('lastId')!) : null;
+    
+    // Build the SQL query based on whether we're fetching all messages or just new ones
+    let sql = `
         SELECT id, msg as text, slug as url, date
         FROM messages
-        ORDER BY id DESC
-    ` );
+    `;
+    
+    if (lastId) {
+      sql += ` WHERE id > ${lastId} `;
+    }
+    
+    sql += ` ORDER BY id DESC `;
+    
+    const result = await client.execute(sql);
 
-    const messages = result.rows.map( ( row: Row ) => ({
+    const messages = result.rows.map((row: Row) => ({
       id: row.id as number,
       text: row.text as string,
       date: row.date as string,
       url: row.url as string,
-    }) );
+    }));
 
     // Set appropriate cache control headers based on the request
     const headers = new Headers();
     
-    if (bypassCache) {
-      // For requests with timestamp parameter, disable caching
+    if (bypassCache || lastId) {
+      // For requests with timestamp parameter or lastId, disable caching
       headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
       headers.set('Pragma', 'no-cache');
       headers.set('Expires', '0');
@@ -48,7 +60,7 @@ export async function GET(request?: Request) {
 
     return NextResponse.json(messages, { headers });
   } catch (error) {
-    return NextResponse.json( { error: 'Failed to fetch messages' }, { status: 500 } );
+    return NextResponse.json({ error: 'Failed to fetch messages' }, { status: 500 });
   }
 }
 
