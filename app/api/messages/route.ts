@@ -15,31 +15,10 @@ export interface Message {
   author?: string;
 }
 
-export async function GET(request?: Request) {
+// This function is for server-side rendering and doesn't require a request
+export async function getMessages(lastId?: number): Promise<Message[]> {
   try {
-    const url = request ? new URL(request.url) : null;
-    
-    // Safely parse the t parameter as an integer
-    let bypassCache = false;
-    if (url?.searchParams.has('t')) {
-      const tParam = url.searchParams.get('t');
-      // Only consider it valid if it can be parsed as a number
-      const tValue = tParam ? parseInt(tParam, 10) : NaN;
-      bypassCache = !isNaN(tValue);
-    }
-    
-    // Safely parse the lastId parameter as an integer
-    let lastId = null;
-    if (url?.searchParams.has('lastId')) {
-      const lastIdParam = url.searchParams.get('lastId');
-      const lastIdValue = lastIdParam ? parseInt(lastIdParam, 10) : NaN;
-      // Only set lastId if it's a valid number
-      if (!isNaN(lastIdValue) && lastIdValue > 0) {
-        lastId = lastIdValue;
-      }
-    }
-    
-    // Build the SQL query using parameterized queries instead of string interpolation
+    // Build the SQL query using parameterized queries
     let sql = `
         SELECT id, msg as text, slug as url, date
         FROM messages
@@ -47,7 +26,7 @@ export async function GET(request?: Request) {
     
     let params: any[] = [];
     
-    if (lastId !== null) {
+    if (lastId !== undefined && lastId > 0) {
       sql += ` WHERE id > ? `;
       params.push(lastId);
     }
@@ -66,10 +45,44 @@ export async function GET(request?: Request) {
       url: row.url as string,
     }));
 
+    return messages;
+  } catch (error) {
+    logger.error('Error fetching messages:', error);
+    return [];
+  }
+}
+
+// This is the API route handler for client-side requests
+export async function GET(request: Request) {
+  try {
+    const url = new URL(request.url);
+    
+    // Safely parse the t parameter as an integer
+    let bypassCache = false;
+    if (url.searchParams.has('t')) {
+      const tParam = url.searchParams.get('t');
+      // Only consider it valid if it can be parsed as a number
+      const tValue = tParam ? parseInt(tParam, 10) : NaN;
+      bypassCache = !isNaN(tValue);
+    }
+    
+    // Safely parse the lastId parameter as an integer
+    let lastId: number | undefined = undefined;
+    if (url.searchParams.has('lastId')) {
+      const lastIdParam = url.searchParams.get('lastId');
+      const lastIdValue = lastIdParam ? parseInt(lastIdParam, 10) : NaN;
+      // Only set lastId if it's a valid number
+      if (!isNaN(lastIdValue) && lastIdValue > 0) {
+        lastId = lastIdValue;
+      }
+    }
+    
+    const messages = await getMessages(lastId);
+
     // Set appropriate cache control headers based on the request
     const headers = new Headers();
     
-    if (bypassCache || lastId !== null) {
+    if (bypassCache || lastId !== undefined) {
       // For requests with timestamp parameter or lastId, disable caching
       headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
       headers.set('Pragma', 'no-cache');

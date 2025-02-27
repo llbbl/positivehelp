@@ -1,13 +1,12 @@
 import { Button } from "@/components/ui/button"
 import { PlusCircle } from "lucide-react"
-import { GET } from "./api/messages/route"
+import { getMessages } from "./api/messages/route"
 import MessageList from "@/components/MessageList"
 import type { Message } from "@/components/MessageList"
 
 export default async function Home() {
-  // Call GET without arguments for server-side rendering
-  const response = await GET();
-  const messages = await response.json() as Message[];
+  // Use the getMessages function for server-side rendering
+  const messages = await getMessages();
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-custom-blue via-custom-mint to-custom-green">
