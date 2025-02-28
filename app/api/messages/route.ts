@@ -6,51 +6,7 @@ import { isUserAdmin } from '@/lib/auth';
 import { auth, currentUser } from "@clerk/nextjs/server";
 import logger from '@/lib/logger';
 import { getOrCreateAuthor } from '@/lib/authors';
-
-export interface Message {
-  id: number;
-  text: string;
-  date: string;
-  url: string;
-  author?: string;
-}
-
-// This function is for server-side rendering and doesn't require a request
-export async function getMessages(lastId?: number): Promise<Message[]> {
-  try {
-    // Build the SQL query using parameterized queries
-    let sql = `
-        SELECT id, msg as text, slug as url, date
-        FROM messages
-    `;
-    
-    let params: any[] = [];
-    
-    if (lastId !== undefined && lastId > 0) {
-      sql += ` WHERE id > ? `;
-      params.push(lastId);
-    }
-    
-    sql += ` ORDER BY id DESC `;
-    
-    const result = await client.execute({
-      sql,
-      args: params
-    });
-
-    const messages = result.rows.map((row: Row) => ({
-      id: row.id as number,
-      text: row.text as string,
-      date: row.date as string,
-      url: row.url as string,
-    }));
-
-    return messages;
-  } catch (error) {
-    logger.error('Error fetching messages:', error);
-    return [];
-  }
-}
+import { getMessages } from '@/lib/messages';
 
 // This is the API route handler for client-side requests
 export async function GET(request: Request) {

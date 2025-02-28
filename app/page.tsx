@@ -1,8 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { PlusCircle } from "lucide-react"
-import { getMessages } from "./api/messages/route"
+import { getMessages } from "@/lib/messages"
 import MessageList from "@/components/MessageList"
-import type { Message } from "@/components/MessageList"
 
 export default async function Home() {
   // Use the getMessages function for server-side rendering
