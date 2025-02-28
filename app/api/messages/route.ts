@@ -6,33 +6,52 @@ import { isUserAdmin } from '@/lib/auth';
 import { auth, currentUser } from "@clerk/nextjs/server";
 import logger from '@/lib/logger';
 import { getOrCreateAuthor } from '@/lib/authors';
+import { getMessages } from '@/lib/messages';
 
-export interface Message {
-  id: number;
-  text: string;
-  date: string;
-  url: string;
-  author?: string;
-}
-
-export async function GET() {
+// This is the API route handler for client-side requests
+export async function GET(request: Request) {
   try {
-    const result = await client.execute( `
-        SELECT id, msg as text, slug as url, date
-        FROM messages
-        ORDER BY id DESC
-    ` );
+    const url = new URL(request.url);
+    
+    // Safely parse the t parameter as an integer
+    let bypassCache = false;
+    if (url.searchParams.has('t')) {
+      const tParam = url.searchParams.get('t');
+      // Only consider it valid if it can be parsed as a number
+      const tValue = tParam ? parseInt(tParam, 10) : NaN;
+      bypassCache = !isNaN(tValue);
+    }
+    
+    // Safely parse the lastId parameter as an integer
+    let lastId: number | undefined = undefined;
+    if (url.searchParams.has('lastId')) {
+      const lastIdParam = url.searchParams.get('lastId');
+      const lastIdValue = lastIdParam ? parseInt(lastIdParam, 10) : NaN;
+      // Only set lastId if it's a valid number
+      if (!isNaN(lastIdValue) && lastIdValue > 0) {
+        lastId = lastIdValue;
+      }
+    }
+    
+    const messages = await getMessages(lastId);
 
-    const messages = result.rows.map( ( row: Row ) => ({
-      id: row.id as number,
-      text: row.text as string,
-      date: row.date as string,
-      url: row.url as string,
-    }) );
+    // Set appropriate cache control headers based on the request
+    const headers = new Headers();
+    
+    if (bypassCache || lastId !== undefined) {
+      // For requests with timestamp parameter or lastId, disable caching
+      headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      headers.set('Pragma', 'no-cache');
+      headers.set('Expires', '0');
+    } else {
+      // For normal requests, allow caching for a short period (5 minutes)
+      headers.set('Cache-Control', 'public, max-age=300, s-maxage=300');
+    }
 
-    return NextResponse.json( messages );
+    return NextResponse.json(messages, { headers });
   } catch (error) {
-    return NextResponse.json( { error: 'Failed to fetch messages' }, { status: 500 } );
+    logger.error('Error fetching messages:', error);
+    return NextResponse.json({ error: 'Failed to fetch messages' }, { status: 500 });
   }
 }
 
