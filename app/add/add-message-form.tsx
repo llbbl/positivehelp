@@ -66,7 +66,7 @@ export function AddMessageForm() {
           id="content"
           name="content"
           placeholder="Share something positive..."
-          className="min-h-[100px]"
+          className="min-h-[100px] bg-white/70"
           required
         />
       </div>
@@ -81,6 +81,7 @@ export function AddMessageForm() {
           id="author"
           name="author"
           placeholder="Who said or wrote this? Leave blank for anonymous."
+          className="bg-white/70"
         />
       </div>
       <Button type="submit" disabled={ isPending }>
