@@ -19,7 +19,7 @@
     "@clerk/nextjs": "^6.20.0",
     "@libsql/client": "^0.15.8",
     "@radix-ui/react-slot": "^1.1.2",
-    "@radix-ui/react-toast": "^1.2.6",
+    "@radix-ui/react-toast": "^1.2.14",
     "@tanstack/react-table": "^8.21.2",
     "better-sqlite3": "^11.10.0",
     "class-variance-authority": "^0.7.1",
