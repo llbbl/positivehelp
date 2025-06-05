@@ -1,12 +1,23 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-body {
-  font-family: Arial, Helvetica, sans-serif;
-}
+@import "tailwindcss";
 
 @layer base {
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+  }
+
+  @theme {
+    --color-custom-blue: #a7def8;
+    --color-custom-mint: #C1F3E7;
+    --color-custom-green: #c1f3cc;
+    --color-custom-purple: #cfa7f8;
+    --color-custom-pink: #F8A7F6;
+    --color-custom-yellow: #f8f8c7;
+    --color-custom-orange: #f8d7c7;
+    --color-custom-red: #f8c7c7;
+    --color-custom-cream: #EDF1D7;
+    --color-custom-solitude: #88D3E0;
+  }
+
   :root {
     --background: #696a65;
     --foreground: 240 10% 3.9%;
@@ -34,6 +45,7 @@ body {
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
   }
+  
   .dark {
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
@@ -60,13 +72,14 @@ body {
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
   }
+
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
 }
 
-* {
-  border-color: hsl(var(--border));
-}
-
-body {
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
-}
