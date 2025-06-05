@@ -2,6 +2,7 @@
   "name": "positivehelp",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@9.12.3",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
@@ -54,16 +55,21 @@
   "jest": {
     "preset": "ts-jest",
     "testEnvironment": "jsdom",
-    "setupFilesAfterEnv": ["<rootDir>/jest.setup.ts"],
+    "setupFilesAfterEnv": [
+      "<rootDir>/jest.setup.ts"
+    ],
     "moduleNameMapper": {
       "^@/(.*)$": "<rootDir>/$1"
     },
     "transform": {
-      "^.+\\.(ts|tsx)$": ["ts-jest", {
-        "tsconfig": {
-          "jsx": "react-jsx"
+      "^.+\\.(ts|tsx)$": [
+        "ts-jest",
+        {
+          "tsconfig": {
+            "jsx": "react-jsx"
+          }
         }
-      }]
+      ]
     }
   }
 }
