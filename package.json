@@ -20,7 +20,7 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
-    "@babel/helpers": "^7.27.1",
+    "@babel/helpers": "^7.27.6",
     "@clerk/nextjs": "^6.20.0",
     "@libsql/client": "^0.15.8",
     "@radix-ui/react-slot": "^1.2.3",
