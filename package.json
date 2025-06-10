@@ -2,7 +2,7 @@
   "name": "positivehelp",
   "version": "0.1.0",
   "private": true,
-  "packageManager": "pnpm@10.11.1",
+  "packageManager": "pnpm@10.12.1",
   "resolutions": {
     "dom-accessibility-api": "0.5.16",
     "picomatch": "2.3.1"
