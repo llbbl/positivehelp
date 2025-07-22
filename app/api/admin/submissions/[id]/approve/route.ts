@@ -7,19 +7,19 @@ import { eq, and } from 'drizzle-orm';
 import logger from '@/lib/logger';
 
 export async function POST(
-  request: NextRequest
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
-  const url = new URL(request.url);
-  const segments = url.pathname.split('/');
-  const id = parseInt(segments[4]);
+  let id = '';
   
-  logger.info("Processing approval request", { 
-    pathname: url.pathname,
-    segments,
-    id
-  });
-
   try {
+    ({ id } = await context.params);
+    const submissionId = parseInt(id);
+    
+    logger.info("Processing approval request", { 
+      submissionId
+    });
+
     const user = await currentUser();
     
     if (!user) {
@@ -34,7 +34,7 @@ export async function POST(
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    if (isNaN(id)) {
+    if (isNaN(submissionId)) {
       return new NextResponse("Invalid submission ID", { status: 400 });
     }
 
@@ -42,7 +42,7 @@ export async function POST(
     const [submission] = await db
       .select()
       .from(submissions)
-      .where(eq(submissions.id, id));
+      .where(eq(submissions.id, submissionId));
 
     if (!submission) {
       return new NextResponse("Submission not found", { status: 404 });
@@ -98,11 +98,11 @@ export async function POST(
       await tx
         .update(submissions)
         .set({ status: 2 }) // 2 = approved
-        .where(eq(submissions.id, id));
+        .where(eq(submissions.id, submissionId));
     });
 
     logger.info("Submission approved successfully", { 
-      submissionId: id,
+      submissionId,
       approvedBy: user.id 
     });
 
