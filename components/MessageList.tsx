@@ -24,45 +24,58 @@ export default function MessageList({ initialMessages }: MessageListProps) {
     try {
       setIsLoading(true);
       
-      // Get the highest message ID we currently have
-      const highestId = messages.length > 0 
-        ? Math.max(...messages.map(msg => msg.id)) 
-        : 0;
-      
-      // Add cache-busting and lastId parameters to only fetch new messages
-      const response = await fetch(`/api/messages?t=${Date.now()}&lastId=${highestId}`, {
-        cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
-        }
+      // Get the highest message ID we currently have using functional state update
+      setMessages(currentMessages => {
+        const highestId = currentMessages.length > 0 
+          ? Math.max(...currentMessages.map(msg => msg.id)) 
+          : 0;
+        
+        // Use the highestId in an async IIFE to fetch new messages
+        (async () => {
+          try {
+            // Add cache-busting and lastId parameters to only fetch new messages
+            const response = await fetch(`/api/messages?t=${Date.now()}&lastId=${highestId}`, {
+              cache: 'no-store',
+              headers: {
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache'
+              }
+            });
+            
+            if (!response.ok) {
+              throw new Error('Failed to fetch latest messages');
+            }
+            
+            const newMessages = await response.json() as Message[];
+            
+            // Only update state if we have new messages
+            if (newMessages.length > 0) {
+              // Combine new messages with existing ones and sort by ID descending
+              setMessages(prevMessages => {
+                const combined = [...newMessages, ...prevMessages];
+                // Remove any duplicates (by ID) and sort
+                const uniqueMessages = Array.from(
+                  new Map(combined.map(msg => [msg.id, msg])).values()
+                ).sort((a, b) => b.id - a.id);
+                
+                return uniqueMessages;
+              });
+            }
+          } catch (error) {
+            console.error('Error fetching latest messages:', error);
+          } finally {
+            setIsLoading(false);
+          }
+        })();
+        
+        // Return current messages unchanged in the synchronous part
+        return currentMessages;
       });
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch latest messages');
-      }
-      
-      const newMessages = await response.json() as Message[];
-      
-      // Only update state if we have new messages
-      if (newMessages.length > 0) {
-        // Combine new messages with existing ones and sort by ID descending
-        setMessages(prevMessages => {
-          const combined = [...newMessages, ...prevMessages];
-          // Remove any duplicates (by ID) and sort
-          const uniqueMessages = Array.from(
-            new Map(combined.map(msg => [msg.id, msg])).values()
-          ).sort((a, b) => b.id - a.id);
-          
-          return uniqueMessages;
-        });
-      }
     } catch (error) {
-      console.error('Error fetching latest messages:', error);
-    } finally {
+      console.error('Error in fetchLatestMessages:', error);
       setIsLoading(false);
     }
-  }, [messages]); // messages is a dependency for the callback
+  }, []); // Remove messages dependency to prevent infinite loop
 
   useEffect(() => {
     // Fetch latest messages after component mounts
