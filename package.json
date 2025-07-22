@@ -40,7 +40,7 @@
     "winston": "^3.17.0"
   },
   "devDependencies": {
-    "@next/env": "^15.3.2",
+    "@next/env": "^15.4.2",
     "@tailwindcss/postcss": "^4.1.8",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
