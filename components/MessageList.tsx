@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
+import { MessageListSkeleton } from "./MessageSkeleton";
 
 export interface Message {
   id: number;
@@ -18,6 +19,7 @@ interface MessageListProps {
 export default function MessageList({ initialMessages }: MessageListProps) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [isLoading, setIsLoading] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(initialMessages.length === 0);
 
   // Use useCallback to memoize the fetch function
   const fetchLatestMessages = useCallback(async () => {
@@ -65,6 +67,7 @@ export default function MessageList({ initialMessages }: MessageListProps) {
             console.error('Error fetching latest messages:', error);
           } finally {
             setIsLoading(false);
+            setIsInitialLoad(false);
           }
         })();
         
@@ -74,6 +77,7 @@ export default function MessageList({ initialMessages }: MessageListProps) {
     } catch (error) {
       console.error('Error in fetchLatestMessages:', error);
       setIsLoading(false);
+      setIsInitialLoad(false);
     }
   }, []); // Remove messages dependency to prevent infinite loop
 
@@ -88,23 +92,34 @@ export default function MessageList({ initialMessages }: MessageListProps) {
     return () => clearInterval(intervalId);
   }, [fetchLatestMessages]); // Only depend on the memoized callback
 
+  // Show skeleton loading state for initial load
+  if (isInitialLoad && messages.length === 0) {
+    return <MessageListSkeleton count={6} />;
+  }
+
   return (
     <div className="space-y-3 relative">
-      {isLoading && (
-        <div className="absolute top-0 right-0 text-xs text-gray-500 animate-pulse">
+      {isLoading && !isInitialLoad && (
+        <div className="absolute top-0 right-0 text-xs text-gray-500 animate-pulse bg-white/80 px-2 py-1 rounded-md">
           Checking for new messages...
         </div>
       )}
-      {messages.map((message: Message) => (
-        <Link
-          href={`/msg/${message.url}`}
-          key={message.id}
-          className="block p-1 rounded-lg text-gray-800 hover:bg-gray-100/60 transition-all"
-        >
-          <p>{message.text}</p>
-          <span className="text-sm text-gray-600">({message.date})</span>
-        </Link>
-      ))}
+      {messages.length === 0 ? (
+        <div className="text-center py-8 text-gray-500">
+          <p>No messages yet. Be the first to share something positive!</p>
+        </div>
+      ) : (
+        messages.map((message: Message) => (
+          <Link
+            href={`/msg/${message.url}`}
+            key={message.id}
+            className="block p-1 rounded-lg text-gray-800 hover:bg-gray-100/60 transition-all"
+          >
+            <p>{message.text}</p>
+            <span className="text-sm text-gray-600">({message.date})</span>
+          </Link>
+        ))
+      )}
     </div>
   );
 } 

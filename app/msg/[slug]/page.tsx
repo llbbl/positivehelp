@@ -2,6 +2,7 @@
 import type { Message } from "@/app/api/messages/[slug]/route";
 import MessageDisplay from './message-display';
 import logger from '@/lib/logger';
+import { notFound } from 'next/navigation';
 
 const bgColors = [
   'bg-custom-green',
@@ -44,6 +45,11 @@ export default async function MessagePage({ params }: { params: Promise<{ slug: 
         statusText: response.statusText,
         url: absoluteUrl
       });
+      
+      if (response.status === 404) {
+        notFound();
+      }
+      
       throw new Error(`Failed to fetch message: ${response.status} ${response.statusText}`);
     }
 

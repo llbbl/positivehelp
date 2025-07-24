@@ -29,8 +29,24 @@ export async function POST(
     }
 
     const submissionId = parseInt(id);
-    if (isNaN(submissionId)) {
+    if (isNaN(submissionId) || submissionId <= 0) {
       return new NextResponse("Invalid submission ID", { status: 400 });
+    }
+
+    // Check if submission exists and isn't already rejected
+    const [submission] = await db
+      .select()
+      .from(submissions)
+      .where(eq(submissions.id, submissionId));
+
+    if (!submission) {
+      logger.warn("Submission not found for rejection", { submissionId });
+      return new NextResponse("Submission not found", { status: 404 });
+    }
+
+    if (submission.status === 0) {
+      logger.warn("Attempt to reject already rejected submission", { submissionId });
+      return new NextResponse("Submission already rejected", { status: 400 });
     }
 
     // Update submission status
@@ -38,10 +54,6 @@ export async function POST(
       .update(submissions)
       .set({ status: 0 }) // 0 = rejected
       .where(eq(submissions.id, submissionId));
-
-    if (result.rowsAffected === 0) {
-      return new NextResponse("Submission not found", { status: 404 });
-    }
 
     logger.info("Submission rejected successfully", { 
       submissionId,

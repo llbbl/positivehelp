@@ -11,11 +11,12 @@ import { useAuth } from "@clerk/nextjs"
 
 export function AddMessageForm() {
   const [ isPending, setIsPending ] = useState( false )
+  const [ formData, setFormData ] = useState({ content: '', author: '' })
   const router = useRouter()
   const { toast } = useToast()
   const { userId } = useAuth()
 
-  async function handleSubmit( formData: FormData ) {
+  async function handleSubmit( formDataObj: FormData ) {
     if ( !userId ) {
       toast( {
         variant: "destructive",
@@ -25,26 +26,48 @@ export function AddMessageForm() {
       return
     }
 
-    setIsPending( true )
-    formData.append( "userId", userId )
-    const result = await createMessage( formData )
-    setIsPending( false )
+    const content = formDataObj.get('content') as string
+    const author = formDataObj.get('author') as string
 
-    if ( result.error ) {
+    // Optimistic UI update - show success message immediately
+    toast( {
+      title: "Submitting...",
+      description: "Your message is being submitted for review.",
+    } )
+
+    setIsPending( true )
+    formDataObj.append( "userId", userId )
+    
+    try {
+      const result = await createMessage( formDataObj )
+      
+      if ( result.error ) {
+        toast( {
+          variant: "destructive",
+          title: "Error",
+          description: result.error,
+        } )
+        return
+      }
+
+      // Clear form on success
+      setFormData({ content: '', author: '' })
+      
+      toast( {
+        title: "Success",
+        description: "Your message has been submitted for review!",
+      } )
+      router.push( "/" )
+      router.refresh()
+    } catch (error) {
       toast( {
         variant: "destructive",
         title: "Error",
-        description: result.error,
+        description: "Failed to submit message. Please try again.",
       } )
-      return
+    } finally {
+      setIsPending( false )
     }
-
-    toast( {
-      title: "Success",
-      description: "Your message has been added!",
-    } )
-    router.push( "/" )
-    router.refresh()
   }
 
   return (
@@ -67,6 +90,9 @@ export function AddMessageForm() {
           name="content"
           placeholder="Share something positive..."
           className="min-h-[100px] bg-white/70"
+          value={formData.content}
+          onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+          disabled={isPending}
           required
         />
       </div>
@@ -82,6 +108,9 @@ export function AddMessageForm() {
           name="author"
           placeholder="Who said or wrote this? Leave blank for anonymous."
           className="bg-white/70"
+          value={formData.author}
+          onChange={(e) => setFormData(prev => ({ ...prev, author: e.target.value }))}
+          disabled={isPending}
         />
       </div>
       <Button type="submit" disabled={ isPending }>

@@ -57,7 +57,38 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const { text, author, clerkUserId } = await request.json();
+    let body;
+    try {
+      body = await request.json();
+    } catch (error) {
+      return NextResponse.json({ error: 'Invalid JSON in request body' }, { status: 400 });
+    }
+    
+    const { text, author, clerkUserId } = body;
+
+    // Validate required fields
+    if (!text || typeof text !== 'string') {
+      return NextResponse.json({ error: 'Message text is required' }, { status: 400 });
+    }
+
+    if (!clerkUserId || typeof clerkUserId !== 'string') {
+      return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+    }
+
+    // Validate text length
+    if (text.trim().length < 3) {
+      return NextResponse.json({ error: 'Message is too short' }, { status: 400 });
+    }
+
+    if (text.length > 1000) {
+      return NextResponse.json({ error: 'Message is too long' }, { status: 400 });
+    }
+
+    // Validate author if provided
+    if (author && (typeof author !== 'string' || author.length > 100)) {
+      return NextResponse.json({ error: 'Invalid author name' }, { status: 400 });
+    }
+
     const currentDate = new Date().toISOString().split('T')[0];
 
     const hash = generateMD5(text);
@@ -100,17 +131,17 @@ export async function POST(request: Request) {
       // Get the auth session
       const session = await auth();
       if (!session || !session.userId) {
-        throw new Error('No authenticated user');
+        return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
       }
 
       if (session.userId !== clerkUserId) {
-        throw new Error('User ID mismatch');
+        return NextResponse.json({ error: 'User authentication mismatch' }, { status: 403 });
       }
 
       // Get the full user object for admin check
       const user = await currentUser();
       if (!user) {
-        throw new Error('Failed to get user details');
+        return NextResponse.json({ error: 'Failed to get user details' }, { status: 401 });
       }
 
       // console.log('Debug - Admin check:', {

@@ -6,7 +6,7 @@ import { AdminDataTable } from "./admin-data-table"
 import { ColumnDef } from "@tanstack/react-table"
 import { Button } from "@/components/ui/button"
 import { ThumbsUp, ThumbsDown } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { fetchWithErrorHandling, showErrorToast, showSuccessToast } from "@/lib/client-error-handler"
 
 type AdminSubmission = {
   id: number
@@ -29,12 +29,13 @@ type UserInfo = {
 
 export function AdminSubmissionsTable({ submissions }: AdminSubmissionsTableProps) {
   const router = useRouter()
-  const { toast } = useToast()
   const [processingIds, setProcessingIds] = useState<Set<number>>(new Set())
   const [userInfo, setUserInfo] = useState<Record<string, UserInfo>>({})
+  const [loadingUserIds, setLoadingUserIds] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     const fetchUserInfo = async (userId: string) => {
+      setLoadingUserIds(prev => new Set([...prev, userId]))
       try {
         const response = await fetch(`/api/admin/users/${userId}`);
         if (response.ok) {
@@ -46,6 +47,12 @@ export function AdminSubmissionsTable({ submissions }: AdminSubmissionsTableProp
         }
       } catch (error) {
         console.error('Error fetching user info:', error);
+      } finally {
+        setLoadingUserIds(prev => {
+          const newSet = new Set(prev)
+          newSet.delete(userId)
+          return newSet
+        })
       }
     };
 
@@ -60,26 +67,18 @@ export function AdminSubmissionsTable({ submissions }: AdminSubmissionsTableProp
 
   const handleApprove = async (id: number) => {
     setProcessingIds(prev => new Set([...prev, id]))
+    
     try {
-      const response = await fetch(`/api/admin/submissions/${id}/approve`, {
-        method: 'POST',
-      })
-      
-      if (!response.ok) {
-        throw new Error('Failed to approve submission')
-      }
+      await fetchWithErrorHandling(
+        `/api/admin/submissions/${id}/approve`,
+        { method: 'POST' },
+        'submission approval'
+      )
 
-      toast({
-        title: "Success",
-        description: "Submission approved successfully",
-      })
+      showSuccessToast("Success", "Submission approved successfully")
       router.refresh()
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to approve submission",
-      })
+      showErrorToast(error, "Failed to approve submission")
     } finally {
       setProcessingIds(prev => {
         const newSet = new Set(prev)
@@ -91,26 +90,18 @@ export function AdminSubmissionsTable({ submissions }: AdminSubmissionsTableProp
 
   const handleReject = async (id: number) => {
     setProcessingIds(prev => new Set([...prev, id]))
+    
     try {
-      const response = await fetch(`/api/admin/submissions/${id}/reject`, {
-        method: 'POST',
-      })
-      
-      if (!response.ok) {
-        throw new Error('Failed to reject submission')
-      }
+      await fetchWithErrorHandling(
+        `/api/admin/submissions/${id}/reject`,
+        { method: 'POST' },
+        'submission rejection'
+      )
 
-      toast({
-        title: "Success",
-        description: "Submission rejected successfully",
-      })
+      showSuccessToast("Success", "Submission rejected successfully")
       router.refresh()
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to reject submission",
-      })
+      showErrorToast(error, "Failed to reject submission")
     } finally {
       setProcessingIds(prev => {
         const newSet = new Set(prev)
@@ -139,6 +130,12 @@ export function AdminSubmissionsTable({ submissions }: AdminSubmissionsTableProp
       cell: ({ row }) => {
         const userId = row.getValue("clerkUserId") as string;
         const user = userInfo[userId];
+        const isLoading = loadingUserIds.has(userId);
+        
+        if (isLoading) {
+          return <div className="animate-pulse bg-gray-200 h-4 w-24 rounded"></div>;
+        }
+        
         if (!user) return userId;
         return user.firstName && user.lastName 
           ? `${user.firstName} ${user.lastName} (${user.username})`

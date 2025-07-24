@@ -34,7 +34,7 @@ export async function POST(
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    if (isNaN(submissionId)) {
+    if (isNaN(submissionId) || submissionId <= 0) {
       return new NextResponse("Invalid submission ID", { status: 400 });
     }
 
@@ -45,7 +45,13 @@ export async function POST(
       .where(eq(submissions.id, submissionId));
 
     if (!submission) {
+      logger.warn("Submission not found for approval", { submissionId });
       return new NextResponse("Submission not found", { status: 404 });
+    }
+
+    if (submission.status === 2) {
+      logger.warn("Attempt to approve already approved submission", { submissionId });
+      return new NextResponse("Submission already approved", { status: 400 });
     }
 
     // Start a transaction
