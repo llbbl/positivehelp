@@ -75,8 +75,5 @@ EXPOSE 3000
 
 ENV PORT=3000
 
-# IMPORTANT: When running this container, provide database credentials as environment variables:
-# docker run -e TURSO_DATABASE_URL=libsql://your-database.turso.io -e TURSO_AUTH_TOKEN=your_token_here ...
-
 # Run the application with Node.js
 CMD ["node", "server.js"]
