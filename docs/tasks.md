@@ -65,7 +65,26 @@ This document outlines suggested improvements to enhance the positive.help appli
 - [x] ~~Implement proper error boundaries~~ ✅ **COMPLETED**
 
 ### Security Enhancements
-- [ ] Add rate limiting for API endpoints
+- [ ] **Add rate limiting for API endpoints** - Database-based implementation with Turso:
+  - [ ] Create `rate_limits` table in database schema:
+    - [ ] Fields: id, identifier (IP/userID), endpoint, requests_count, window_start, created_at
+    - [ ] Add indexes for efficient querying by identifier and endpoint
+  - [ ] Generate and run database migration for rate_limits table
+  - [ ] Create rate limiting middleware/utility functions:
+    - [ ] `checkRateLimit(identifier, endpoint, limit, windowMinutes)` function
+    - [ ] Sliding window or fixed window implementation using database timestamps
+    - [ ] Automatic cleanup of expired rate limit records
+  - [ ] Implement rate limiting logic:
+    - [ ] IP-based rate limiting (100 requests/hour for anonymous users)
+    - [ ] User-based rate limiting (500 requests/hour for authenticated users)
+    - [ ] Endpoint-specific limits:
+      - [ ] POST `/api/messages` - 10 submissions/hour per user, 5/hour per IP
+      - [ ] Admin approval endpoints - 100 actions/hour per admin
+  - [ ] Add rate limit HTTP headers (X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset)
+  - [ ] Create rate limit bypass for admin users
+  - [ ] Add graceful error responses with retry-after headers
+  - [ ] Implement periodic cleanup job for old rate limit records
+  - [ ] Add rate limit monitoring and logging
 - [ ] Implement CSRF protection
 - [x] ~~Add input sanitization for all user content~~ ✅ **COMPLETED**
 - [ ] Create content security policy (CSP) headers
@@ -183,7 +202,7 @@ This document outlines suggested improvements to enhance the positive.help appli
 2. ~~Implement proper error handling and validation~~ ✅ **COMPLETED** 
 3. Add search functionality for messages
 4. ~~Create comprehensive API validation with Zod~~ ✅ **COMPLETED**
-5. Add rate limiting and basic security measures
+5. **Add rate limiting and additional security measures** (authentication ✅ already in place via Clerk middleware, input validation ✅ already implemented)
 
 ### Medium Priority (Enhanced Experience)
 1. Implement message favoriting system
