@@ -1,6 +1,15 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { AddMessageForm } from "./add-message-form";
 import { isUserAdmin } from '@/lib/auth';
+import { generateSEOMetadata } from '@/lib/seo';
+
+// Metadata for the add message page
+export const metadata = generateSEOMetadata({
+  title: "Add a Positive Message",
+  description: "Share your positive message with the community. Help spread good vibes and uplift others.",
+  noIndex: true, // Don't index form pages
+  keywords: ["add message", "submit positive content", "share inspiration"],
+});
 
 export default async function AddPage() {
   const user = await currentUser();
