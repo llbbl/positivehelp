@@ -130,7 +130,7 @@ describe('AddMessageForm', () => {
     await waitFor(() => {
       expect(mockToast).toHaveBeenCalledWith({
         title: "Success",
-        description: "Your message has been added!",
+        description: "Your message has been submitted for review!",
       });
       expect(mockPush).toHaveBeenCalledWith('/');
       expect(mockRefresh).toHaveBeenCalled();
