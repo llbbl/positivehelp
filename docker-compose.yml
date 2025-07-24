@@ -26,22 +26,3 @@ services:
       retries: 3
       start_period: 40s
 
-  # Development service (alternative to production build)
-  dev:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-    ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=development
-      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
-      - TURSO_DATABASE_URL=${TURSO_DATABASE_URL:-}
-      - TURSO_AUTH_TOKEN=${TURSO_AUTH_TOKEN:-}
-    volumes:
-      # Mount source code for hot reloading in development
-      - .:/app
-      - /app/node_modules
-      - /app/.next
-    profiles:
-      - dev
