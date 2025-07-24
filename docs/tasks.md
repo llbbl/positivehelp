@@ -65,7 +65,17 @@ This document outlines suggested improvements to enhance the positive.help appli
 - [x] ~~Implement proper error boundaries~~ ✅ **COMPLETED**
 
 ### Security Enhancements
-- [ ] Add rate limiting for API endpoints
+- [ ] **Add rate limiting for API endpoints** - Detailed breakdown:
+  - [ ] Install and configure `@upstash/ratelimit` with Redis/Upstash
+  - [ ] Implement IP-based rate limiting (100 requests/hour for anonymous users)
+  - [ ] Add user-based rate limiting (500 requests/hour for authenticated users)
+  - [ ] Create stricter limits for submission endpoints:
+    - [ ] POST `/api/messages` - 10 submissions/hour per user, 5/hour per IP
+    - [ ] Admin approval endpoints - 100 actions/hour per admin
+  - [ ] Add rate limit headers (X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset)
+  - [ ] Create rate limit bypass for admin users
+  - [ ] Add graceful error responses with retry-after headers
+  - [ ] Implement rate limit monitoring and alerting
 - [ ] Implement CSRF protection
 - [x] ~~Add input sanitization for all user content~~ ✅ **COMPLETED**
 - [ ] Create content security policy (CSP) headers
@@ -183,7 +193,7 @@ This document outlines suggested improvements to enhance the positive.help appli
 2. ~~Implement proper error handling and validation~~ ✅ **COMPLETED** 
 3. Add search functionality for messages
 4. ~~Create comprehensive API validation with Zod~~ ✅ **COMPLETED**
-5. Add rate limiting and basic security measures
+5. **Add rate limiting and additional security measures** (authentication ✅ already in place via Clerk middleware, input validation ✅ already implemented)
 
 ### Medium Priority (Enhanced Experience)
 1. Implement message favoriting system
