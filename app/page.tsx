@@ -2,6 +2,15 @@ import { Button } from "@/components/ui/button"
 import { PlusCircle } from "lucide-react"
 import { getMessages } from "@/lib/messages"
 import MessageList from "@/components/MessageList"
+import { generateSEOMetadata } from "@/lib/seo"
+
+// Generate specific metadata for the homepage
+export const metadata = generateSEOMetadata({
+  title: "Share Positive Messages and Spread Good Vibes",
+  description: "Discover uplifting messages, motivational quotes, and positive content shared by our community. Add your own positive message to brighten someone's day.",
+  keywords: ["positive messages", "uplifting quotes", "motivation", "inspiration", "good vibes", "community", "mental health", "wellness"],
+  type: "website"
+})
 
 export default async function Home() {
   // Use the getMessages function for server-side rendering

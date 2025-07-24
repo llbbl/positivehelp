@@ -1,0 +1,30 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Gradient -->
+  <defs>
+    <linearGradient id="bg-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4ade80;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#22d3ee;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <rect width="1200" height="630" fill="url(#bg-gradient)"/>
+  
+  <!-- Main Content -->
+  <text x="600" y="280" font-family="system-ui, -apple-system, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" fill="white">
+    positive.help
+  </text>
+  
+  <text x="600" y="340" font-family="system-ui, -apple-system, sans-serif" font-size="32" text-anchor="middle" fill="rgba(255,255,255,0.9)">
+    Share positive messages and spread good vibes
+  </text>
+  
+  <!-- Decorative Elements -->
+  <circle cx="200" cy="150" r="30" fill="rgba(255,255,255,0.2)"/>
+  <circle cx="1000" cy="480" r="40" fill="rgba(255,255,255,0.15)"/>
+  <circle cx="150" cy="500" r="20" fill="rgba(255,255,255,0.3)"/>
+  <circle cx="1050" cy="120" r="25" fill="rgba(255,255,255,0.25)"/>
+  
+  <!-- Bottom accent -->
+  <rect x="0" y="580" width="1200" height="50" fill="rgba(255,255,255,0.1)"/>
+</svg>
