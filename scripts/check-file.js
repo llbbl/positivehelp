@@ -35,7 +35,7 @@ const tempConfig = {
   "include": [
     filePath,
     // Include essential type definitions
-    "vitest.d.ts",
+    "jest.setup.ts",
     "next-env.d.ts"
   ]
 };
