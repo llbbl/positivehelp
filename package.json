@@ -18,7 +18,9 @@
     "db:reset": "drizzle-kit reset --config drizzle.config.ts",
     "test": "jest",
     "test:watch": "jest --watch",
-    "check-file": "node scripts/check-file.js"
+    "check-file": "node scripts/check-file.js",
+    "bun-tsc": "bun scripts/check-file.js",
+    "node-tsc": "node scripts/check-file.js"
   },
   "dependencies": {
     "@babel/helpers": "^7.27.1",
