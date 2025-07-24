@@ -40,7 +40,8 @@
     "react-dom": "^19.1.0",
     "tailwind-merge": "^3.3.0",
     "tailwindcss-animate": "^1.0.7",
-    "winston": "^3.17.0"
+    "winston": "^3.17.0",
+    "zod": "^4.0.8"
   },
   "devDependencies": {
     "@next/env": "^15.4.2",

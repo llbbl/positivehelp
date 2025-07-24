@@ -7,31 +7,20 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import logger from '@/lib/logger';
 import { getOrCreateAuthor } from '@/lib/authors';
 import { getMessages } from '@/lib/messages';
+import { messageSchemas, validateBody, validateQuery } from '@/lib/validation/types';
+import { handleAPIError, APIError } from '@/lib/error-handler';
 
 // This is the API route handler for client-side requests
 export async function GET(request: Request) {
   try {
     const url = new URL(request.url);
     
-    // Safely parse the t parameter as an integer
-    let bypassCache = false;
-    if (url.searchParams.has('t')) {
-      const tParam = url.searchParams.get('t');
-      // Only consider it valid if it can be parsed as a number
-      const tValue = tParam ? parseInt(tParam, 10) : NaN;
-      bypassCache = !isNaN(tValue);
-    }
+    // Validate query parameters using Zod
+    const validatedQuery = await validateQuery(messageSchemas.query)(url.searchParams);
     
-    // Safely parse the lastId parameter as an integer
-    let lastId: number | undefined = undefined;
-    if (url.searchParams.has('lastId')) {
-      const lastIdParam = url.searchParams.get('lastId');
-      const lastIdValue = lastIdParam ? parseInt(lastIdParam, 10) : NaN;
-      // Only set lastId if it's a valid number
-      if (!isNaN(lastIdValue) && lastIdValue > 0) {
-        lastId = lastIdValue;
-      }
-    }
+    // Extract validated parameters
+    const { lastId, t } = validatedQuery;
+    const bypassCache = t !== undefined;
     
     const messages = await getMessages(lastId);
 
@@ -51,13 +40,16 @@ export async function GET(request: Request) {
     return NextResponse.json(messages, { headers });
   } catch (error) {
     logger.error('Error fetching messages:', error);
-    return NextResponse.json({ error: 'Failed to fetch messages' }, { status: 500 });
+    return handleAPIError(error, 'GET /api/messages');
   }
 }
 
 export async function POST(request: Request) {
   try {
-    const { text, author, clerkUserId } = await request.json();
+    // Validate request body using Zod
+    const validatedBody = await validateBody(messageSchemas.create)(request);
+    const { text, author, clerkUserId } = validatedBody;
+
     const currentDate = new Date().toISOString().split('T')[0];
 
     const hash = generateMD5(text);
@@ -100,17 +92,17 @@ export async function POST(request: Request) {
       // Get the auth session
       const session = await auth();
       if (!session || !session.userId) {
-        throw new Error('No authenticated user');
+        throw new APIError('Authentication required', 401, 'AUTH_REQUIRED');
       }
 
       if (session.userId !== clerkUserId) {
-        throw new Error('User ID mismatch');
+        throw new APIError('User authentication mismatch', 403, 'AUTH_MISMATCH');
       }
 
       // Get the full user object for admin check
       const user = await currentUser();
       if (!user) {
-        throw new Error('Failed to get user details');
+        throw new APIError('Failed to get user details', 401, 'USER_NOT_FOUND');
       }
 
       // console.log('Debug - Admin check:', {
@@ -146,7 +138,7 @@ export async function POST(request: Request) {
         // Insert into submissions for non-admins
         const submissionResult = await client.execute({
           sql: 'INSERT INTO submissions (msg, date, slug, hash, clerkUserId, authorName) VALUES (?, ?, ?, ?, ?, ?)',
-          args: [text, currentDate, slug, hash, clerkUserId, author],
+          args: [text, currentDate, slug, hash, clerkUserId, author || null],
         });
 
         if (typeof submissionResult.lastInsertRowid !== 'bigint' && typeof submissionResult.lastInsertRowid !== 'number') {
@@ -158,6 +150,6 @@ export async function POST(request: Request) {
     }
   } catch (error) {
     logger.error('Error creating message:', error);
-    return NextResponse.json({ error: 'Failed to create message' }, { status: 500 });
+    return handleAPIError(error, 'POST /api/messages');
   }
 }
