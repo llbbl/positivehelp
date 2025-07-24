@@ -2,25 +2,30 @@ import { NextResponse } from 'next/server';
 import { currentUser, clerkClient } from "@clerk/nextjs/server";
 import { isUserAdmin } from '@/lib/auth';
 import logger from '@/lib/logger';
+import { adminSchemas, validateParams } from '@/lib/validation/types';
+import { handleAPIError, APIError } from '@/lib/error-handler';
 
 export async function GET(
   request: Request,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id: userId } = await context.params;
+    // Validate URL parameters
+    const params = await context.params;
+    const { id: userId } = await validateParams(adminSchemas.userId)(params);
+    
     const requestingUser = await currentUser();
 
     if (!requestingUser) {
       logger.info("Unauthorized access attempt (no user)");
-      return new NextResponse("Unauthorized", { status: 401 });
+      throw new APIError("Authentication required", 401, 'AUTH_REQUIRED');
     }
 
     const isAdmin = await isUserAdmin(requestingUser);
 
     if (!isAdmin) {
       logger.info("Non-admin access attempt", { userId: requestingUser.id });
-      return new NextResponse("Forbidden", { status: 403 });
+      throw new APIError("Admin access required", 403, 'ADMIN_REQUIRED');
     }
 
     try {
@@ -32,13 +37,13 @@ export async function GET(
         lastName: requestedUser.lastName,
         username: requestedUser.username,
       });
-    } catch (error) {
+    } catch (clerkError) {
       logger.warn("User not found", { userId });
-      return new NextResponse("User not found", { status: 404 });
+      throw new APIError("User not found", 404, 'USER_NOT_FOUND');
     }
 
   } catch (error) {
     logger.error("Internal server error", { error: error instanceof Error ? error.message: "Unknown Error"});
-    return new NextResponse("Internal Server Error", { status: 500 });
+    return handleAPIError(error, 'GET /api/admin/users/[id]');
   }
 }

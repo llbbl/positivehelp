@@ -5,32 +5,30 @@ import { db } from '@/db/client';
 import { submissions } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import logger from '@/lib/logger';
+import { adminSchemas, validateParams } from '@/lib/validation/types';
+import { handleAPIError, APIError } from '@/lib/error-handler';
 
 export async function POST(
   request: Request,
   context: { params: Promise<{ id: string }> }
 ) {
-  let id = '';
-  
   try {
-    ({ id } = await context.params);
+    // Validate URL parameters
+    const params = await context.params;
+    const { id: submissionId } = await validateParams(adminSchemas.submissionId)(params);
+    
     const user = await currentUser();
     
     if (!user) {
       logger.info("Unauthorized access attempt to reject submission");
-      return new NextResponse("Unauthorized", { status: 401 });
+      throw new APIError("Authentication required", 401, 'AUTH_REQUIRED');
     }
 
     const isAdmin = await isUserAdmin(user);
     
     if (!isAdmin) {
       logger.info("Non-admin attempt to reject submission", { userId: user.id });
-      return new NextResponse("Unauthorized", { status: 401 });
-    }
-
-    const submissionId = parseInt(id);
-    if (isNaN(submissionId) || submissionId <= 0) {
-      return new NextResponse("Invalid submission ID", { status: 400 });
+      throw new APIError("Admin access required", 403, 'ADMIN_REQUIRED');
     }
 
     // Check if submission exists and isn't already rejected
@@ -41,12 +39,12 @@ export async function POST(
 
     if (!submission) {
       logger.warn("Submission not found for rejection", { submissionId });
-      return new NextResponse("Submission not found", { status: 404 });
+      throw new APIError("Submission not found", 404, 'NOT_FOUND');
     }
 
     if (submission.status === 0) {
       logger.warn("Attempt to reject already rejected submission", { submissionId });
-      return new NextResponse("Submission already rejected", { status: 400 });
+      throw new APIError("Submission already rejected", 400, 'ALREADY_REJECTED');
     }
 
     // Update submission status
@@ -64,8 +62,7 @@ export async function POST(
   } catch (error) {
     logger.error("Error rejecting submission", {
       error: error instanceof Error ? error.message : "Unknown error",
-      submissionId: id,
     });
-    return new NextResponse("Internal Server Error", { status: 500 });
+    return handleAPIError(error, 'POST /api/admin/submissions/[id]/reject');
   }
 } 

@@ -5,16 +5,17 @@ import { db } from '@/db/client';
 import { submissions, messages, authors, message_authors } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import logger from '@/lib/logger';
+import { adminSchemas, validateParams } from '@/lib/validation/types';
+import { handleAPIError, APIError } from '@/lib/error-handler';
 
 export async function POST(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
-  let id = '';
-  
   try {
-    ({ id } = await context.params);
-    const submissionId = parseInt(id);
+    // Validate URL parameters
+    const params = await context.params;
+    const { id: submissionId } = await validateParams(adminSchemas.submissionId)(params);
     
     logger.info("Processing approval request", { 
       submissionId
@@ -24,18 +25,14 @@ export async function POST(
     
     if (!user) {
       logger.info("Unauthorized access attempt to approve submission");
-      return new NextResponse("Unauthorized", { status: 401 });
+      throw new APIError("Authentication required", 401, 'AUTH_REQUIRED');
     }
 
     const isAdmin = await isUserAdmin(user);
     
     if (!isAdmin) {
       logger.info("Non-admin attempt to approve submission", { userId: user.id });
-      return new NextResponse("Unauthorized", { status: 401 });
-    }
-
-    if (isNaN(submissionId) || submissionId <= 0) {
-      return new NextResponse("Invalid submission ID", { status: 400 });
+      throw new APIError("Admin access required", 403, 'ADMIN_REQUIRED');
     }
 
     // Get the submission
@@ -46,12 +43,12 @@ export async function POST(
 
     if (!submission) {
       logger.warn("Submission not found for approval", { submissionId });
-      return new NextResponse("Submission not found", { status: 404 });
+      throw new APIError("Submission not found", 404, 'NOT_FOUND');
     }
 
     if (submission.status === 2) {
       logger.warn("Attempt to approve already approved submission", { submissionId });
-      return new NextResponse("Submission already approved", { status: 400 });
+      throw new APIError("Submission already approved", 400, 'ALREADY_APPROVED');
     }
 
     // Start a transaction
@@ -116,8 +113,7 @@ export async function POST(
   } catch (error) {
     logger.error("Error approving submission", {
       error: error instanceof Error ? error.message : "Unknown error",
-      submissionId: id,
     });
-    return new NextResponse("Internal Server Error", { status: 500 });
+    return handleAPIError(error, 'POST /api/admin/submissions/[id]/approve');
   }
 } 

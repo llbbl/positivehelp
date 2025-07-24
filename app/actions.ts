@@ -1,34 +1,16 @@
 "use server"
 
-import { sanitizeContent } from '@/utils/sanitize';
 import { auth } from '@clerk/nextjs/server';
+import { formSchemas, validateFormData } from '@/lib/validation/types';
 
 export async function createMessage( formData: FormData ) {
-  const content = formData.get( 'content' )
-  const author = formData.get( 'author' )
-  const userId = formData.get( 'userId' )
-
-  // console.log('Debug - Server action:', {
-  //   receivedUserId: userId
-  // });
-
-  if ( !content || typeof content !== 'string' ) {
-    return { error: 'Message content is required' }
-  }
-
-  // Author is now OPTIONAL, so we remove the check.
-
-  if ( !userId || typeof userId !== 'string' ) {
-    return { error: 'You must be logged in to add a message' }
-  }
-
-  const sanitizedContent = sanitizeContent( content );
-
-  if ( sanitizedContent.length < 3 ) {
-    return { error: 'Message is too short' }
-  }
-
   try {
+    // Validate and sanitize form data using Zod
+    const validatedData = validateFormData(formSchemas.createMessage)(formData);
+    const { content: sanitizedContent, author, userId } = validatedData;
+
+    // API call logic
+    try {
     const apiUrl = `${ process.env.NEXT_PUBLIC_APP_URL }/api/messages`;
     // console.log( 'Attempting to post to:', apiUrl );
 
@@ -55,9 +37,13 @@ export async function createMessage( formData: FormData ) {
       throw new Error( `Failed to create message: ${ response.status } ${ errorText }` );
     }
 
-    return { success: true }
-  } catch (error) {
-    console.error( 'Error details:', error );
-    return { error: error instanceof Error ? error.message : 'Failed to create message' }
+      return { success: true }
+    } catch (error) {
+      console.error( 'Error details:', error );
+      return { error: error instanceof Error ? error.message : 'Failed to create message' }
+    }
+  } catch (validationError) {
+    // Handle validation errors from Zod
+    return { error: validationError instanceof Error ? validationError.message : 'Invalid form data' }
   }
 }
