@@ -32,7 +32,6 @@ This document outlines suggested improvements to enhance the positive.help appli
 
 ### Search & Discovery
 - [ ] Add full-text search functionality for messages
-- [ ] Implement tag/category system for messages
 - [ ] Create featured messages or trending section
 - [ ] Add filtering by author, date, or category
 - [ ] Build RSS feed for recent messages
@@ -111,7 +110,6 @@ This document outlines suggested improvements to enhance the positive.help appli
 
 ### Testing & Quality
 - [ ] Add integration tests for critical user flows
-- [ ] Implement E2E testing with Playwright
 - [ ] Add API endpoint testing
 - [ ] Create visual regression testing
 - [ ] Add performance testing and monitoring
@@ -162,7 +160,6 @@ This document outlines suggested improvements to enhance the positive.help appli
 ## Infrastructure & Scalability
 
 ### Performance Optimization
-- [ ] Implement Redis caching layer
 - [ ] Add CDN integration for static assets
 - [ ] Create database read replicas
 - [ ] Add message pagination with cursor-based navigation
