@@ -6,7 +6,7 @@ Positive.help is a place where people share positivity. Currently, the ability t
 
 ### Prerequisites
 
-- Node.js (version 18 or later)
+- Node.js (version 20 or later)
 - pnpm
 - Turso database credentials (URL and authentication token)
 - Clerk API keys (e.g., `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`)
