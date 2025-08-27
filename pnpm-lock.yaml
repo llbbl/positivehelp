@@ -71,8 +71,8 @@ importers:
         version: 4.0.8
     devDependencies:
       '@next/env':
-        specifier: ^15.4.2
-        version: 15.4.2
+        specifier: ^15.5.0
+        version: 15.5.0
       '@tailwindcss/postcss':
         specifier: ^4.1.8
         version: 4.1.8
@@ -1036,8 +1036,8 @@ packages:
   '@next/env@15.4.1':
     resolution: {integrity: sha512-DXQwFGAE2VH+f2TJsKepRXpODPU+scf5fDbKOME8MMyeyswe4XwgRdiiIYmBfkXU+2ssliLYznajTrOQdnLR5A==}
 
-  '@next/env@15.4.2':
-    resolution: {integrity: sha512-kd7MvW3pAP7tmk1NaiX4yG15xb2l4gNhteKQxt3f+NGR22qwPymn9RBuv26QKfIKmfo6z2NpgU8W2RT0s0jlvg==}
+  '@next/env@15.5.0':
+    resolution: {integrity: sha512-sDaprBAfzCQiOgo2pO+LhnV0Wt2wBgartjrr+dpcTORYVnnXD0gwhHhiiyIih9hQbq+JnbqH4odgcFWhqCGidw==}
 
   '@next/swc-darwin-arm64@15.4.1':
     resolution: {integrity: sha512-L+81yMsiHq82VRXS2RVq6OgDwjvA4kDksGU8hfiDHEXP+ncKIUhUsadAVB+MRIp2FErs/5hpXR0u2eluWPAhig==}
@@ -4117,7 +4117,7 @@ snapshots:
 
   '@next/env@15.4.1': {}
 
-  '@next/env@15.4.2': {}
+  '@next/env@15.5.0': {}
 
   '@next/swc-darwin-arm64@15.4.1':
     optional: true
