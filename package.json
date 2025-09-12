@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "@babel/helpers": "^7.27.1",
-    "@clerk/nextjs": "^6.30.0",
+    "@clerk/nextjs": "^6.31.9",
     "@libsql/client": "^0.15.8",
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-toast": "^1.2.14",
