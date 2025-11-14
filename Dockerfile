@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 # Use Node.js with pnpm for building (most stable option)
-FROM node:20-alpine AS base
+FROM node:24-alpine AS base
 RUN npm install -g pnpm
 
 # Install dependencies only when needed
@@ -40,7 +40,7 @@ COPY . .
 RUN pnpm run build
 
 # Production image, use Node.js for better Next.js compatibility
-FROM node:20-alpine AS runner
+FROM node:24-alpine AS runner
 
 # Install pnpm and required packages for Alpine Linux
 RUN npm install -g pnpm && \
