@@ -2,7 +2,10 @@
   "name": "positivehelp",
   "version": "0.1.0",
   "private": true,
-  "packageManager": "pnpm@10.12.1",
+  "engines": {
+    "pnpm": ">=10.0.0",
+    "node": ">=18.0.0"
+  },
   "resolutions": {
     "dom-accessibility-api": "0.5.16",
     "picomatch": "2.3.1"
