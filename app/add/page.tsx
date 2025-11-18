@@ -1,65 +1,71 @@
 import { currentUser } from "@clerk/nextjs/server";
+import { isUserAdmin } from "@/lib/auth";
+import { generateSEOMetadata } from "@/lib/seo";
 import { AddMessageForm } from "./add-message-form";
-import { isUserAdmin } from '@/lib/auth';
-import { generateSEOMetadata } from '@/lib/seo';
+
+// Force dynamic rendering - this page requires authentication
+export const dynamic = 'force-dynamic';
 
 // Metadata for the add message page
 export const metadata = generateSEOMetadata({
-  title: "Add a Positive Message",
-  description: "Share your positive message with the community. Help spread good vibes and uplift others.",
-  noIndex: true, // Don't index form pages
-  keywords: ["add message", "submit positive content", "share inspiration"],
+	title: "Add a Positive Message",
+	description:
+		"Share your positive message with the community. Help spread good vibes and uplift others.",
+	noIndex: true, // Don't index form pages
+	keywords: ["add message", "submit positive content", "share inspiration"],
 });
 
 export default async function AddPage() {
-  const user = await currentUser();
+	const user = await currentUser();
 
-  if ( !user ) {
-    return (
-      <div className="min-h-screen bg-custom-cream">
-        <div className="container mx-auto p-6">
-          <div className="max-w-2xl mx-auto rounded-lg shadow-sm">
-            <h2 className="text-xl font-semibold mb-4">Please Log In</h2>
-            <p className="text-gray-600">
-              You must be logged in to add a new message.
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+	if (!user) {
+		return (
+			<div className="min-h-screen bg-custom-cream">
+				<div className="container mx-auto p-6">
+					<div className="max-w-2xl mx-auto rounded-lg shadow-sm">
+						<h2 className="text-xl font-semibold mb-4">Please Log In</h2>
+						<p className="text-gray-600">
+							You must be logged in to add a new message.
+						</p>
+					</div>
+				</div>
+			</div>
+		);
+	}
 
-  const isAdmin = await isUserAdmin( user );
+	const isAdmin = await isUserAdmin(user);
 
-  if ( !isAdmin ) {
-    return (
-      <div className="min-h-screen bg-custom-cream">
-        <div className="container mx-auto p-6">
-          <div className="max-w-2xl mx-auto rounded-lg mb-7">
-            <h2 className="text-xl font-semibold mb-4">Public Submission Policy</h2>
-            <p className="text-gray-600">
-              Your message will be reviewed by the admin team before it is published.
-              <br/> Thank you for your understanding.
-            </p>
-          </div>
-        <div className="max-w-2xl mx-auto">
-          <h1 className="text-2xl font-bold mb-6">Add New Message</h1>
-          <AddMessageForm/>
-        </div>
-        </div>
-      </div>
-    );
-  }
+	if (!isAdmin) {
+		return (
+			<div className="min-h-screen bg-custom-cream">
+				<div className="container mx-auto p-6">
+					<div className="max-w-2xl mx-auto rounded-lg mb-7">
+						<h2 className="text-xl font-semibold mb-4">
+							Public Submission Policy
+						</h2>
+						<p className="text-gray-600">
+							Your message will be reviewed by the admin team before it is
+							published.
+							<br /> Thank you for your understanding.
+						</p>
+					</div>
+					<div className="max-w-2xl mx-auto">
+						<h1 className="text-2xl font-bold mb-6">Add New Message</h1>
+						<AddMessageForm />
+					</div>
+				</div>
+			</div>
+		);
+	}
 
-  return (
-    <div className="min-h-screen bg-custom-cream">
-      <div className="container mx-auto p-6">
-        <div className="max-w-2xl mx-auto">
-          <h1 className="text-2xl font-bold mb-6">Add New Message</h1>
-          <AddMessageForm/>
-        </div>
-      </div>
-    </div>
-  );
+	return (
+		<div className="min-h-screen bg-custom-cream">
+			<div className="container mx-auto p-6">
+				<div className="max-w-2xl mx-auto">
+					<h1 className="text-2xl font-bold mb-6">Add New Message</h1>
+					<AddMessageForm />
+				</div>
+			</div>
+		</div>
+	);
 }
-

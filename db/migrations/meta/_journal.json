@@ -1,69 +1,69 @@
 {
-  "version": "7",
-  "dialect": "sqlite",
-  "entries": [
-    {
-      "idx": 0,
-      "version": "6",
-      "when": 1738525756528,
-      "tag": "0000_left_doctor_spectrum",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1738526007038,
-      "tag": "0001_violet_arclight",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "6",
-      "when": 1738526320306,
-      "tag": "0002_tired_living_mummy",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "6",
-      "when": 1738527864165,
-      "tag": "0003_normal_mystique",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "6",
-      "when": 1738532316582,
-      "tag": "0004_fuzzy_shen",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "6",
-      "when": 1739718466503,
-      "tag": "0005_futuristic_wolverine",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "6",
-      "when": 1740241312369,
-      "tag": "0006_empty_maelstrom",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "6",
-      "when": 1740256394031,
-      "tag": "0007_worried_overlord",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "6",
-      "when": 1740329315090,
-      "tag": "0008_clumsy_thundra",
-      "breakpoints": true
-    }
-  ]
+	"version": "7",
+	"dialect": "sqlite",
+	"entries": [
+		{
+			"idx": 0,
+			"version": "6",
+			"when": 1738525756528,
+			"tag": "0000_left_doctor_spectrum",
+			"breakpoints": true
+		},
+		{
+			"idx": 1,
+			"version": "6",
+			"when": 1738526007038,
+			"tag": "0001_violet_arclight",
+			"breakpoints": true
+		},
+		{
+			"idx": 2,
+			"version": "6",
+			"when": 1738526320306,
+			"tag": "0002_tired_living_mummy",
+			"breakpoints": true
+		},
+		{
+			"idx": 3,
+			"version": "6",
+			"when": 1738527864165,
+			"tag": "0003_normal_mystique",
+			"breakpoints": true
+		},
+		{
+			"idx": 4,
+			"version": "6",
+			"when": 1738532316582,
+			"tag": "0004_fuzzy_shen",
+			"breakpoints": true
+		},
+		{
+			"idx": 5,
+			"version": "6",
+			"when": 1739718466503,
+			"tag": "0005_futuristic_wolverine",
+			"breakpoints": true
+		},
+		{
+			"idx": 6,
+			"version": "6",
+			"when": 1740241312369,
+			"tag": "0006_empty_maelstrom",
+			"breakpoints": true
+		},
+		{
+			"idx": 7,
+			"version": "6",
+			"when": 1740256394031,
+			"tag": "0007_worried_overlord",
+			"breakpoints": true
+		},
+		{
+			"idx": 8,
+			"version": "6",
+			"when": 1740329315090,
+			"tag": "0008_clumsy_thundra",
+			"breakpoints": true
+		}
+	]
 }
