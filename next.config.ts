@@ -31,6 +31,14 @@ const nextConfig: NextConfig = {
 	},
 	reactStrictMode: true,
 	output: "standalone",
+	// Include libsql native modules in standalone output
+	outputFileTracingIncludes: {
+		"/api/**": [
+			"./node_modules/@libsql/**",
+			"./node_modules/.pnpm/@libsql*/**",
+			"./node_modules/.pnpm/libsql*/**",
+		],
+	},
 };
 
 // console.log("process.env.NEXT_PUBLIC_APP_URL (after config):", process.env.NEXT_PUBLIC_APP_URL);
