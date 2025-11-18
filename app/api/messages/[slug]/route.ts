@@ -113,11 +113,13 @@ export async function GET(request: Request) {
 		// });
 		return NextResponse.json(message);
 	} catch (error) {
+		const slug = request.url.split("/").pop();
 		logger.error("API Route: Error processing request", {
 			error: error instanceof Error ? error.message : "Unknown error",
 			stack: error instanceof Error ? error.stack : undefined,
 			url: request.url,
+			slug: slug,
 		});
-		return handleAPIError(error, "GET /api/messages/[slug]");
+		return handleAPIError(error, `GET /api/messages/[slug] (slug: ${slug})`);
 	}
 }
