@@ -3,6 +3,7 @@ import { and, eq, sql } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { db } from "@/db/client";
 import { messages, submissions } from "@/db/schema";
+import { SUBMISSION_STATUS } from "@/lib/constants";
 import logger from "@/lib/logger";
 import { SubmissionsTable } from "./submissions-table";
 
@@ -32,7 +33,7 @@ export default async function SubmissionsPage() {
 			.where(
 				and(
 					eq(submissions.clerkUserId, user.id),
-					eq(submissions.status, 1), // not reviewed
+					eq(submissions.status, SUBMISSION_STATUS.PENDING),
 				),
 			);
 
@@ -48,7 +49,7 @@ export default async function SubmissionsPage() {
 			.where(
 				and(
 					eq(submissions.clerkUserId, user.id),
-					eq(submissions.status, 0), // denied
+					eq(submissions.status, SUBMISSION_STATUS.DENIED),
 				),
 			);
 
@@ -58,7 +59,7 @@ export default async function SubmissionsPage() {
 				id: messages.id,
 				message: messages.msg,
 				date: messages.date,
-				submissionStatus: sql<2>`2`.as("submissionStatus"), // approved
+				submissionStatus: sql<number>`${SUBMISSION_STATUS.APPROVED}`.as("submissionStatus"), // approved
 			})
 			.from(messages)
 			.where(eq(messages.clerkUserId, user.id))

@@ -4,6 +4,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { db } from "@/db/client";
 import { authors, message_authors, messages, submissions } from "@/db/schema";
 import { isUserAdmin } from "@/lib/auth";
+import { SUBMISSION_STATUS } from "@/lib/constants";
 import { APIError, handleAPIError } from "@/lib/error-handler";
 import logger from "@/lib/logger";
 import { adminSchemas, validateParams } from "@/lib/validation/types";
@@ -50,7 +51,7 @@ export async function POST(
 			throw new APIError("Submission not found", 404, "NOT_FOUND");
 		}
 
-		if (submission.status === 2) {
+		if (submission.status === SUBMISSION_STATUS.APPROVED) {
 			logger.warn("Attempt to approve already approved submission", {
 				submissionId,
 			});
@@ -108,7 +109,7 @@ export async function POST(
 			// Update submission status
 			await tx
 				.update(submissions)
-				.set({ status: 2 }) // 2 = approved
+				.set({ status: SUBMISSION_STATUS.APPROVED })
 				.where(eq(submissions.id, submissionId));
 		});
 
