@@ -24,6 +24,7 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_APP_URL: appUrl,
   },
   reactStrictMode: true,
+  output: 'standalone',
 };
 
 // console.log("process.env.NEXT_PUBLIC_APP_URL (after config):", process.env.NEXT_PUBLIC_APP_URL);

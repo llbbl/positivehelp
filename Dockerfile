@@ -42,14 +42,11 @@ RUN pnpm run build
 # Production image, use Node.js for better Next.js compatibility
 FROM node:24-alpine AS runner
 
-# Install pnpm and required packages for Alpine Linux
-RUN npm install -g pnpm && \
-    apk update && apk upgrade && \
+# Install required packages for Alpine Linux
+RUN apk update && apk upgrade && \
     apk add --no-cache \
     ca-certificates \
-    curl \
-    tzdata \
-    dumb-init
+    tzdata
 
 WORKDIR /app
 
