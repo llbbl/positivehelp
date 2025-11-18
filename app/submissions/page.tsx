@@ -6,6 +6,9 @@ import { messages, submissions } from "@/db/schema";
 import logger from "@/lib/logger";
 import { SubmissionsTable } from "./submissions-table";
 
+// Force dynamic rendering - this page requires authentication and database
+export const dynamic = 'force-dynamic';
+
 export default async function SubmissionsPage() {
 	const user = await currentUser();
 

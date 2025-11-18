@@ -7,6 +7,9 @@ import { isUserAdmin } from "@/lib/auth";
 import logger from "@/lib/logger";
 import { AdminSubmissionsTable } from "./admin-submissions-table";
 
+// Force dynamic rendering - this page requires authentication and database
+export const dynamic = 'force-dynamic';
+
 export default async function AdminPage() {
 	const user = await currentUser();
 
