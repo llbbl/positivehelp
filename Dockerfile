@@ -33,6 +33,10 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # Prevent Next.js from trying to contact external services during build
 ENV SKIP_ENV_VALIDATION=1
 
+# Set dummy database credentials for build time (not used, just for build to pass)
+ENV TURSO_DATABASE_URL=libsql://dummy.turso.io
+ENV TURSO_AUTH_TOKEN=dummy_token
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
