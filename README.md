@@ -84,3 +84,36 @@ To reset the database to the latest migration:
 pnpm drizzle-kit reset
 ```
 
+## GitHub Actions & CI/CD
+
+This project uses GitHub Actions for automated testing and database migrations.
+
+### Required GitHub Secrets
+
+To enable automated database migrations in CI/CD, you must configure the following secrets in your GitHub repository:
+
+**Navigate to:** Repository Settings → Secrets and variables → Actions → New repository secret
+
+#### Production Secrets
+
+These secrets are used when code is merged to the `main` branch:
+
+- **`TURSO_DATABASE_URL_PROD`** - Production Turso database URL (e.g., `libsql://your-prod-database-url`)
+- **`TURSO_AUTH_TOKEN_PROD`** - Production Turso authentication token
+
+#### Staging Secrets
+
+These secrets are used when pull requests are created for the `staging` branch:
+
+- **`TURSO_DATABASE_URL_STAGING`** - Staging/non-production Turso database URL (e.g., `libsql://your-staging-database-url`)
+- **`TURSO_AUTH_TOKEN_STAGING`** - Staging/non-production Turso authentication token
+
+### Automated Migration Workflow
+
+The `.github/workflows/migrate.yml` workflow automatically runs database migrations:
+
+- **Production**: Triggers when code is pushed to `main` (after PR merge)
+- **Staging**: Triggers when a PR is opened, updated, or reopened targeting the `staging` branch
+
+Both workflows run `pnpm run db:migrate` with the appropriate environment credentials.
+

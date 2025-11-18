@@ -23,14 +23,19 @@ FROM base AS builder
 WORKDIR /app
 
 # Accept environment variables as build arguments
-# Only public variables are safe to expose in build layer
 ARG NEXT_PUBLIC_APP_URL
+ARG NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+ARG CLERK_SECRET_KEY
+ARG TURSO_DATABASE_URL
+ARG TURSO_AUTH_TOKEN
 
-# Set public environment variables for build with fallback defaults
+# Set environment variables for build
 ENV NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+ENV NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+ENV CLERK_SECRET_KEY=${CLERK_SECRET_KEY}
+ENV TURSO_DATABASE_URL=${TURSO_DATABASE_URL}
+ENV TURSO_AUTH_TOKEN=${TURSO_AUTH_TOKEN}
 ENV NEXT_TELEMETRY_DISABLED=1
-
-# Prevent Next.js from trying to contact external services during build
 ENV SKIP_ENV_VALIDATION=1
 
 COPY --from=deps /app/node_modules ./node_modules
@@ -42,14 +47,11 @@ RUN pnpm run build
 # Production image, use Node.js for better Next.js compatibility
 FROM node:24-alpine AS runner
 
-# Install pnpm and required packages for Alpine Linux
-RUN npm install -g pnpm && \
-    apk update && apk upgrade && \
+# Install required packages for Alpine Linux
+RUN apk update && apk upgrade && \
     apk add --no-cache \
     ca-certificates \
-    curl \
-    tzdata \
-    dumb-init
+    tzdata
 
 WORKDIR /app
 
