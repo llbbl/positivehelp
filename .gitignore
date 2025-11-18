@@ -25,6 +25,12 @@
 *.pem
 *.local.md
 
+# Static files (we use app/robots.ts and app/sitemap.ts instead)
+/public/robots.txt
+/robots.txt
+/public/sitemap.xml
+/sitemap.xml
+
 # debug
 npm-debug.log*
 yarn-debug.log*
