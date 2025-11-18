@@ -69,7 +69,7 @@ export function AdminSubmissionsTable({
 				fetchUserInfo(userId);
 			}
 		});
-	}, [submissions, userInfo[userId]]);
+	}, [submissions, userInfo]);
 
 	const handleApprove = async (id: number) => {
 		setProcessingIds((prev) => new Set([...prev, id]));

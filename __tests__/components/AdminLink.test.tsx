@@ -42,7 +42,7 @@ describe("AdminLink", () => {
 		const mockUser = {
 			id: "user123",
 			primaryEmailAddress: { emailAddress: "admin@test.com" },
-		};
+		} as any;
 
 		mockUseUser.mockReturnValue({
 			user: mockUser,
@@ -64,7 +64,7 @@ describe("AdminLink", () => {
 		const mockUser = {
 			id: "user123",
 			primaryEmailAddress: { emailAddress: "user@test.com" },
-		};
+		} as any;
 
 		mockUseUser.mockReturnValue({
 			user: mockUser,
@@ -97,7 +97,7 @@ describe("AdminLink", () => {
 		const mockUser = {
 			id: "user123",
 			primaryEmailAddress: { emailAddress: "test@test.com" },
-		};
+		} as any;
 
 		mockUseUser.mockReturnValue({
 			user: mockUser,
@@ -115,7 +115,7 @@ describe("AdminLink", () => {
 	});
 
 	it("handles isUserAdmin async call gracefully", async () => {
-		const mockUser = { id: "user123" };
+		const mockUser = { id: "user123" } as any;
 
 		mockUseUser.mockReturnValue({
 			user: mockUser,
