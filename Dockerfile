@@ -1,7 +1,8 @@
 # syntax=docker/dockerfile:1
 # Use Node.js with pnpm for building (most stable option)
 FROM node:24-alpine AS base
-RUN npm install -g pnpm
+# Use corepack to enable pnpm (avoids npm dependency)
+RUN corepack enable && corepack prepare pnpm@10.12.1 --activate
 
 # Install dependencies only when needed
 FROM base AS deps
@@ -53,6 +54,9 @@ RUN apk update && apk upgrade && \
     ca-certificates \
     tzdata
 
+# Remove npm to avoid glob vulnerability (not needed for runtime)
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
+
 WORKDIR /app
 
 ENV NODE_ENV=production
@@ -72,10 +76,6 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
-
-EXPOSE 3000
-
-ENV PORT=3000
 
 # Run the application with Node.js
 CMD ["node", "server.js"]
