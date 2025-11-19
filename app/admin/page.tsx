@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/db/client";
 import { submissions } from "@/db/schema";
 import { isUserAdmin } from "@/lib/auth";
+import { SUBMISSION_STATUS } from "@/lib/constants";
 import logger from "@/lib/logger";
 import { AdminSubmissionsTable } from "./admin-submissions-table";
 
@@ -38,9 +39,7 @@ export default async function AdminPage() {
 				submissionStatus: submissions.status,
 			})
 			.from(submissions)
-			.where(
-				eq(submissions.status, 1), // pending review
-			);
+			.where(eq(submissions.status, SUBMISSION_STATUS.PENDING));
 
 		const processedSubmissions = pendingSubmissions.map((sub) => ({
 			id: sub.id,

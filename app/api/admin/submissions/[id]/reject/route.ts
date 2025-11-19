@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/db/client";
 import { submissions } from "@/db/schema";
 import { isUserAdmin } from "@/lib/auth";
+import { SUBMISSION_STATUS } from "@/lib/constants";
 import { APIError, handleAPIError } from "@/lib/error-handler";
 import logger from "@/lib/logger";
 import { adminSchemas, validateParams } from "@/lib/validation/types";
@@ -46,7 +47,7 @@ export async function POST(
 			throw new APIError("Submission not found", 404, "NOT_FOUND");
 		}
 
-		if (submission.status === 0) {
+		if (submission.status === SUBMISSION_STATUS.DENIED) {
 			logger.warn("Attempt to reject already rejected submission", {
 				submissionId,
 			});
@@ -60,7 +61,7 @@ export async function POST(
 		// Update submission status
 		const _result = await db
 			.update(submissions)
-			.set({ status: 0 }) // 0 = rejected
+			.set({ status: SUBMISSION_STATUS.DENIED })
 			.where(eq(submissions.id, submissionId));
 
 		logger.info("Submission rejected successfully", {

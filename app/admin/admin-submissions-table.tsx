@@ -10,6 +10,7 @@ import {
 	showErrorToast,
 	showSuccessToast,
 } from "@/lib/client-error-handler";
+import clientLogger from "@/lib/client-logger";
 import { AdminDataTable } from "./admin-data-table";
 
 type AdminSubmission = {
@@ -52,7 +53,10 @@ export function AdminSubmissionsTable({
 					}));
 				}
 			} catch (error) {
-				console.error("Error fetching user info:", error);
+				clientLogger.error("Error fetching user info", {
+					userId,
+					error: error instanceof Error ? error.message : "Unknown error",
+				});
 			} finally {
 				setLoadingUserIds((prev) => {
 					const newSet = new Set(prev);

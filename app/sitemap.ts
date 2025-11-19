@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import client from "@/lib/db";
 import { siteConfig } from "@/lib/seo";
+import logger from "@/lib/logger";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 	const baseUrl = siteConfig.url;
@@ -66,7 +67,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
 		return [...staticPages, ...messagePages];
 	} catch (error) {
-		console.error("Error generating sitemap:", error);
+		logger.error("Error generating sitemap", {
+			error: error instanceof Error ? error.message : "Unknown error",
+			stack: error instanceof Error ? error.stack : undefined,
+		});
 		// Return static pages only if there's an error
 		return staticPages;
 	}

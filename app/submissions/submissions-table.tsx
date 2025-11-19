@@ -1,5 +1,6 @@
 "use client";
 
+import { SUBMISSION_STATUS } from "@/lib/constants";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
 
@@ -17,11 +18,11 @@ interface SubmissionsTableProps {
 
 function getStatusDisplay(status: number): string {
 	switch (status) {
-		case 0:
+		case SUBMISSION_STATUS.DENIED:
 			return "Not Approved";
-		case 1:
+		case SUBMISSION_STATUS.PENDING:
 			return "Pending Review";
-		case 2:
+		case SUBMISSION_STATUS.APPROVED:
 			return "Approved";
 		default:
 			return "Unknown";

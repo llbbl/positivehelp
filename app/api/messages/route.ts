@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { isUserAdmin } from "@/lib/auth";
 import { getOrCreateAuthor } from "@/lib/authors";
 import client from "@/lib/db";
+import { CACHE_MAX_AGE_SECONDS } from "@/lib/constants";
 import { APIError, handleAPIError } from "@/lib/error-handler";
 import logger from "@/lib/logger";
 import { getMessages } from "@/lib/messages";
@@ -42,7 +43,10 @@ export async function GET(request: Request) {
 			headers.set("Expires", "0");
 		} else {
 			// For normal requests, allow caching for a short period (5 minutes)
-			headers.set("Cache-Control", "public, max-age=300, s-maxage=300");
+			headers.set(
+				"Cache-Control",
+				`public, max-age=${CACHE_MAX_AGE_SECONDS}, s-maxage=${CACHE_MAX_AGE_SECONDS}`,
+			);
 		}
 
 		return NextResponse.json(messages, { headers });

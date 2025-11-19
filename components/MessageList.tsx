@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { MessageListSkeleton } from "./MessageSkeleton";
+import clientLogger from "@/lib/client-logger";
+import { MESSAGE_POLL_INTERVAL_MS } from "@/lib/constants";
 
 export interface Message {
 	id: number;
@@ -70,7 +72,9 @@ export default function MessageList({ initialMessages }: MessageListProps) {
 							});
 						}
 					} catch (error) {
-						console.error("Error fetching latest messages:", error);
+						clientLogger.error("Error fetching latest messages", {
+							error: error instanceof Error ? error.message : "Unknown error",
+						});
 					} finally {
 						setIsLoading(false);
 						setIsInitialLoad(false);
@@ -81,7 +85,9 @@ export default function MessageList({ initialMessages }: MessageListProps) {
 				return currentMessages;
 			});
 		} catch (error) {
-			console.error("Error in fetchLatestMessages:", error);
+			clientLogger.error("Error in fetchLatestMessages", {
+				error: error instanceof Error ? error.message : "Unknown error",
+			});
 			setIsLoading(false);
 			setIsInitialLoad(false);
 		}
@@ -92,7 +98,7 @@ export default function MessageList({ initialMessages }: MessageListProps) {
 		fetchLatestMessages();
 
 		// Set up polling for new messages every 30 seconds
-		const intervalId = setInterval(fetchLatestMessages, 30000);
+		const intervalId = setInterval(fetchLatestMessages, MESSAGE_POLL_INTERVAL_MS);
 
 		// Clean up interval on component unmount
 		return () => clearInterval(intervalId);

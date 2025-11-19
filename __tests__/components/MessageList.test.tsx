@@ -1,8 +1,20 @@
 import { act, render, screen, waitFor } from "@testing-library/react";
 import MessageList, { type Message } from "@/components/MessageList";
+import { MESSAGE_POLL_INTERVAL_MS } from "@/lib/constants";
 
 // Mock fetch globally
 global.fetch = jest.fn();
+
+// Mock clientLogger
+jest.mock("@/lib/client-logger", () => ({
+	__esModule: true,
+	default: {
+		error: jest.fn(),
+		info: jest.fn(),
+		warn: jest.fn(),
+		debug: jest.fn(),
+	},
+}));
 
 // Mock Next.js Link component
 jest.mock("next/link", () => {
@@ -138,20 +150,20 @@ describe("MessageList", () => {
 		const mockFetch = global.fetch as jest.MockedFunction<typeof fetch>;
 		mockFetch.mockRejectedValueOnce(new Error("Network error"));
 
-		const consoleSpy = jest.spyOn(console, "error").mockImplementation();
+		const clientLogger = require("@/lib/client-logger").default;
 
 		await act(async () => {
 			render(<MessageList initialMessages={mockMessages} />);
 		});
 
 		await waitFor(() => {
-			expect(consoleSpy).toHaveBeenCalledWith(
-				"Error fetching latest messages:",
-				expect.any(Error),
+			expect(clientLogger.error).toHaveBeenCalledWith(
+				"Error fetching latest messages",
+				expect.objectContaining({
+					error: "Network error",
+				}),
 			);
 		});
-
-		consoleSpy.mockRestore();
 	});
 
 	it("sets up polling interval for fetching messages", async () => {
@@ -167,7 +179,7 @@ describe("MessageList", () => {
 
 		// Fast-forward 30 seconds
 		await act(async () => {
-			jest.advanceTimersByTime(30000);
+			jest.advanceTimersByTime(MESSAGE_POLL_INTERVAL_MS);
 		});
 
 		await waitFor(() => {

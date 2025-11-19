@@ -1,8 +1,13 @@
 import client from "@/lib/db";
 
+/**
+ * Get or create an author by name
+ * @param authorName The name of the author
+ * @returns The author ID as a number, or null if no author name provided
+ */
 export async function getOrCreateAuthor(
 	authorName: string | null | undefined,
-): Promise<number | bigint | null> {
+): Promise<number | null> {
 	if (!authorName) {
 		return null;
 	}
@@ -14,21 +19,27 @@ export async function getOrCreateAuthor(
 
 	if (authorResult.rows.length > 0) {
 		const authorId = authorResult.rows[0].id;
-		if (typeof authorId !== "bigint" && typeof authorId !== "number") {
-			throw new Error("author id invalid");
+		if (typeof authorId === "bigint") {
+			return Number(authorId);
 		}
-		return authorId;
-	} else {
-		const newAuthorResult = await client.execute({
-			sql: "INSERT INTO authors (name) VALUES (?)",
-			args: [authorName],
-		});
-		if (
-			typeof newAuthorResult.lastInsertRowid !== "bigint" &&
-			typeof newAuthorResult.lastInsertRowid !== "number"
-		) {
-			throw new Error("Failed to insert author");
+		if (typeof authorId === "number") {
+			return authorId;
 		}
-		return newAuthorResult.lastInsertRowid;
+		throw new Error("Invalid author id type");
 	}
+
+	// Author doesn't exist, create it
+	const newAuthorResult = await client.execute({
+		sql: "INSERT INTO authors (name) VALUES (?)",
+		args: [authorName],
+	});
+
+	const rowId = newAuthorResult.lastInsertRowid;
+	if (typeof rowId === "bigint") {
+		return Number(rowId);
+	}
+	if (typeof rowId === "number") {
+		return rowId;
+	}
+	throw new Error("Failed to insert author");
 }
