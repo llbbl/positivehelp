@@ -118,3 +118,4 @@ CLERK_SECRET_KEY="your_clerk_secret_key"
 - Content sanitization via `utils/sanitize.ts`
 - Slug generation for SEO-friendly URLs
 - Author attribution system supports multiple authors per message
+- Do not edit package.json directly. Make sure to only update the package.json packages with pnpm commands so that the lock file gets updated properly as well.
