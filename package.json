@@ -37,7 +37,7 @@
 		"clsx": "^2.1.1",
 		"drizzle-orm": "^0.44.2",
 		"esbuild": "^0.27.0",
-		"lucide-react": "^0.555.0",
+		"lucide-react": "^0.561.0",
 		"next": "15.5.7",
 		"react": "^19.1.2",
 		"react-dom": "^19.1.2",
