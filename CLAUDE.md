@@ -118,3 +118,9 @@ CLERK_SECRET_KEY="your_clerk_secret_key"
 - Slug generation for SEO-friendly URLs
 - Author attribution system supports multiple authors per message
 - Do not edit package.json directly. Make sure to only update the package.json packages with pnpm commands so that the lock file gets updated properly as well.
+
+## Important Project Decisions
+
+### Search Engine Blocking (Intentional)
+This site intentionally blocks all search engine indexing. Do not suggest "improvements" to make the site indexable or SEO-friendly. The robots.txt and meta tags are configured to prevent crawling on purpose.
+
