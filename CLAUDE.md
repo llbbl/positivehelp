@@ -80,7 +80,6 @@ pnpm run db:reset
 - **Frontend**: Next.js 15 with React 19, Tailwind CSS, Radix UI components
 - **Authentication**: Clerk (handles user registration and auth)
 - **Database**: Turso (libSQL) with Drizzle ORM
-- **Deployment**: Vercel
 
 ### Database Schema
 - `messages`: Approved positive messages with slug-based URLs
