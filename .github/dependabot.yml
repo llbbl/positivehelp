@@ -9,3 +9,7 @@ updates:
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-patch"]
+      # Transitive dependencies - Dependabot can't update these with pnpm
+      - dependency-name: "glob"
+      - dependency-name: "js-yaml"
+      - dependency-name: "esbuild"
