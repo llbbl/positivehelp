@@ -51,3 +51,6 @@ next-env.d.ts
 # add vscode and jebtrains
 .vscode
 .idea
+
+# llm files
+.claude
