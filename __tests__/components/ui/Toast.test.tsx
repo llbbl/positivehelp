@@ -86,17 +86,14 @@ describe("Toast Components", () => {
 		it("renders with default props", () => {
 			render(
 				<ToastProvider>
-					<Toast open>
+					<Toast open data-testid="test-toast-default">
 						<div>Toast content</div>
 					</Toast>
 					<ToastViewport />
 				</ToastProvider>,
 			);
 
-			const toasts = screen.getAllByRole("status");
-			const toast = toasts.find((el) =>
-				el.textContent?.includes("Toast content"),
-			);
+			const toast = screen.getByTestId("test-toast-default");
 			expect(toast).toBeInTheDocument();
 			expect(toast).toHaveClass(
 				"group",
@@ -119,34 +116,28 @@ describe("Toast Components", () => {
 		it("renders with default variant", () => {
 			render(
 				<ToastProvider>
-					<Toast open>
+					<Toast open data-testid="test-toast-variant">
 						<div>Default toast</div>
 					</Toast>
 					<ToastViewport />
 				</ToastProvider>,
 			);
 
-			const toasts = screen.getAllByRole("status");
-			const toast = toasts.find((el) =>
-				el.textContent?.includes("Default toast"),
-			);
+			const toast = screen.getByTestId("test-toast-variant");
 			expect(toast).toHaveClass("border", "bg-background", "text-foreground");
 		});
 
 		it("renders with destructive variant", () => {
 			render(
 				<ToastProvider>
-					<Toast open variant="destructive">
+					<Toast open variant="destructive" data-testid="test-toast-destructive">
 						<div>Destructive toast</div>
 					</Toast>
 					<ToastViewport />
 				</ToastProvider>,
 			);
 
-			const toasts = screen.getAllByRole("status");
-			const toast = toasts.find((el) =>
-				el.textContent?.includes("Destructive toast"),
-			);
+			const toast = screen.getByTestId("test-toast-destructive");
 			expect(toast).toHaveClass(
 				"destructive",
 				"group",
@@ -159,17 +150,14 @@ describe("Toast Components", () => {
 		it("applies custom className", () => {
 			render(
 				<ToastProvider>
-					<Toast open className="custom-toast-class">
+					<Toast open className="custom-toast-class" data-testid="test-toast-custom">
 						<div>Custom toast</div>
 					</Toast>
 					<ToastViewport />
 				</ToastProvider>,
 			);
 
-			const toasts = screen.getAllByRole("status");
-			const toast = toasts.find((el) =>
-				el.textContent?.includes("Custom toast"),
-			);
+			const toast = screen.getByTestId("test-toast-custom");
 			expect(toast).toHaveClass("custom-toast-class");
 		});
 

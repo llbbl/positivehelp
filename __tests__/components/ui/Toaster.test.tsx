@@ -88,9 +88,9 @@ describe("Toaster", () => {
 			expect(screen.getByText("Something went wrong")).toBeInTheDocument();
 		});
 
-		// Check if the toast has the destructive variant class
-		const toasts = screen.getAllByRole("status");
-		const toast = toasts.find((el) => el.textContent?.includes("Error"));
+		// Check if the toast has the destructive variant class by finding the li element
+		const toastItems = screen.getAllByRole("listitem");
+		const toast = toastItems.find((el) => el.textContent?.includes("Error"));
 		expect(toast).toHaveClass("destructive");
 	});
 
@@ -187,8 +187,8 @@ describe("Toaster", () => {
 		fireEvent.click(showToastButton);
 
 		await waitFor(() => {
-			const toasts = screen.getAllByRole("status");
-			const toast = toasts.find((el) => el.textContent?.includes("Test Title"));
+			const toastItems = screen.getAllByRole("listitem");
+			const toast = toastItems.find((el) => el.textContent?.includes("Test Title"));
 			const gridContainer = toast?.querySelector(".grid.gap-1");
 			expect(gridContainer).toBeInTheDocument();
 		});
