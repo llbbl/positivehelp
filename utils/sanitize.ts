@@ -6,11 +6,11 @@ export function sanitizeContent(text: string): string {
 			// Then remove other HTML tags
 			.replace(/<[^>]*>/g, "")
 			// Remove URLs (including FTP) but preserve "from"
-			.replace(/\b(?:https?|ftp):\/\/\S+\b/g, "")
-			// Remove special characters but keep basic punctuation (removed asterisk)
-			.replace(/[^\w\s.,!?-]/g, "")
-			// Remove SQL keywords (with word boundaries)
-			.replace(/\b(SELECT|INSERT|UPDATE|DELETE|DROP|UNION|WHERE|FROM)\b/gi, "")
+			.replace(/\b(?:https?|ftp):\/\/\S+\b/gi, "")
+			// Remove special characters but keep basic punctuation and apostrophes
+			.replace(/[^\w\s.,!?'-]/g, "")
+			// Remove SQL keywords (with word boundaries) - comprehensive list for injection prevention
+			.replace(/\b(SELECT|INSERT|UPDATE|DELETE|DROP|UNION|WHERE|FROM|JOIN|EXEC|EXECUTE|DECLARE|CAST|CONVERT)\b/gi, "")
 			// Trim whitespace
 			.trim()
 			// Normalize whitespace (including newlines and tabs)
