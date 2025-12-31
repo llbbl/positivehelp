@@ -7,6 +7,7 @@ import { isUserAdmin } from "@/lib/auth";
 import { SUBMISSION_STATUS } from "@/lib/constants";
 import { APIError, handleAPIError } from "@/lib/error-handler";
 import logger from "@/lib/logger";
+import { applyRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { adminSchemas, validateParams } from "@/lib/validation/types";
 
 export async function POST(
@@ -14,6 +15,10 @@ export async function POST(
 	context: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
 	try {
+		// Apply rate limiting for admin endpoint
+		const rateLimitResponse = await applyRateLimit(RATE_LIMITS.ADMIN);
+		if (rateLimitResponse) return rateLimitResponse;
+
 		// Validate URL parameters
 		const params = await context.params;
 		const { id: submissionId } = await validateParams(

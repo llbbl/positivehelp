@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import client from "@/lib/db";
 import { handleAPIError } from "@/lib/error-handler";
 import logger from "@/lib/logger";
+import { applyRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 const isString = (value: unknown): value is string => typeof value === "string";
 
@@ -24,6 +25,10 @@ export async function GET(request: NextRequest, context: RouteContext) {
 	const { slug } = await context.params;
 
 	try {
+		// Apply rate limiting for public read endpoint
+		const rateLimitResponse = await applyRateLimit(RATE_LIMITS.PUBLIC_READ);
+		if (rateLimitResponse) return rateLimitResponse;
+
 		logger.info("API Route: Processing request", { url: request.url, slug });
 
 		if (!slug) {
