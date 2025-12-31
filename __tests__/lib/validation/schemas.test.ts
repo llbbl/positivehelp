@@ -35,7 +35,8 @@ describe("Validation Schemas with Sanitization", () => {
 
 			const result = messageSchemas.create.parse(maliciousInput);
 			// The sanitizer removes dangerous SQL keywords (DROP, SELECT, FROM) but keeps common words (TABLE, messages)
-			expect(result.text).toBe("Nice message TABLE messages users --");
+			// Apostrophes are preserved to support contractions like "don't", "it's", etc.
+			expect(result.text).toBe("Nice message' TABLE messages users --");
 			expect(result.text).not.toContain("DROP");
 			expect(result.text).not.toContain("SELECT");
 			expect(result.text).not.toContain("FROM");

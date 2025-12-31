@@ -17,9 +17,11 @@ jest.mock("@clerk/nextjs", () => ({
 	),
 }));
 
-// Mock AdminLink component
-jest.mock("@/components/admin-link", () => ({
-	AdminLink: () => <div data-testid="admin-link">Admin Link</div>,
+// Mock SettingsDropdown component
+jest.mock("@/components/settings-dropdown", () => ({
+	SettingsDropdown: () => (
+		<div data-testid="settings-dropdown">Settings Dropdown</div>
+	),
 }));
 
 describe("Navigation", () => {

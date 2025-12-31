@@ -1,10 +1,11 @@
 import { currentUser } from "@clerk/nextjs/server";
-import { and, eq, isNull, sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db } from "@/db/client";
 import { apiTokens } from "@/db/schema";
 import { APIError, handleAPIError } from "@/lib/error-handler";
 import logger from "@/lib/logger";
+import { applyRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 /**
  * DELETE /api/tokens/[id]
@@ -15,6 +16,10 @@ export async function DELETE(
 	context: { params: Promise<{ id: string }> },
 ) {
 	try {
+		// Apply rate limiting for sensitive token operations
+		const rateLimitResponse = await applyRateLimit(RATE_LIMITS.SENSITIVE);
+		if (rateLimitResponse) return rateLimitResponse;
+
 		const params = await context.params;
 		const tokenId = parseInt(params.id, 10);
 

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { isUserAdmin } from "@/lib/auth";
 import { APIError, handleAPIError } from "@/lib/error-handler";
 import logger from "@/lib/logger";
+import { applyRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { adminSchemas, validateParams } from "@/lib/validation/types";
 
 export async function GET(
@@ -10,6 +11,10 @@ export async function GET(
 	context: { params: Promise<{ id: string }> },
 ) {
 	try {
+		// Apply rate limiting for admin endpoint
+		const rateLimitResponse = await applyRateLimit(RATE_LIMITS.ADMIN);
+		if (rateLimitResponse) return rateLimitResponse;
+
 		// Validate URL parameters
 		const params = await context.params;
 		const { id: userId } = await validateParams(adminSchemas.userId)(params);

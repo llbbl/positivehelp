@@ -8,6 +8,10 @@ import { APIError, handleAPIError } from "@/lib/error-handler";
 import logger from "@/lib/logger";
 import { getMessages } from "@/lib/messages";
 import {
+	applyRateLimit,
+	RATE_LIMITS,
+} from "@/lib/rate-limit";
+import {
 	messageSchemas,
 	validateBody,
 	validateQuery,
@@ -17,6 +21,10 @@ import { generateMD5, generateSlug } from "@/utils/text";
 // This is the API route handler for client-side requests
 export async function GET(request: Request) {
 	try {
+		// Apply rate limiting for public read endpoint
+		const rateLimitResponse = await applyRateLimit(RATE_LIMITS.PUBLIC_READ);
+		if (rateLimitResponse) return rateLimitResponse;
+
 		const url = new URL(request.url);
 
 		// Validate query parameters using Zod
@@ -58,6 +66,10 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
 	try {
+		// Apply rate limiting for authenticated write endpoint
+		const rateLimitResponse = await applyRateLimit(RATE_LIMITS.AUTHENTICATED_WRITE);
+		if (rateLimitResponse) return rateLimitResponse;
+
 		// Validate request body using Zod
 		const validatedBody = await validateBody(messageSchemas.create)(request);
 		const { text, author, clerkUserId } = validatedBody;
@@ -123,12 +135,6 @@ export async function POST(request: Request) {
 			if (!user) {
 				throw new APIError("Failed to get user details", 401, "USER_NOT_FOUND");
 			}
-
-			// console.log('Debug - Admin check:', {
-			//   userId: user.id,
-			//   metadata: user.publicMetadata,
-			//   isAdmin: await isUserAdmin(user)
-			// });
 
 			const isAdmin = await isUserAdmin(user);
 

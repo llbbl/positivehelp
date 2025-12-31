@@ -1,10 +1,11 @@
 import { currentUser } from "@clerk/nextjs/server";
-import { eq, isNull, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db } from "@/db/client";
 import { apiTokens } from "@/db/schema";
 import { APIError, handleAPIError } from "@/lib/error-handler";
 import logger from "@/lib/logger";
+import { applyRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { generateAPIToken } from "@/lib/tokens";
 
 /**
@@ -13,6 +14,10 @@ import { generateAPIToken } from "@/lib/tokens";
  */
 export async function GET() {
 	try {
+		// Apply rate limiting for authenticated read endpoint
+		const rateLimitResponse = await applyRateLimit(RATE_LIMITS.AUTHENTICATED_WRITE);
+		if (rateLimitResponse) return rateLimitResponse;
+
 		const user = await currentUser();
 
 		if (!user) {
@@ -52,6 +57,10 @@ export async function GET() {
  */
 export async function POST(request: Request) {
 	try {
+		// Apply stricter rate limiting for sensitive token creation endpoint
+		const rateLimitResponse = await applyRateLimit(RATE_LIMITS.SENSITIVE);
+		if (rateLimitResponse) return rateLimitResponse;
+
 		const user = await currentUser();
 
 		if (!user) {

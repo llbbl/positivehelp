@@ -1,13 +1,12 @@
-import { createClient } from "@libsql/client";
-import { env } from "@/lib/env";
+/**
+ * Re-export the raw client from the consolidated db/client module
+ * This maintains backward compatibility for existing imports
+ */
+export { rawClient as default } from "@/db/client";
 
-const client = createClient({
-	url: env.TURSO_DATABASE_URL,
-	authToken: env.TURSO_AUTH_TOKEN,
-});
-
-export default client;
-
+/**
+ * @deprecated The Message interface should be imported from lib/messages.ts
+ */
 export interface Message {
 	id: number;
 	text: string;

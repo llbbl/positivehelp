@@ -1,4 +1,4 @@
-import type { Row } from "@libsql/client";
+import type { InValue, Row } from "@libsql/client";
 import client from "@/lib/db";
 import logger from "@/lib/logger";
 
@@ -23,7 +23,7 @@ export async function getMessages(lastId?: number): Promise<Message[]> {
         FROM messages
     `;
 
-		const params: any[] = [];
+		const params: InValue[] = [];
 
 		if (lastId !== undefined && lastId > 0) {
 			sql += ` WHERE id > ? `;
