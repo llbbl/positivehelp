@@ -4,7 +4,7 @@ import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
 import { Menu, PlusCircle, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { AdminLink } from "@/components/admin-link";
+import { SettingsDropdown } from "@/components/settings-dropdown";
 import { Button } from "@/components/ui/button";
 
 export function Navigation() {
@@ -66,7 +66,7 @@ export function Navigation() {
 						</div>
 					</Button>
 					<SignedIn>
-						<AdminLink />
+						<SettingsDropdown />
 					</SignedIn>
 					<SignedOut>
 						<div className="flex justify-end">
@@ -92,7 +92,7 @@ export function Navigation() {
 							</Button>
 						</SignedIn>
 						<SignedIn>
-							<AdminLink />
+							<SettingsDropdown />
 						</SignedIn>
 						<SignedOut>
 							<div className="flex justify-end w-full">
