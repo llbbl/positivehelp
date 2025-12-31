@@ -1,6 +1,6 @@
 // Client-side logger that works in the browser
 export interface LogData {
-	[key: string]: any;
+	[key: string]: unknown;
 }
 
 class ClientLogger {

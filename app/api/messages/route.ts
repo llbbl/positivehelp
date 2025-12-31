@@ -124,12 +124,6 @@ export async function POST(request: Request) {
 				throw new APIError("Failed to get user details", 401, "USER_NOT_FOUND");
 			}
 
-			// console.log('Debug - Admin check:', {
-			//   userId: user.id,
-			//   metadata: user.publicMetadata,
-			//   isAdmin: await isUserAdmin(user)
-			// });
-
 			const isAdmin = await isUserAdmin(user);
 
 			if (isAdmin) {

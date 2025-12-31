@@ -1,3 +1,4 @@
+import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import client from "@/lib/db";
 import { handleAPIError } from "@/lib/error-handler";
@@ -14,9 +15,15 @@ export interface Message {
 	authors: Array<{ id: number; name: string }>;
 }
 
-export async function GET(request: Request) {
+interface RouteContext {
+	params: Promise<{ slug: string }>;
+}
+
+export async function GET(request: NextRequest, context: RouteContext) {
+	// Extract slug from Next.js route params (proper method for App Router)
+	const { slug } = await context.params;
+
 	try {
-		const slug = request.url.split("/").pop();
 		logger.info("API Route: Processing request", { url: request.url, slug });
 
 		if (!slug) {
@@ -25,8 +32,6 @@ export async function GET(request: Request) {
 		}
 
 		// First get the current message's ID
-		// logger.info('API Route: Fetching message ID', { slug });
-
 		const currentMessage = await client.execute({
 			sql: `SELECT id FROM messages WHERE slug = ?`,
 			args: [slug],
@@ -38,12 +43,10 @@ export async function GET(request: Request) {
 		}
 
 		const currentId = currentMessage.rows[0].id;
-		// logger.info('API Route: Found message ID', { slug, messageId: currentId });
-		// logger.info('API Route: Fetching navigation', { messageId: currentId });
 
 		const navigationResult = await client.execute({
 			sql: `
-        SELECT 
+        SELECT
           (SELECT slug FROM messages WHERE id < ? ORDER BY id DESC LIMIT 1) as prevSlug,
           (SELECT slug FROM messages WHERE id > ? ORDER BY id ASC LIMIT 1) as nextSlug
       `,
@@ -54,17 +57,14 @@ export async function GET(request: Request) {
 			prevSlug: navigationResult.rows[0].prevSlug,
 			nextSlug: navigationResult.rows[0].nextSlug,
 		};
-		// logger.info('API Route: Navigation fetched', { navigation });
 
-		// Get the message details as before
-		// logger.info('API Route: Fetching full message details', { slug });
-
+		// Get the message details
 		const result = await client.execute({
 			sql: `
-        SELECT 
-          m.id, 
-          m.msg as text, 
-          m.slug as url, 
+        SELECT
+          m.id,
+          m.msg as text,
+          m.slug as url,
           m.date,
           CASE
             WHEN COUNT(a.id) = 0 THEN '[]'
@@ -106,14 +106,8 @@ export async function GET(request: Request) {
 			navigation,
 		};
 
-		// logger.info('API Route: Successfully returning message', {
-		//   messageId: message.id,
-		//   hasAuthors: authors.length > 0,
-		//   hasNavigation: !!navigation.prevSlug || !!navigation.nextSlug
-		// });
 		return NextResponse.json(message);
 	} catch (error) {
-		const slug = request.url.split("/").pop();
 		logger.error("API Route: Error processing request", {
 			error: error instanceof Error ? error.message : "Unknown error",
 			stack: error instanceof Error ? error.stack : undefined,
