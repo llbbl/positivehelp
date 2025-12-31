@@ -18,24 +18,22 @@ export function Navigation() {
 
 			<div className="flex items-center gap-2 md:gap-4">
 				<Button
+					asChild
 					size="sm"
-					className="md:hidden bg-white text-green-800 hover:bg-green-50 px-4 leading-none relative"
+					className="md:hidden bg-white text-green-800 hover:bg-green-50 px-4 leading-none"
 				>
-					<div className="flex items-center">
-						<PlusCircle className="w-4 h-4 block" />
-						<Link
-							href="/add"
-							className="ml-0 md:ml-2 absolute inset-0 flex items-center"
-						>
-							<span className="hidden md:inline">Add Positivity</span>
-						</Link>
-					</div>
+					<Link href="/add" aria-label="Add Positivity">
+						<PlusCircle className="w-4 h-4" />
+					</Link>
 				</Button>
 
 				{/* Mobile Menu Button */}
 				<button
 					className="md:hidden p-1"
 					onClick={() => setIsMenuOpen(!isMenuOpen)}
+					aria-expanded={isMenuOpen}
+					aria-controls="mobile-menu"
+					aria-label={isMenuOpen ? "Close menu" : "Open menu"}
 				>
 					{isMenuOpen ? (
 						<X className="h-6 w-6 text-green-800" />
@@ -48,6 +46,7 @@ export function Navigation() {
 				<div className="hidden md:flex items-center gap-4">
 					<SignedIn>
 						<Button
+							asChild
 							variant="ghost"
 							className="text-green-800 hover:bg-green-50"
 						>
@@ -55,15 +54,14 @@ export function Navigation() {
 						</Button>
 					</SignedIn>
 					<Button
+						asChild
 						size="sm"
 						className="bg-white text-green-800 hover:bg-green-50 px-4 md:px-6 leading-none"
 					>
-						<div className="flex items-center">
-							<PlusCircle className="w-4 h-4 block" />
-							<Link href="/add" className="ml-0 md:ml-2">
-								<span className="hidden md:inline">Add Positivity</span>
-							</Link>
-						</div>
+						<Link href="/add" className="flex items-center">
+							<PlusCircle className="w-4 h-4 mr-2" />
+							<span>Add Positivity</span>
+						</Link>
 					</Button>
 					<SignedIn>
 						<SettingsDropdown />
@@ -82,25 +80,32 @@ export function Navigation() {
 
 				{/* Mobile Navigation */}
 				{isMenuOpen && (
-					<div className="absolute top-full right-0 w-30 bg-green-300 p-4 md:hidden flex flex-col gap-2 shadow-lg z-50 rounded-bl-lg">
+					<div
+						id="mobile-menu"
+						role="menu"
+						className="absolute top-full right-0 w-30 bg-green-300 p-4 md:hidden flex flex-col gap-2 shadow-lg z-50 rounded-bl-lg"
+					>
 						<SignedIn>
 							<Button
+								asChild
 								variant="ghost"
 								className="text-green-800 hover:bg-green-50 w-full justify-end"
 							>
-								<Link href="/submissions">Submissions</Link>
+								<Link href="/submissions" role="menuitem">
+									Submissions
+								</Link>
 							</Button>
 						</SignedIn>
 						<SignedIn>
 							<SettingsDropdown />
 						</SignedIn>
 						<SignedOut>
-							<div className="flex justify-end w-full">
+							<div className="flex justify-end w-full" role="menuitem">
 								<SignInButton mode="modal" />
 							</div>
 						</SignedOut>
 						<SignedIn>
-							<div className="flex justify-end w-full">
+							<div className="flex justify-end w-full" role="menuitem">
 								<UserButton afterSignOutUrl="/" />
 							</div>
 						</SignedIn>
