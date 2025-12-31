@@ -1,6 +1,7 @@
 // page component
 
 import type { Metadata } from "next";
+import { cache } from "react";
 import { notFound } from "next/navigation";
 import type { Message } from "@/app/api/messages/[slug]/route";
 import logger from "@/lib/logger";
@@ -28,28 +29,47 @@ function getRandomColor() {
 	return bgColors[randomIndex];
 }
 
-// Fetch message for metadata generation
-async function fetchMessageForMetadata(slug: string): Promise<Message | null> {
-	try {
-		const absoluteUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/messages/${slug}`;
-		const response = await fetch(absoluteUrl, {
-			method: "GET",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			cache: "no-store",
-		});
+// Extended message type with navigation info
+type MessageWithNavigation = Message & {
+	navigation: { prevSlug: string | null; nextSlug: string | null };
+};
 
-		if (!response.ok) {
+// Cached fetch function to deduplicate requests between generateMetadata and page component
+const fetchMessage = cache(
+	async (slug: string): Promise<MessageWithNavigation | null> => {
+		try {
+			const absoluteUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/messages/${slug}`;
+			logger.info(`Fetching message for slug: ${slug}`);
+
+			const response = await fetch(absoluteUrl, {
+				method: "GET",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				cache: "no-store",
+			});
+
+			if (!response.ok) {
+				if (response.status === 404) {
+					return null;
+				}
+				logger.error("API request failed", {
+					status: response.status,
+					statusText: response.statusText,
+					url: absoluteUrl,
+				});
+				return null;
+			}
+
+			const message = (await response.json()) as MessageWithNavigation;
+			logger.info(`Successfully fetched message`, { messageId: message.id });
+			return message;
+		} catch (error) {
+			logger.error("Error fetching message:", { error, slug });
 			return null;
 		}
-
-		return (await response.json()) as Message;
-	} catch (error) {
-		logger.error("Error fetching message for metadata:", { error, slug });
-		return null;
-	}
-}
+	},
+);
 
 // Generate dynamic metadata for each message page
 export async function generateMetadata({
@@ -60,7 +80,7 @@ export async function generateMetadata({
 	const resolvedParams = await params;
 	const { slug } = resolvedParams;
 
-	const message = await fetchMessageForMetadata(slug);
+	const message = await fetchMessage(slug);
 
 	if (!message) {
 		return generateSEOMetadata({
@@ -109,95 +129,41 @@ export default async function MessagePage({
 	const { slug } = resolvedParams;
 	const bgColor = getRandomColor();
 
-	try {
-		logger.info(`Page: Fetching message for slug: ${slug}`);
+	// Use cached fetch function (same call as generateMetadata, will be deduplicated)
+	const message = await fetchMessage(slug);
 
-		// Construct the absolute URL using NEXT_PUBLIC_APP_URL
-		const absoluteUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/messages/${slug}`;
-
-		const response = await fetch(absoluteUrl, {
-			method: "GET",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			cache: "no-store",
-		});
-
-		if (!response.ok) {
-			logger.error("API request failed", {
-				status: response.status,
-				statusText: response.statusText,
-				url: absoluteUrl,
-			});
-
-			if (response.status === 404) {
-				notFound();
-			}
-
-			throw new Error(
-				`Failed to fetch message: ${response.status} ${response.statusText}`,
-			);
-		}
-
-		const message = (await response.json()) as Message & {
-			navigation: { prevSlug: string | null; nextSlug: string | null };
-		};
-
-		logger.info(`Page: Successfully fetched message`, {
-			messageId: message.id,
-		});
-
-		// Generate structured data for the article
-		const authorName =
-			message.authors && message.authors.length > 0
-				? message.authors[0].name
-				: undefined;
-		const articleStructuredData = generateStructuredData("article", {
-			title: cleanTextForMeta(message.text),
-			description: generateMessageDescription(
-				cleanTextForMeta(message.text),
-				authorName,
-			),
-			url: `${process.env.NEXT_PUBLIC_APP_URL}/msg/${slug}`,
-			publishedTime: message.date,
-			author: authorName || "Anonymous",
-		});
-
-		return (
-			<>
-				{/* Structured Data for the specific message */}
-				{articleStructuredData && (
-					<script
-						type="application/ld+json"
-						dangerouslySetInnerHTML={{
-							__html: JSON.stringify(articleStructuredData),
-						}}
-					/>
-				)}
-				<MessageDisplay message={message} bgColor={bgColor} />
-			</>
-		);
-	} catch (error) {
-		logger.error("Page: Error fetching message", {
-			error: error instanceof Error ? error.message : "Unknown error",
-			slug,
-			url: `${process.env.NEXT_PUBLIC_APP_URL}/api/messages/${slug}`,
-		});
-
-		return (
-			<div className={`min-h-screen ${bgColor}`}>
-				<main className="container mx-auto p-6">
-					<div className="bg-white rounded-lg p-6 shadow-sm">
-						<p className="text-red-600">
-							Failed to load message. Please try again later.
-						</p>
-						{process.env.NODE_ENV !== "production" &&
-							error instanceof Error && (
-								<p className="text-sm text-gray-600 mt-2">{error.message}</p>
-							)}
-					</div>
-				</main>
-			</div>
-		);
+	if (!message) {
+		notFound();
 	}
+
+	// Generate structured data for the article
+	const authorName =
+		message.authors && message.authors.length > 0
+			? message.authors[0].name
+			: undefined;
+	const articleStructuredData = generateStructuredData("article", {
+		title: cleanTextForMeta(message.text),
+		description: generateMessageDescription(
+			cleanTextForMeta(message.text),
+			authorName,
+		),
+		url: `${process.env.NEXT_PUBLIC_APP_URL}/msg/${slug}`,
+		publishedTime: message.date,
+		author: authorName || "Anonymous",
+	});
+
+	return (
+		<>
+			{/* Structured Data for the specific message */}
+			{articleStructuredData && (
+				<script
+					type="application/ld+json"
+					dangerouslySetInnerHTML={{
+						__html: JSON.stringify(articleStructuredData),
+					}}
+				/>
+			)}
+			<MessageDisplay message={message} bgColor={bgColor} />
+		</>
+	);
 }
