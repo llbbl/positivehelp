@@ -101,12 +101,15 @@ export async function generateMetadata({
 		cleanMessage.length > 50
 			? `${cleanMessage.substring(0, 50)}...`
 			: cleanMessage;
-	const messageUrl = `${process.env.NEXT_PUBLIC_APP_URL}/msg/${slug}`;
+	const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://positive.help";
+	const messageUrl = `${baseUrl}/msg/${slug}`;
+	const ogImageUrl = `${baseUrl}/og/${slug}`;
 
 	return generateSEOMetadata({
 		title,
 		description,
 		canonical: messageUrl,
+		image: ogImageUrl,
 		type: "article",
 		publishedTime: message.date,
 		author: authorName || "Anonymous",
@@ -141,13 +144,15 @@ export default async function MessagePage({
 		message.authors && message.authors.length > 0
 			? message.authors[0].name
 			: undefined;
+	const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://positive.help";
 	const articleStructuredData = generateStructuredData("article", {
 		title: cleanTextForMeta(message.text),
 		description: generateMessageDescription(
 			cleanTextForMeta(message.text),
 			authorName,
 		),
-		url: `${process.env.NEXT_PUBLIC_APP_URL}/msg/${slug}`,
+		url: `${baseUrl}/msg/${slug}`,
+		image: `${baseUrl}/og/${slug}`,
 		publishedTime: message.date,
 		author: authorName || "Anonymous",
 	});
