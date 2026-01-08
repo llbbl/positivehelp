@@ -36,6 +36,8 @@ const securityHeaders = {
 		"connect-src 'self' https://*.clerk.com https://*.clerk.accounts.dev https://clerk.positive.help",
 		// Iframes: self, Clerk (for OAuth flows)
 		"frame-src 'self' https://*.clerk.com https://*.clerk.accounts.dev https://clerk.positive.help",
+		// Web workers: self and blob URLs (used by Clerk)
+		"worker-src 'self' blob:",
 		// Form submissions
 		"form-action 'self'",
 		// Base URI restriction
