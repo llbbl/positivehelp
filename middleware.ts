@@ -24,18 +24,18 @@ const securityHeaders = {
 	// Allows Clerk, Next.js inline scripts, and self-hosted resources
 	"Content-Security-Policy": [
 		"default-src 'self'",
-		// Scripts: self, inline (Next.js), eval (Next.js dev), Clerk domains
-		"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.com https://*.clerk.accounts.dev",
+		// Scripts: self, inline (Next.js), eval (Next.js dev), Clerk domains (including custom proxy domain)
+		"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.com https://*.clerk.accounts.dev https://clerk.positive.help",
 		// Styles: self, inline (Tailwind)
 		"style-src 'self' 'unsafe-inline'",
 		// Images: self, data URIs, Clerk images
-		"img-src 'self' data: https://*.clerk.com https://img.clerk.com",
+		"img-src 'self' data: https://*.clerk.com https://img.clerk.com https://clerk.positive.help",
 		// Fonts: self, data URIs
 		"font-src 'self' data:",
-		// API connections: self, Clerk
-		"connect-src 'self' https://*.clerk.com https://*.clerk.accounts.dev",
+		// API connections: self, Clerk (including custom proxy domain)
+		"connect-src 'self' https://*.clerk.com https://*.clerk.accounts.dev https://clerk.positive.help",
 		// Iframes: self, Clerk (for OAuth flows)
-		"frame-src 'self' https://*.clerk.com https://*.clerk.accounts.dev",
+		"frame-src 'self' https://*.clerk.com https://*.clerk.accounts.dev https://clerk.positive.help",
 		// Form submissions
 		"form-action 'self'",
 		// Base URI restriction
