@@ -62,7 +62,7 @@ describe("Environment Variable Validation", () => {
 		process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = "pk_test_123";
 		process.env.CLERK_SECRET_KEY = "sk_test_123";
 		process.env.NEXT_PUBLIC_APP_URL = "https://example.com";
-		process.env.NODE_ENV = "test";
+		Object.defineProperty(process.env, "NODE_ENV", { value: "test", writable: true });
 
 		expect(() => {
 			jest.isolateModules(() => {
@@ -83,7 +83,7 @@ describe("Environment Variable Validation", () => {
 		process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = "pk_test_123";
 		process.env.CLERK_SECRET_KEY = "sk_test_123";
 		delete process.env.NEXT_PUBLIC_APP_URL;
-		process.env.NODE_ENV = "test";
+		Object.defineProperty(process.env, "NODE_ENV", { value: "test", writable: true });
 
 		expect(() => {
 			jest.isolateModules(() => {
