@@ -17,9 +17,11 @@ jest.mock("@clerk/nextjs", () => ({
 	),
 }));
 
-// Mock AdminLink component
-jest.mock("@/components/admin-link", () => ({
-	AdminLink: () => <div data-testid="admin-link">Admin Link</div>,
+// Mock SettingsDropdown component
+jest.mock("@/components/settings-dropdown", () => ({
+	SettingsDropdown: () => (
+		<div data-testid="settings-dropdown">Settings Dropdown</div>
+	),
 }));
 
 describe("Navigation", () => {
@@ -35,8 +37,8 @@ describe("Navigation", () => {
 	it("toggles mobile menu when hamburger button is clicked", () => {
 		render(<Navigation />);
 
-		// Find the mobile menu button (the one with md:hidden class and no text content)
-		const menuButton = screen.getByRole("button", { name: "" });
+		// Find the mobile menu button by its aria-label
+		const menuButton = screen.getByRole("button", { name: "Open menu" });
 
 		// Count how many "Submissions" links exist initially (should be 1 for desktop)
 		const initialSubmissionsLinks = screen.getAllByText("Submissions");
@@ -52,7 +54,7 @@ describe("Navigation", () => {
 	it("shows hamburger icon when menu is closed and X icon when open", () => {
 		render(<Navigation />);
 
-		const menuButton = screen.getByRole("button", { name: "" });
+		const menuButton = screen.getByRole("button", { name: "Open menu" });
 
 		// Should show Menu icon initially (lucide-menu class)
 		expect(menuButton.querySelector(".lucide-menu")).toBeInTheDocument();

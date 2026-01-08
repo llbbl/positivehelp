@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { MessageListSkeleton } from "./MessageSkeleton";
 import clientLogger from "@/lib/client-logger";
 import { MESSAGE_POLL_INTERVAL_MS } from "@/lib/constants";
@@ -25,73 +25,66 @@ export default function MessageList({ initialMessages }: MessageListProps) {
 		initialMessages.length === 0,
 	);
 
+	// Use ref to track the highest message ID to avoid dependency on messages array
+	const messagesRef = useRef<Message[]>(initialMessages);
+
+	// Keep ref in sync with state
+	useEffect(() => {
+		messagesRef.current = messages;
+	}, [messages]);
+
 	// Use useCallback to memoize the fetch function
 	const fetchLatestMessages = useCallback(async () => {
 		try {
 			setIsLoading(true);
 
-			// Get the highest message ID we currently have using functional state update
-			setMessages((currentMessages) => {
-				const highestId =
-					currentMessages.length > 0
-						? Math.max(...currentMessages.map((msg) => msg.id))
-						: 0;
+			// Get the highest message ID from the ref (avoids stale closure issue)
+			const currentMessages = messagesRef.current;
+			const highestId =
+				currentMessages.length > 0
+					? Math.max(...currentMessages.map((msg) => msg.id))
+					: 0;
 
-				// Use the highestId in an async IIFE to fetch new messages
-				(async () => {
-					try {
-						// Add cache-busting and lastId parameters to only fetch new messages
-						const response = await fetch(
-							`/api/messages?t=${Date.now()}&lastId=${highestId}`,
-							{
-								cache: "no-store",
-								headers: {
-									"Cache-Control": "no-cache",
-									Pragma: "no-cache",
-								},
-							},
-						);
+			// Add cache-busting and lastId parameters to only fetch new messages
+			const response = await fetch(
+				`/api/messages?t=${Date.now()}&lastId=${highestId}`,
+				{
+					cache: "no-store",
+					headers: {
+						"Cache-Control": "no-cache",
+						Pragma: "no-cache",
+					},
+				},
+			);
 
-						if (!response.ok) {
-							throw new Error("Failed to fetch latest messages");
-						}
+			if (!response.ok) {
+				throw new Error("Failed to fetch latest messages");
+			}
 
-						const newMessages = (await response.json()) as Message[];
+			const newMessages = (await response.json()) as Message[];
 
-						// Only update state if we have new messages
-						if (newMessages.length > 0) {
-							// Combine new messages with existing ones and sort by ID descending
-							setMessages((prevMessages) => {
-								const combined = [...newMessages, ...prevMessages];
-								// Remove any duplicates (by ID) and sort
-								const uniqueMessages = Array.from(
-									new Map(combined.map((msg) => [msg.id, msg])).values(),
-								).sort((a, b) => b.id - a.id);
+			// Only update state if we have new messages
+			if (newMessages.length > 0) {
+				// Combine new messages with existing ones and sort by ID descending
+				setMessages((prevMessages) => {
+					const combined = [...newMessages, ...prevMessages];
+					// Remove any duplicates (by ID) and sort
+					const uniqueMessages = Array.from(
+						new Map(combined.map((msg) => [msg.id, msg])).values(),
+					).sort((a, b) => b.id - a.id);
 
-								return uniqueMessages;
-							});
-						}
-					} catch (error) {
-						clientLogger.error("Error fetching latest messages", {
-							error: error instanceof Error ? error.message : "Unknown error",
-						});
-					} finally {
-						setIsLoading(false);
-						setIsInitialLoad(false);
-					}
-				})();
-
-				// Return current messages unchanged in the synchronous part
-				return currentMessages;
-			});
+					return uniqueMessages;
+				});
+			}
 		} catch (error) {
-			clientLogger.error("Error in fetchLatestMessages", {
+			clientLogger.error("Error fetching latest messages", {
 				error: error instanceof Error ? error.message : "Unknown error",
 			});
+		} finally {
 			setIsLoading(false);
 			setIsInitialLoad(false);
 		}
-	}, []); // Remove messages dependency to prevent infinite loop
+	}, []); // No dependencies needed - uses ref for current messages
 
 	useEffect(() => {
 		// Fetch latest messages after component mounts

@@ -1,5 +1,6 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import type React from "react";
+import type { Viewport } from "next";
 import "./globals.css";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Navigation } from "@/components/Navigation";
@@ -19,6 +20,13 @@ const geistMono = Geist_Mono({
 export const metadata = generateSEOMetadata({
 	// Uses defaults from siteConfig
 });
+
+// Viewport configuration for responsive design
+export const viewport: Viewport = {
+	width: "device-width",
+	initialScale: 1,
+	maximumScale: 5,
+};
 
 export default function RootLayout({
 	children,
