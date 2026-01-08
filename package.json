@@ -28,7 +28,8 @@
 		"test:watch": "jest --watch",
 		"check-file": "node scripts/check-file.js",
 		"bun-tsc": "bun scripts/check-file.js",
-		"node-tsc": "node scripts/check-file.js"
+		"node-tsc": "node scripts/check-file.js",
+		"delete-message": "tsx scripts/delete-message.ts"
 	},
 	"dependencies": {
 		"@babel/helpers": "^7.28.4",
@@ -68,6 +69,7 @@
 		"postcss": "^8.5.6",
 		"tailwindcss": "^4.1.18",
 		"ts-jest": "^29.4.6",
+		"tsx": "^4.21.0",
 		"typescript": "^5"
 	},
 	"jest": {
