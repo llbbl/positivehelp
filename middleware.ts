@@ -25,17 +25,19 @@ const securityHeaders = {
 	"Content-Security-Policy": [
 		"default-src 'self'",
 		// Scripts: self, inline (Next.js), eval (Next.js dev), Clerk domains (including custom proxy domain)
-		"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.com https://*.clerk.accounts.dev https://clerk.positive.help",
+		"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.com https://*.clerk.accounts.dev https://clerk.positive.help https://*.up.railway.app",
 		// Styles: self, inline (Tailwind)
 		"style-src 'self' 'unsafe-inline'",
-		// Images: self, data URIs, Clerk images
-		"img-src 'self' data: https://*.clerk.com https://img.clerk.com https://clerk.positive.help",
+		// Images: self, data URIs, Clerk images, Railway PR previews
+		"img-src 'self' data: https://*.clerk.com https://img.clerk.com https://clerk.positive.help https://*.up.railway.app",
 		// Fonts: self, data URIs
 		"font-src 'self' data:",
-		// API connections: self, Clerk (including custom proxy domain)
-		"connect-src 'self' https://*.clerk.com https://*.clerk.accounts.dev https://clerk.positive.help",
+		// API connections: self, Clerk (including custom proxy domain), Railway PR previews
+		"connect-src 'self' https://*.clerk.com https://*.clerk.accounts.dev https://clerk.positive.help https://*.up.railway.app",
 		// Iframes: self, Clerk (for OAuth flows)
-		"frame-src 'self' https://*.clerk.com https://*.clerk.accounts.dev https://clerk.positive.help",
+		"frame-src 'self' https://*.clerk.com https://*.clerk.accounts.dev https://clerk.positive.help https://*.up.railway.app",
+		// Web workers: self and blob URLs (used by Clerk)
+		"worker-src 'self' blob:",
 		// Form submissions
 		"form-action 'self'",
 		// Base URI restriction
