@@ -34,7 +34,7 @@
 	"dependencies": {
 		"@babel/helpers": "^7.28.4",
 		"@clerk/nextjs": "^6.36.5",
-		"@libsql/client": "^0.15.15",
+		"@libsql/client": "^0.17.0",
 		"@radix-ui/react-slot": "^1.2.4",
 		"@radix-ui/react-toast": "^1.2.15",
 		"@tanstack/react-table": "^8.21.3",
