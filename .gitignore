@@ -54,4 +54,4 @@ next-env.d.ts
 
 # llm files
 .claude
-.beads/
+
