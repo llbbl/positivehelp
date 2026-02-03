@@ -2,6 +2,46 @@
 
 Positive.help is a place where people share positivity. Currently, the ability to add new messages is invite-only, and user registration and sign up are managed through Clerk. Our database is with Turso.
 
+## Quick Start with Just
+
+This project uses [Just](https://github.com/casey/just) as a command runner. Install it first:
+
+```bash
+# macOS
+brew install just
+
+# Linux (via cargo)
+cargo install just
+
+# Other options: https://github.com/casey/just#installation
+```
+
+Then run `just` to see all available commands:
+
+```bash
+just          # Show all available commands
+just install  # Install dependencies
+just dev      # Start development server
+just test     # Run tests
+just build    # Build for production
+```
+
+### Common Just Commands
+
+| Command | Description |
+|---------|-------------|
+| `just install` | Install dependencies with pnpm |
+| `just dev` | Start dev server with Turbopack |
+| `just build` | Build for production |
+| `just test` | Run tests |
+| `just lint` | Run Next.js linter |
+| `just format` | Format code with Biome |
+| `just db-migrate` | Apply database migrations |
+| `just docker-up` | Start Docker containers |
+| `just ci` | Run full CI checks locally |
+
+> **Note:** Just wraps existing pnpm scripts. You can still use `pnpm run <script>` directly.
+
 ## Running the Project Locally
 
 ### Prerequisites
