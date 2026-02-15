@@ -1,5 +1,5 @@
 import { ImageResponse } from "next/og";
-import { NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
 
 export const runtime = "nodejs";
 
@@ -38,7 +38,7 @@ function truncateText(text: string, maxLength: number): string {
 }
 
 export async function GET(
-	request: NextRequest,
+	_request: NextRequest,
 	{ params }: { params: Promise<{ slug: string }> },
 ) {
 	const { slug } = await params;

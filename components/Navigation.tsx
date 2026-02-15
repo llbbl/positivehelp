@@ -100,12 +100,12 @@ export function Navigation() {
 							<SettingsDropdown />
 						</SignedIn>
 						<SignedOut>
-							<div className="flex justify-end w-full" role="menuitem">
+							<div className="flex justify-end w-full" role="menuitem" tabIndex={0}>
 								<SignInButton mode="modal" />
 							</div>
 						</SignedOut>
 						<SignedIn>
-							<div className="flex justify-end w-full" role="menuitem">
+							<div className="flex justify-end w-full" role="menuitem" tabIndex={0}>
 								<UserButton afterSignOutUrl="/" />
 							</div>
 						</SignedIn>

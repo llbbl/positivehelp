@@ -23,7 +23,7 @@ export async function DELETE(
 		const params = await context.params;
 		const tokenId = parseInt(params.id, 10);
 
-		if (isNaN(tokenId) || tokenId <= 0) {
+		if (Number.isNaN(tokenId) || tokenId <= 0) {
 			throw new APIError("Invalid token ID", 400, "INVALID_TOKEN_ID");
 		}
 

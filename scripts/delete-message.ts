@@ -14,7 +14,7 @@ async function deleteMessage(identifier: string | number) {
 		// First, find the message by ID or slug
 		let messageId: number | null = null;
 		
-		if (typeof identifier === "number" || !isNaN(Number(identifier))) {
+		if (typeof identifier === "number" || !Number.isNaN(Number(identifier))) {
 			// If it's a number, treat as ID
 			messageId = Number(identifier);
 		} else {

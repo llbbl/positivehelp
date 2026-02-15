@@ -1,5 +1,3 @@
-import { z } from "zod";
-
 describe("Environment Variable Validation", () => {
 	// Save original env
 	const originalEnv = process.env;

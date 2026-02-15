@@ -195,7 +195,7 @@ export async function applyRateLimit(
 	options: RateLimitOptions,
 ): Promise<NextResponse | null> {
 	const ip = await getClientIP();
-	const { allowed, remaining, resetAt } = checkRateLimit(ip, options);
+	const { allowed, resetAt } = checkRateLimit(ip, options);
 
 	if (!allowed) {
 		return createRateLimitedResponse(resetAt);

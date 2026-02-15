@@ -116,7 +116,7 @@ export function generateSEOMetadata({
  */
 export function generateStructuredData(
 	type: "website" | "article" | "organization",
-	data?: any,
+	data?: Record<string, unknown>,
 ) {
 	const baseData = {
 		"@context": "https://schema.org",
