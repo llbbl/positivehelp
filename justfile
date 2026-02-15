@@ -164,3 +164,47 @@ pre-commit: lint test
 # Full CI check (format-check + lint + test + build)
 ci: format-check lint test build
     @echo "✓ All CI checks passed"
+
+# Canonical aggregate quality gate used by maintenance workflows
+check: ci
+
+# Ship current branch after checks, optional tracker close/sync, and push
+# Usage:
+#   just ship "chore(deps): update direct dependencies"
+#   TASK_ID=positivehelp-123 just ship "chore(repo): apply maintenance updates"
+ship message:
+    @branch=$$(git rev-parse --abbrev-ref HEAD); \
+    if [ "$$branch" = "main" ] || [ "$$branch" = "master" ]; then \
+      echo "Refusing to ship from $$branch. Create a feature branch first."; \
+      exit 1; \
+    fi
+    @just check
+    @if command -v bd >/dev/null 2>&1; then \
+      if [ -n "$$TASK_ID" ]; then \
+        bd close "$$TASK_ID"; \
+      fi; \
+      bd sync; \
+    fi
+    @git add -A
+    @if git diff --cached --quiet; then \
+      echo "No staged changes to commit."; \
+      exit 1; \
+    fi
+    @git commit -m "{{ message }}"
+    @git push -u origin "$$(git rev-parse --abbrev-ref HEAD)"
+    @echo "✓ Shipped"
+
+# Print exactly one recommended conventional commit ship command
+suggest-commit:
+    @files="$$(git diff --name-only --cached; git diff --name-only)"; \
+    if [ -z "$$files" ]; then \
+      echo 'just ship "chore(repo): no changes to commit"'; \
+    elif echo "$$files" | rg -q '(^|/)(package\.json|pnpm-lock\.yaml|package-lock\.json|yarn\.lock)$$'; then \
+      echo 'just ship "chore(deps): update direct dependencies"'; \
+    elif echo "$$files" | rg -q '(^|/)(README\.md|docs/)'; then \
+      echo 'just ship "docs(repo): update project documentation"'; \
+    elif echo "$$files" | rg -q '(^|/)(__tests__/|.*\.(test|spec)\.[tj]sx?)'; then \
+      echo 'just ship "test(repo): improve test coverage"'; \
+    else \
+      echo 'just ship "chore(repo): apply maintenance updates"'; \
+    fi
