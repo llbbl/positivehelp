@@ -64,7 +64,7 @@ function addSecurityHeaders(response: NextResponse): NextResponse {
 /**
  * Custom middleware that wraps Clerk middleware and adds security headers
  */
-export default clerkMiddleware(async (_auth, request: NextRequest) => {
+export default clerkMiddleware(async (_auth, _request: NextRequest) => {
 	// Create response with security headers
 	const response = NextResponse.next();
 	return addSecurityHeaders(response);

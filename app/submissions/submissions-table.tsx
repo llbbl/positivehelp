@@ -29,7 +29,7 @@ function getStatusDisplay(status: number): string {
 	}
 }
 
-export function SubmissionsTable({ submissions, type }: SubmissionsTableProps) {
+export function SubmissionsTable({ submissions, type: _type }: SubmissionsTableProps) {
 	const processedSubmissions = submissions.map((sub) => ({
 		id: sub.id,
 		message: sub.message || "",

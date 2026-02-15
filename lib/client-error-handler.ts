@@ -100,7 +100,7 @@ export async function fetchWithErrorHandling(
 	}
 }
 
-export function withErrorHandling<T extends any[], R>(
+export function withErrorHandling<T extends unknown[], R>(
 	fn: (...args: T) => Promise<R>,
 	context?: string,
 ) {
