@@ -33,7 +33,7 @@
 	},
 	"dependencies": {
 		"@babel/helpers": "^7.28.6",
-		"@clerk/nextjs": "^6.37.5",
+		"@clerk/nextjs": "^6.38.1",
 		"@libsql/client": "^0.17.0",
 		"@radix-ui/react-slot": "^1.2.4",
 		"@radix-ui/react-toast": "^1.2.15",
