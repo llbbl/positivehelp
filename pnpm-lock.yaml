@@ -75,8 +75,8 @@ importers:
         specifier: ^30.3.0
         version: 30.3.0
       '@next/env':
-        specifier: ^16.1.7
-        version: 16.1.7
+        specifier: ^16.2.2
+        version: 16.2.2
       '@tailwindcss/postcss':
         specifier: ^4.2.2
         version: 4.2.2
@@ -965,6 +965,9 @@ packages:
 
   '@next/env@16.1.7':
     resolution: {integrity: sha512-rJJbIdJB/RQr2F1nylZr/PJzamvNNhfr3brdKP6s/GW850jbtR70QlSfFselvIBbcPUOlQwBakexjFzqLzF6pg==}
+
+  '@next/env@16.2.2':
+    resolution: {integrity: sha512-LqSGz5+xGk9EL/iBDr2yo/CgNQV6cFsNhRR2xhSXYh7B/hb4nePCxlmDvGEKG30NMHDFf0raqSyOZiQrO7BkHQ==}
 
   '@next/swc-darwin-arm64@16.1.7':
     resolution: {integrity: sha512-b2wWIE8sABdyafc4IM8r5Y/dS6kD80JRtOGrUiKTsACFQfWWgUQ2NwoUX1yjFMXVsAwcQeNpnucF2ZrujsBBPg==}
@@ -4018,6 +4021,8 @@ snapshots:
   '@neon-rs/load@0.0.4': {}
 
   '@next/env@16.1.7': {}
+
+  '@next/env@16.2.2': {}
 
   '@next/swc-darwin-arm64@16.1.7':
     optional: true

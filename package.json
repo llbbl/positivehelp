@@ -54,7 +54,7 @@
 	"devDependencies": {
 		"@biomejs/biome": "^2.4.8",
 		"@jest/globals": "^30.3.0",
-		"@next/env": "^16.1.7",
+		"@next/env": "^16.2.2",
 		"@tailwindcss/postcss": "^4.2.2",
 		"@testing-library/jest-dom": "^6.9.1",
 		"@testing-library/react": "^16.3.2",
