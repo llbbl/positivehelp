@@ -55,4 +55,14 @@ next-env.d.ts
 
 # llm files
 .claude
+CLAUDE.md
+AGENTS.md
 
+# beads issue tracking (uses Dolt DB locally)
+.beads/
+
+
+# Beads / Dolt files (added by bd init)
+.dolt/
+*.db
+.beads-credential-key
