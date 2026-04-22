@@ -55,6 +55,7 @@ next-env.d.ts
 
 # llm files
 .claude
+.codex
 CLAUDE.md
 AGENTS.md
 
