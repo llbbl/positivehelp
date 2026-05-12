@@ -6,15 +6,8 @@ jest.mock("@clerk/nextjs", () => ({
 	SignInButton: ({ children }: any) => (
 		<div data-testid="sign-in-button">{children}</div>
 	),
-	SignedIn: ({ children }: any) => (
-		<div data-testid="signed-in">{children}</div>
-	),
-	SignedOut: ({ children }: any) => (
-		<div data-testid="signed-out">{children}</div>
-	),
-	UserButton: ({ afterSignOutUrl }: any) => (
-		<div data-testid="user-button">User Button</div>
-	),
+	UserButton: () => <div data-testid="user-button">User Button</div>,
+	useUser: () => ({ isSignedIn: true }),
 }));
 
 // Mock SettingsDropdown component

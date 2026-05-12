@@ -38,7 +38,7 @@ export default function RootLayout({
 	const organizationStructuredData = generateStructuredData("organization");
 
 	return (
-		<ClerkProvider>
+		<ClerkProvider afterSignOutUrl="/">
 			<html lang="en">
 				<head>
 					{/* Structured Data */}

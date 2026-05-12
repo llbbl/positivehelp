@@ -1,6 +1,6 @@
 "use client";
 
-import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
+import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
 import { Menu, PlusCircle, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 
 export function Navigation() {
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
+	const { isSignedIn } = useUser();
 
 	return (
 		<nav className="flex items-center justify-between p-4 bg-green-300 relative">
@@ -44,7 +45,7 @@ export function Navigation() {
 
 				{/* Desktop Navigation */}
 				<div className="hidden md:flex items-center gap-4">
-					<SignedIn>
+					{isSignedIn && (
 						<Button
 							asChild
 							variant="ghost"
@@ -52,7 +53,7 @@ export function Navigation() {
 						>
 							<Link href="/submissions">Submissions</Link>
 						</Button>
-					</SignedIn>
+					)}
 					<Button
 						asChild
 						size="sm"
@@ -63,19 +64,17 @@ export function Navigation() {
 							<span>Add Positivity</span>
 						</Link>
 					</Button>
-					<SignedIn>
-						<SettingsDropdown />
-					</SignedIn>
-					<SignedOut>
+					{isSignedIn && <SettingsDropdown />}
+					{!isSignedIn && (
 						<div className="flex justify-end">
 							<SignInButton mode="modal" />
 						</div>
-					</SignedOut>
-					<SignedIn>
+					)}
+					{isSignedIn && (
 						<div className="flex justify-end">
-							<UserButton afterSignOutUrl="/" />
+							<UserButton />
 						</div>
-					</SignedIn>
+					)}
 				</div>
 
 				{/* Mobile Navigation */}
@@ -85,7 +84,7 @@ export function Navigation() {
 						role="menu"
 						className="absolute top-full right-0 w-30 bg-green-300 p-4 md:hidden flex flex-col gap-2 shadow-lg z-50 rounded-bl-lg"
 					>
-						<SignedIn>
+						{isSignedIn && (
 							<Button
 								asChild
 								variant="ghost"
@@ -95,20 +94,18 @@ export function Navigation() {
 									Submissions
 								</Link>
 							</Button>
-						</SignedIn>
-						<SignedIn>
-							<SettingsDropdown />
-						</SignedIn>
-						<SignedOut>
+						)}
+						{isSignedIn && <SettingsDropdown />}
+						{!isSignedIn && (
 							<div className="flex justify-end w-full" role="menuitem" tabIndex={0}>
 								<SignInButton mode="modal" />
 							</div>
-						</SignedOut>
-						<SignedIn>
+						)}
+						{isSignedIn && (
 							<div className="flex justify-end w-full" role="menuitem" tabIndex={0}>
-								<UserButton afterSignOutUrl="/" />
+								<UserButton />
 							</div>
-						</SignedIn>
+						)}
 					</div>
 				)}
 			</div>
