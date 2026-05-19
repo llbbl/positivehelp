@@ -19,8 +19,8 @@ importers:
         specifier: ^7.29.2
         version: 7.29.2
       '@clerk/nextjs':
-        specifier: ^7.3.7
-        version: 7.3.7(next@16.2.6(@babel/core@7.29.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+        specifier: ^7.3.6
+        version: 7.3.6(next@16.2.6(@babel/core@7.29.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       '@libsql/client':
         specifier: ^0.17.3
         version: 0.17.3
@@ -387,8 +387,8 @@ packages:
     resolution: {integrity: sha512-WT+4FrcMMofxe+irQYUkawoRWaHHXT9/wiRYhRbSb30cOPjN95ViydqPhAyp8ZWAHInHg4mILynQQRJH14SKZQ==}
     engines: {node: '>=20.9.0'}
 
-  '@clerk/nextjs@7.3.7':
-    resolution: {integrity: sha512-CLG63zKPHditk52Z/+c6BJ47V1Q68ACjeps0xHDRW3X/Yv/FZdM+IUKu9Egb5PJ/TkRFxsI1nU5SOY2B8o/WxA==}
+  '@clerk/nextjs@7.3.6':
+    resolution: {integrity: sha512-I21qLOQlQ0AnSvFXff5iQ5IWm/KJhciu7dUZ5OyuJZ7xqs7DB/4Oi4yrTHSpNZ/S9N7O9poYTtN17gtxfl74rg==}
     engines: {node: '>=20.9.0'}
     peerDependencies:
       next: ^15.2.8 || ^15.3.8 || ^15.4.10 || ^15.5.9 || ^15.6.0-0 || ^16.0.10 || ^16.1.0-0
@@ -3370,7 +3370,7 @@ snapshots:
       - react
       - react-dom
 
-  '@clerk/nextjs@7.3.7(next@16.2.6(@babel/core@7.29.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)':
+  '@clerk/nextjs@7.3.6(next@16.2.6(@babel/core@7.29.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)':
     dependencies:
       '@clerk/backend': 3.4.11(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       '@clerk/react': 6.6.6(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
