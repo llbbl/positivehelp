@@ -2,7 +2,7 @@
 # Use Node.js with pnpm for building (most stable option)
 FROM node:24-alpine AS base
 # Use corepack to enable pnpm (avoids npm dependency)
-RUN corepack enable && corepack prepare pnpm@10.12.1 --activate
+RUN corepack enable && corepack prepare pnpm@11.1.3 --activate
 
 # Install dependencies only when needed
 FROM base AS deps
@@ -16,7 +16,7 @@ RUN apk update && apk upgrade && \
 WORKDIR /app
 
 # Install dependencies with pnpm (faster than npm, more reliable than bun for builds)
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 
 # Rebuild the source code only when needed

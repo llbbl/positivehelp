@@ -1,0 +1,21 @@
+# Supply-chain hardening (pnpm 11 defaults shown explicitly)
+minimumReleaseAge: 1440 # block packages younger than 24h
+blockExoticSubdeps: true # no git/tarball transitive deps
+strictDepBuilds: true # fail install on unapproved postinstalls
+verifyDepsBeforeRun: install # re-check lockfile before `pnpm run`
+
+# Postinstall allowlist. Empty map = block all build scripts.
+# Add entries only after auditing each package's postinstall.
+allowBuilds:
+  '@clerk/shared': true   # Clerk SDK setup
+  better-sqlite3: true    # native sqlite binding (prebuild-install)
+  esbuild: true           # native binary download
+  sharp: true             # native libvips bindings (Next.js image opt)
+  unrs-resolver: true     # native module resolver
+
+# Version pins (moved from package.json#pnpm.overrides in pnpm 11)
+overrides:
+  esbuild: ^0.25.0
+  picomatch: ^2.3.2
+  ws: ^8.20.1
+  postcss: ^8.5.15
