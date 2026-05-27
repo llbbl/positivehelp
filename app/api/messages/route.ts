@@ -118,7 +118,7 @@ export async function POST(request: Request) {
 			// --- Message Doesn't Exist ---
 			// Get the auth session
 			const session = await auth();
-			if (!session || !session.userId) {
+			if (!session?.userId) {
 				throw new APIError("Authentication required", 401, "AUTH_REQUIRED");
 			}
 
