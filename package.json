@@ -6,10 +6,6 @@
 	"engines": {
 		"node": ">=22.0.0"
 	},
-	"resolutions": {
-		"dom-accessibility-api": "0.5.16",
-		"picomatch": "^2.3.2"
-	},
 	"scripts": {
 		"dev": "next dev --turbopack",
 		"build": "next build",
