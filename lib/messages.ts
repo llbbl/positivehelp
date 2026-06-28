@@ -46,7 +46,13 @@ export async function getMessages(lastId?: number): Promise<Message[]> {
 
 		return messages;
 	} catch (error) {
+		// Log then re-throw. Swallowing the error into an empty array would
+		// let a transient DB failure surface as a cacheable empty 200 response
+		// (see app/api/messages/route.ts caching), poisoning the edge cache
+		// with an empty homepage for the full max-age window. Re-throwing lets
+		// the API route's handleAPIError return an uncacheable 5xx, and the
+		// homepage server component fall through to app/error.tsx.
 		logger.error("Error fetching messages:", error);
-		return [];
+		throw error;
 	}
 }

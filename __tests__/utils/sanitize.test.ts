@@ -29,9 +29,9 @@ describe("sanitizeContent", () => {
 			expect(sanitizeContent("Visit https://example.com")).toBe("Visit");
 		});
 
-		it("should remove FTP URLs", () => {
+		it("should remove FTP URLs while preserving surrounding words", () => {
 			expect(sanitizeContent("Download from ftp://files.example.com")).toBe(
-				"Download",
+				"Download from",
 			);
 		});
 	});
@@ -70,15 +70,28 @@ describe("sanitizeContent", () => {
 		});
 	});
 
-	describe("SQL keyword removal", () => {
-		it("should remove basic SQL keywords", () => {
-			expect(sanitizeContent("SELECT * FROM users")).toBe("users");
-			expect(sanitizeContent("DROP TABLE students")).toBe("TABLE students");
+	describe("SQL keyword preservation", () => {
+		it("should preserve common English words that overlap with SQL keywords", () => {
+			expect(sanitizeContent("A message from the heart")).toBe(
+				"A message from the heart",
+			);
+			expect(sanitizeContent("Where there is love")).toBe(
+				"Where there is love",
+			);
+			expect(sanitizeContent("Update your outlook and join us")).toBe(
+				"Update your outlook and join us",
+			);
 		});
 
-		it("should remove SQL keywords regardless of case", () => {
-			expect(sanitizeContent("Select From Where")).toBe("");
-			expect(sanitizeContent("INSERT into DELETE")).toBe("into");
+		it("should preserve words regardless of case (no SQL stripping)", () => {
+			expect(sanitizeContent("Select From Where")).toBe("Select From Where");
+			expect(sanitizeContent("INSERT into DELETE")).toBe("INSERT into DELETE");
+		});
+
+		it("should not provide injection protection (DB access is parameterized)", () => {
+			// Words are preserved; only the non-word "*" is stripped as a special char
+			expect(sanitizeContent("SELECT * FROM users")).toBe("SELECT FROM users");
+			expect(sanitizeContent("DROP TABLE students")).toBe("DROP TABLE students");
 		});
 	});
 
@@ -109,7 +122,7 @@ describe("sanitizeContent", () => {
         Multiple     spaces
       `;
 			expect(sanitizeContent(input)).toBe(
-				"Hello, world! Check users Special chars Multiple spaces",
+				"Hello, world! Check SELECT FROM users Special chars Multiple spaces",
 			);
 		});
 	});

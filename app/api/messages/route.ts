@@ -79,6 +79,17 @@ export async function POST(request: Request) {
 		const hash = generateMD5(text);
 		const slug = generateSlug(text, hash);
 
+		// Enforce authentication for ALL write paths (both existing-message
+		// attribution and new-message creation) before touching the database.
+		const session = await auth();
+		if (!session?.userId) {
+			throw new APIError("Authentication required", 401, "AUTH_REQUIRED");
+		}
+
+		if (session.userId !== clerkUserId) {
+			throw new APIError("User authentication mismatch", 403, "AUTH_MISMATCH");
+		}
+
 		// Check if message already exists
 		const existing = await client.execute({
 			sql: "SELECT id, slug FROM messages WHERE hash = ?",
@@ -116,20 +127,6 @@ export async function POST(request: Request) {
 			return NextResponse.json({ success: true, slug: existingSlug });
 		} else {
 			// --- Message Doesn't Exist ---
-			// Get the auth session
-			const session = await auth();
-			if (!session?.userId) {
-				throw new APIError("Authentication required", 401, "AUTH_REQUIRED");
-			}
-
-			if (session.userId !== clerkUserId) {
-				throw new APIError(
-					"User authentication mismatch",
-					403,
-					"AUTH_MISMATCH",
-				);
-			}
-
 			// Get the full user object for admin check
 			const user = await currentUser();
 			if (!user) {
