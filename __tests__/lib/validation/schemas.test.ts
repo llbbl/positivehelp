@@ -27,19 +27,20 @@ describe("Validation Schemas with Sanitization", () => {
 			expect(result.text).not.toContain("onerror");
 		});
 
-		it("should sanitize SQL injection keywords", () => {
-			const maliciousInput = {
+		it("should preserve content that looks like SQL (injection protection is via parameterized queries)", () => {
+			const input = {
 				text: "Nice message'; DROP TABLE messages; SELECT * FROM users; --",
 				clerkUserId: "user_123",
 			};
 
-			const result = messageSchemas.create.parse(maliciousInput);
-			// The sanitizer removes dangerous SQL keywords (DROP, SELECT, FROM) but keeps common words (TABLE, messages)
-			// Apostrophes are preserved to support contractions like "don't", "it's", etc.
-			expect(result.text).toBe("Nice message' TABLE messages users --");
-			expect(result.text).not.toContain("DROP");
-			expect(result.text).not.toContain("SELECT");
-			expect(result.text).not.toContain("FROM");
+			const result = messageSchemas.create.parse(input);
+			// The sanitizer no longer strips SQL keywords: doing so mangled legitimate
+			// content (e.g. "from", "where", "update") and provided zero injection
+			// protection, since all DB access uses parameterized libSQL queries.
+			// Only special characters (";", "*") and apostrophes-aside punctuation differ.
+			expect(result.text).toBe(
+				"Nice message' DROP TABLE messages SELECT FROM users --",
+			);
 		});
 
 		it("should remove malicious URLs", () => {
@@ -85,11 +86,12 @@ describe("Validation Schemas with Sanitization", () => {
 			};
 
 			const result = messageSchemas.create.parse(mixedInput);
+			// HTML and script tags are stripped; legitimate words (including "SELECT")
+			// are preserved.
 			expect(result.text).toBe(
-				"This is a good message with some bad keywords and",
+				"This is a good message with SELECT some bad keywords and",
 			);
 			expect(result.text).not.toContain("<b>");
-			expect(result.text).not.toContain("SELECT");
 			expect(result.text).not.toContain("<script>");
 		});
 
