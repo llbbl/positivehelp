@@ -102,11 +102,16 @@ export const messageAuthorsRelations = relations(
 	}),
 );
 
-// API Tokens for desktop app authentication
+// API Tokens for desktop app authentication.
+// NOTE: the `token` column stores a SHA-256 hex hash of the raw ph_ token,
+// not the token itself. The raw token is shown to the user only at creation
+// time (POST /api/tokens). Verification compares a SHA-256 hash of the
+// presented token against this stored hash.
 export const apiTokens = sqliteTable(
 	"api_tokens",
 	{
 		id: integer("id", { mode: "number" }).primaryKey(),
+		// SHA-256 hex hash of the raw ph_ token (NOT the raw token)
 		token: text("token").notNull().unique(),
 		clerkUserId: text("clerkUserId").notNull(),
 		name: text("name").notNull().default("Desktop App"),
