@@ -6,7 +6,7 @@ import { apiTokens } from "@/db/schema";
 import { APIError, handleAPIError } from "@/lib/error-handler";
 import logger from "@/lib/logger";
 import { applyRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
-import { generateAPIToken } from "@/lib/tokens";
+import { generateAPIToken, hashToken } from "@/lib/tokens";
 
 /**
  * GET /api/tokens
@@ -81,13 +81,14 @@ export async function POST(request: Request) {
 
 		// Generate the token
 		const token = generateAPIToken();
+		const tokenHash = hashToken(token);
 		const createdAt = new Date().toISOString();
 
-		// Insert into database
+		// Insert into database (store the hash, not the raw token)
 		const result = await db
 			.insert(apiTokens)
 			.values({
-				token,
+				token: tokenHash,
 				clerkUserId: user.id,
 				name,
 				createdAt,
