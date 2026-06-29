@@ -98,7 +98,7 @@ describe("rate-limit", () => {
 			expect(ip).toBe("1.2.3.4");
 		});
 
-		it("returns the leftmost (client) entry for two XFF entries with TRUSTED_PROXY_HOPS=1", async () => {
+		it("returns the rightmost (Railway-recorded) entry for two XFF entries with TRUSTED_PROXY_HOPS=1", async () => {
 			process.env.TRUSTED_PROXY_HOPS = "1";
 			jest.mocked(headers).mockResolvedValue(
 				new Map([["x-forwarded-for", "1.2.3.4, 5.6.7.8"]]) as unknown as Awaited<
@@ -106,10 +106,34 @@ describe("rate-limit", () => {
 				>,
 			);
 			const ip = await getClientIP();
-			expect(ip).toBe("1.2.3.4");
+			expect(ip).toBe("5.6.7.8");
 		});
 
-		it("underflows to leftmost for two XFF entries with TRUSTED_PROXY_HOPS=2", async () => {
+		it("ignores a client-spoofed leading XFF entry (rate-limit anti-bypass)", async () => {
+			// Attacker sends "9.9.9.9"; Railway appends the real socket IP on the
+			// right. With one trusted hop we must key on the real IP, not the spoof.
+			jest.mocked(headers).mockResolvedValue(
+				new Map([
+					["x-forwarded-for", "9.9.9.9, 203.0.113.5"],
+				]) as unknown as Awaited<ReturnType<typeof headers>>,
+			);
+			const ip = await getClientIP();
+			expect(ip).toBe("203.0.113.5");
+		});
+
+		it("selects the client entry behind two trusted hops (Cloudflare→Railway)", async () => {
+			process.env.TRUSTED_PROXY_HOPS = "2";
+			// spoof, real client (added by CF), CF ip (added by Railway)
+			jest.mocked(headers).mockResolvedValue(
+				new Map([
+					["x-forwarded-for", "9.9.9.9, 203.0.113.5, 10.0.0.1"],
+				]) as unknown as Awaited<ReturnType<typeof headers>>,
+			);
+			const ip = await getClientIP();
+			expect(ip).toBe("203.0.113.5");
+		});
+
+		it("returns the leftmost entry for two XFF entries with TRUSTED_PROXY_HOPS=2", async () => {
 			process.env.TRUSTED_PROXY_HOPS = "2";
 			jest.mocked(headers).mockResolvedValue(
 				new Map([["x-forwarded-for", "1.2.3.4, 5.6.7.8"]]) as unknown as Awaited<
@@ -128,7 +152,7 @@ describe("rate-limit", () => {
 				>,
 			);
 			const ip = await getClientIP();
-			expect(ip).toBe("1.2.3.4");
+			expect(ip).toBe("5.6.7.8");
 		});
 
 		it("defaults to 1 hop when TRUSTED_PROXY_HOPS is not set", async () => {
@@ -138,7 +162,7 @@ describe("rate-limit", () => {
 				>,
 			);
 			const ip = await getClientIP();
-			expect(ip).toBe("1.2.3.4");
+			expect(ip).toBe("5.6.7.8");
 		});
 
 		it("uses 0 when TRUSTED_PROXY_HOPS=0 (critical case)", async () => {
@@ -160,7 +184,7 @@ describe("rate-limit", () => {
 				>,
 			);
 			const ip = await getClientIP();
-			expect(ip).toBe("1.2.3.4");
+			expect(ip).toBe("5.6.7.8");
 		});
 	});
 

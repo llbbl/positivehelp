@@ -53,10 +53,13 @@ function cleanupExpiredEntries(windowMs: number): void {
 /**
  * Get the client IP address from request headers.
  *
- * Trust model: Railway terminates TLS and adds the client IP as the rightmost
- * XFF entry. TRUSTED_PROXY_HOPS=1 (default) trusts that one hop. Set to 0 for
- * direct-to-origin deploys (uses leftmost/client-supplied XFF — only safe with
- * no proxy). Set to 2 if behind Cloudflare→Railway.
+ * Trust model: trusted reverse proxies append to the RIGHT of `x-forwarded-for`,
+ * so the real client IP is the entry `TRUSTED_PROXY_HOPS` positions from the
+ * right end. Railway adds one hop, so TRUSTED_PROXY_HOPS=1 (default) selects the
+ * rightmost entry — the one Railway recorded — and ignores any client-supplied
+ * entries to its left (which would otherwise allow a rate-limit bypass via a
+ * forged XFF header). Set to 2 behind Cloudflare→Railway, or 0 for a
+ * direct-to-origin deploy with no proxy (XFF is then untrusted).
  */
 export async function getClientIP(): Promise<string> {
 	const headersList = await headers();
@@ -64,12 +67,17 @@ export async function getClientIP(): Promise<string> {
 	const parsed = Number.parseInt(process.env.TRUSTED_PROXY_HOPS ?? "1", 10);
 	const trustedHops = Number.isFinite(parsed) ? Math.max(0, parsed) : 1;
 
-	// x-forwarded-for is a comma-separated list; rightmost entries are added by
-	// trusted proxies, leftmost is client-supplied.
+	// x-forwarded-for is a comma-separated list; trusted proxies append on the
+	// right, so the client IP is `trustedHops` entries from the right. Clamp into
+	// range so short lists / oversized hop counts fall back to a defined entry.
 	const forwarded = headersList.get("x-forwarded-for");
 	if (forwarded) {
 		const ips = forwarded.split(",").map((entry) => entry.trim());
-		return ips[Math.max(0, ips.length - 1 - trustedHops)];
+		const index = Math.min(
+			ips.length - 1,
+			Math.max(0, ips.length - trustedHops),
+		);
+		return ips[index];
 	}
 
 	// Fallback headers
