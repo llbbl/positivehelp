@@ -59,6 +59,9 @@ next-env.d.ts
 CLAUDE.md
 AGENTS.md
 
+# local scratch / code review notes (untracked)
+/_/
+
 # beads issue tracking (uses Dolt DB locally)
 .beads/
 
