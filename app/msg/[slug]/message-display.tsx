@@ -22,6 +22,21 @@ export default function MessageDisplay({
 
 	useEffect(() => {
 		const handleKeyPress = (event: KeyboardEvent) => {
+			// Per WCAG 2.1.4 (Character Key Shortcuts): don't hijack single keys when
+			// a modifier is held (e.g. Cmd/Ctrl+N opens a new window) or when the user
+			// is typing in a form field.
+			if (event.metaKey || event.ctrlKey || event.altKey) return;
+			const target = event.target as HTMLElement | null;
+			if (
+				target &&
+				(target.isContentEditable ||
+					target.tagName === "INPUT" ||
+					target.tagName === "TEXTAREA" ||
+					target.tagName === "SELECT")
+			) {
+				return;
+			}
+
 			if (event.key.toLowerCase() === "b" && message.navigation.prevSlug) {
 				router.push(`/msg/${message.navigation.prevSlug}`);
 			} else if (
