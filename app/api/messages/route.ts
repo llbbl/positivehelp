@@ -108,6 +108,23 @@ export async function POST(request: Request) {
 			}
 
 			if (author) {
+				// Attributing an author to an already-published message is an
+				// admin-only operation; non-admins must not be able to alter
+				// attributions on live messages.
+				const user = await currentUser();
+				if (!user) {
+					throw new APIError(
+						"Failed to get user details",
+						401,
+						"USER_NOT_FOUND",
+					);
+				}
+
+				const isAdmin = await isUserAdmin(user);
+				if (!isAdmin) {
+					throw new APIError("Admin privileges required", 403, "FORBIDDEN");
+				}
+
 				const authorId = await getOrCreateAuthor(author);
 				if (authorId !== null) {
 					const attributionExists = await client.execute({
