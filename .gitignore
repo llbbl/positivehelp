@@ -70,3 +70,5 @@ AGENTS.md
 .dolt/
 *.db
 .beads-credential-key
+.personalwiki/
+.agentwiki/
