@@ -1,10 +1,10 @@
 import { currentUser } from "@clerk/nextjs/server";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db } from "@/db/client";
 import { submissions } from "@/db/schema";
 import { isUserAdmin } from "@/lib/auth";
-import { SUBMISSION_STATUS } from "@/lib/constants";
+import { getRejectionResult, SUBMISSION_STATUS } from "@/lib/constants";
 import { APIError, handleAPIError } from "@/lib/error-handler";
 import logger from "@/lib/logger";
 import { applyRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
@@ -41,33 +41,62 @@ export async function POST(
 			throw new APIError("Admin access required", 403, "ADMIN_REQUIRED");
 		}
 
-		// Check if submission exists and isn't already rejected
-		const [submission] = await db
-			.select()
-			.from(submissions)
-			.where(eq(submissions.id, submissionId));
+		// Atomically transition only pending submissions. Matching the prior status
+		// prevents a concurrent approval from being overwritten after publishing.
+		const [rejectedSubmission] = await db
+			.update(submissions)
+			.set({ status: SUBMISSION_STATUS.DENIED })
+			.where(
+				and(
+					eq(submissions.id, submissionId),
+					eq(submissions.status, SUBMISSION_STATUS.PENDING),
+				),
+			)
+			.returning({ id: submissions.id });
 
-		if (!submission) {
+		let currentStatus: number | undefined;
+		if (!rejectedSubmission) {
+			const [submission] = await db
+				.select({ status: submissions.status })
+				.from(submissions)
+				.where(eq(submissions.id, submissionId));
+			currentStatus = submission?.status;
+		}
+
+		const result = getRejectionResult(
+			Boolean(rejectedSubmission),
+			currentStatus,
+		);
+
+		if (result === "not-found") {
 			logger.warn("Submission not found for rejection", { submissionId });
 			throw new APIError("Submission not found", 404, "NOT_FOUND");
 		}
 
-		if (submission.status === SUBMISSION_STATUS.DENIED) {
-			logger.warn("Attempt to reject already rejected submission", {
-				submissionId,
-			});
-			throw new APIError(
-				"Submission already rejected",
-				400,
-				"ALREADY_REJECTED",
+		if (result === "already-rejected") {
+			logger.info(
+				"Submission already rejected; treating request as idempotent",
+				{
+					submissionId,
+				},
 			);
+			return new NextResponse("Rejected", { status: 200 });
 		}
 
-		// Update submission status
-		const _result = await db
-			.update(submissions)
-			.set({ status: SUBMISSION_STATUS.DENIED })
-			.where(eq(submissions.id, submissionId));
+		if (result === "conflict") {
+			logger.warn("Attempt to reject submission from invalid status", {
+				submissionId,
+				status: currentStatus,
+			});
+			const isApproved = currentStatus === SUBMISSION_STATUS.APPROVED;
+			throw new APIError(
+				isApproved
+					? "Submission already approved"
+					: "Submission cannot be rejected from its current status",
+				409,
+				isApproved ? "ALREADY_APPROVED" : "INVALID_STATUS_TRANSITION",
+			);
+		}
 
 		logger.info("Submission rejected successfully", {
 			submissionId,

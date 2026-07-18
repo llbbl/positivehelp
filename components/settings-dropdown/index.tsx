@@ -3,7 +3,7 @@
 import { useUser } from "@clerk/nextjs";
 import { ChevronDown, Key, Settings, Shield } from "lucide-react";
 import Link from "next/link";
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 
 export function SettingsDropdown() {

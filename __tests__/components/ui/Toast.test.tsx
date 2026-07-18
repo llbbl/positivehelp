@@ -130,7 +130,11 @@ describe("Toast Components", () => {
 		it("renders with destructive variant", () => {
 			render(
 				<ToastProvider>
-					<Toast open variant="destructive" data-testid="test-toast-destructive">
+					<Toast
+						open
+						variant="destructive"
+						data-testid="test-toast-destructive"
+					>
 						<div>Destructive toast</div>
 					</Toast>
 					<ToastViewport />
@@ -150,7 +154,11 @@ describe("Toast Components", () => {
 		it("applies custom className", () => {
 			render(
 				<ToastProvider>
-					<Toast open className="custom-toast-class" data-testid="test-toast-custom">
+					<Toast
+						open
+						className="custom-toast-class"
+						data-testid="test-toast-custom"
+					>
 						<div>Custom toast</div>
 					</Toast>
 					<ToastViewport />

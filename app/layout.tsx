@@ -1,6 +1,6 @@
 import { ClerkProvider } from "@clerk/nextjs";
-import type React from "react";
 import type { Viewport } from "next";
+import type React from "react";
 import "./globals.css";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Navigation } from "@/components/Navigation";

@@ -37,7 +37,9 @@ async function backfillTokenHashes(): Promise<void> {
 		}
 	});
 
-	console.log(`✅ Hashed ${toBackfill.length} of ${rows.length} api_tokens row(s).`);
+	console.log(
+		`✅ Hashed ${toBackfill.length} of ${rows.length} api_tokens row(s).`,
+	);
 }
 
 backfillTokenHashes()

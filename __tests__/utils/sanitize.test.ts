@@ -91,7 +91,9 @@ describe("sanitizeContent", () => {
 		it("should not provide injection protection (DB access is parameterized)", () => {
 			// Words are preserved; only the non-word "*" is stripped as a special char
 			expect(sanitizeContent("SELECT * FROM users")).toBe("SELECT FROM users");
-			expect(sanitizeContent("DROP TABLE students")).toBe("DROP TABLE students");
+			expect(sanitizeContent("DROP TABLE students")).toBe(
+				"DROP TABLE students",
+			);
 		});
 	});
 

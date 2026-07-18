@@ -1,10 +1,10 @@
 import { currentUser } from "@clerk/nextjs/server";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
 import { db } from "@/db/client";
 import { authors, message_authors, messages, submissions } from "@/db/schema";
 import { isUserAdmin } from "@/lib/auth";
-import { SUBMISSION_STATUS } from "@/lib/constants";
+import { getApprovalResult, SUBMISSION_STATUS } from "@/lib/constants";
 import { APIError, handleAPIError } from "@/lib/error-handler";
 import logger from "@/lib/logger";
 import { applyRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
@@ -45,30 +45,29 @@ export async function POST(
 			throw new APIError("Admin access required", 403, "ADMIN_REQUIRED");
 		}
 
-		// Get the submission
-		const [submission] = await db
-			.select()
-			.from(submissions)
-			.where(eq(submissions.id, submissionId));
+		const approvalResult = await db.transaction(async (tx) => {
+			// Claim the submission before publishing it. Only one concurrent approval
+			// or rejection can transition the pending row.
+			const [submission] = await tx
+				.update(submissions)
+				.set({ status: SUBMISSION_STATUS.APPROVED })
+				.where(
+					and(
+						eq(submissions.id, submissionId),
+						eq(submissions.status, SUBMISSION_STATUS.PENDING),
+					),
+				)
+				.returning();
 
-		if (!submission) {
-			logger.warn("Submission not found for approval", { submissionId });
-			throw new APIError("Submission not found", 404, "NOT_FOUND");
-		}
+			if (!submission) {
+				const [currentSubmission] = await tx
+					.select({ status: submissions.status })
+					.from(submissions)
+					.where(eq(submissions.id, submissionId));
 
-		if (submission.status === SUBMISSION_STATUS.APPROVED) {
-			logger.warn("Attempt to approve already approved submission", {
-				submissionId,
-			});
-			throw new APIError(
-				"Submission already approved",
-				400,
-				"ALREADY_APPROVED",
-			);
-		}
+				return getApprovalResult(false, currentSubmission?.status);
+			}
 
-		// Start a transaction
-		await db.transaction(async (tx) => {
 			// Insert into messages
 			const [insertedMessage] = await tx
 				.insert(messages)
@@ -111,12 +110,43 @@ export async function POST(
 				}
 			}
 
-			// Update submission status
-			await tx
-				.update(submissions)
-				.set({ status: SUBMISSION_STATUS.APPROVED })
-				.where(eq(submissions.id, submissionId));
+			return getApprovalResult(true);
 		});
+
+		if (approvalResult === "not-found") {
+			logger.warn("Submission not found for approval", { submissionId });
+			throw new APIError("Submission not found", 404, "NOT_FOUND");
+		}
+
+		if (approvalResult === "already-approved") {
+			logger.info(
+				"Submission already approved; treating request as idempotent",
+				{ submissionId },
+			);
+			return new NextResponse("Approved", { status: 200 });
+		}
+
+		if (approvalResult === "already-rejected") {
+			logger.warn("Attempt to approve submission from invalid status", {
+				submissionId,
+			});
+			throw new APIError(
+				"Submission already rejected",
+				409,
+				"ALREADY_REJECTED",
+			);
+		}
+
+		if (approvalResult === "conflict") {
+			logger.warn("Approval claim lost without a terminal status", {
+				submissionId,
+			});
+			throw new APIError(
+				"Submission approval conflicted with another request",
+				409,
+				"INVALID_STATUS_TRANSITION",
+			);
+		}
 
 		logger.info("Submission approved successfully", {
 			submissionId,

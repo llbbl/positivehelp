@@ -1,10 +1,11 @@
 // page component
 
 import type { Metadata } from "next";
-import { cache } from "react";
 import { notFound } from "next/navigation";
+import { cache } from "react";
 import type { Message } from "@/app/api/messages/[slug]/route";
 import logger from "@/lib/logger";
+import { classifyMessageResponse } from "@/lib/message-fetch";
 import {
 	cleanTextForMeta,
 	generateMessageDescription,
@@ -37,37 +38,43 @@ type MessageWithNavigation = Message & {
 // Cached fetch function to deduplicate requests between generateMetadata and page component
 const fetchMessage = cache(
 	async (slug: string): Promise<MessageWithNavigation | null> => {
-		try {
-			const absoluteUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/messages/${slug}`;
-			logger.info(`Fetching message for slug: ${slug}`);
+		const absoluteUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/messages/${slug}`;
+		logger.info(`Fetching message for slug: ${slug}`);
 
-			const response = await fetch(absoluteUrl, {
+		let response: Response;
+		try {
+			response = await fetch(absoluteUrl, {
 				method: "GET",
 				headers: {
 					"Content-Type": "application/json",
 				},
 				cache: "no-store",
 			});
-
-			if (!response.ok) {
-				if (response.status === 404) {
-					return null;
-				}
-				logger.error("API request failed", {
-					status: response.status,
-					statusText: response.statusText,
-					url: absoluteUrl,
-				});
-				return null;
-			}
-
-			const message = (await response.json()) as MessageWithNavigation;
-			logger.info(`Successfully fetched message`, { messageId: message.id });
-			return message;
 		} catch (error) {
 			logger.error("Error fetching message:", { error, slug });
+			throw error;
+		}
+
+		if (!response.ok && response.status !== 404) {
+			logger.error("API request failed", {
+				status: response.status,
+				statusText: response.statusText,
+				url: absoluteUrl,
+			});
+		}
+		if (classifyMessageResponse(response) === "not-found") {
 			return null;
 		}
+
+		let message: MessageWithNavigation;
+		try {
+			message = (await response.json()) as MessageWithNavigation;
+		} catch (error) {
+			logger.error("Error parsing message response", { slug });
+			throw error;
+		}
+		logger.info(`Successfully fetched message`, { messageId: message.id });
+		return message;
 	},
 );
 

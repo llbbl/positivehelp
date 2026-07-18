@@ -2,15 +2,12 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { isUserAdmin } from "@/lib/auth";
 import { getOrCreateAuthor } from "@/lib/authors";
-import client from "@/lib/db";
 import { CACHE_MAX_AGE_SECONDS } from "@/lib/constants";
+import client from "@/lib/db";
 import { APIError, handleAPIError } from "@/lib/error-handler";
 import logger from "@/lib/logger";
 import { getMessages } from "@/lib/messages";
-import {
-	applyRateLimit,
-	RATE_LIMITS,
-} from "@/lib/rate-limit";
+import { applyRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import {
 	messageSchemas,
 	validateBody,
@@ -67,7 +64,9 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
 	try {
 		// Apply rate limiting for authenticated write endpoint
-		const rateLimitResponse = await applyRateLimit(RATE_LIMITS.AUTHENTICATED_WRITE);
+		const rateLimitResponse = await applyRateLimit(
+			RATE_LIMITS.AUTHENTICATED_WRITE,
+		);
 		if (rateLimitResponse) return rateLimitResponse;
 
 		// Validate request body using Zod

@@ -97,12 +97,20 @@ export function Navigation() {
 						)}
 						{isSignedIn && <SettingsDropdown />}
 						{!isSignedIn && (
-							<div className="flex justify-end w-full" role="menuitem" tabIndex={0}>
+							<div
+								className="flex justify-end w-full"
+								role="menuitem"
+								tabIndex={0}
+							>
 								<SignInButton mode="modal" />
 							</div>
 						)}
 						{isSignedIn && (
-							<div className="flex justify-end w-full" role="menuitem" tabIndex={0}>
+							<div
+								className="flex justify-end w-full"
+								role="menuitem"
+								tabIndex={0}
+							>
 								<UserButton />
 							</div>
 						)}

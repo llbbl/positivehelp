@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { MessageListSkeleton } from "./MessageSkeleton";
 import clientLogger from "@/lib/client-logger";
 import { MESSAGE_POLL_INTERVAL_MS } from "@/lib/constants";
+import { MessageListSkeleton } from "./MessageSkeleton";
 
 export interface Message {
 	id: number;
@@ -91,7 +91,10 @@ export default function MessageList({ initialMessages }: MessageListProps) {
 		fetchLatestMessages();
 
 		// Set up polling for new messages every 30 seconds
-		const intervalId = setInterval(fetchLatestMessages, MESSAGE_POLL_INTERVAL_MS);
+		const intervalId = setInterval(
+			fetchLatestMessages,
+			MESSAGE_POLL_INTERVAL_MS,
+		);
 
 		// Clean up interval on component unmount
 		return () => clearInterval(intervalId);
