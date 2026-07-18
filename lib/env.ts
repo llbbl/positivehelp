@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { getAppOrigin } from "@/lib/app-origin";
 
 /**
  * Environment variable schema validation
@@ -25,11 +26,10 @@ const envSchema = z.object({
 		.min(1, "CLERK_SECRET_KEY is required")
 		.describe("Clerk secret key for server-side authentication"),
 
-	// Application URL (optional, has default)
+	// Application URL (always resolved by the canonical-origin policy)
 	NEXT_PUBLIC_APP_URL: z
 		.string()
-		.url("NEXT_PUBLIC_APP_URL must be a valid URL if provided")
-		.optional()
+		.url("NEXT_PUBLIC_APP_URL must be a valid URL")
 		.describe("Public-facing URL of the application"),
 
 	// Node Environment
@@ -49,7 +49,7 @@ export const env = envSchema.parse({
 	NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:
 		process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
 	CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
-	NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+	NEXT_PUBLIC_APP_URL: getAppOrigin(),
 	NODE_ENV: process.env.NODE_ENV,
 });
 

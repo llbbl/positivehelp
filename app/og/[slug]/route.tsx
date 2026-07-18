@@ -1,5 +1,6 @@
 import { ImageResponse } from "next/og";
 import type { NextRequest } from "next/server";
+import { getAppUrl } from "@/lib/app-origin";
 
 export const runtime = "nodejs";
 
@@ -45,10 +46,12 @@ export async function GET(
 
 	try {
 		// Fetch message data from the API
-		const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-		const response = await fetch(`${baseUrl}/api/messages/${slug}`, {
-			cache: "no-store",
-		});
+		const response = await fetch(
+			getAppUrl(`/api/messages/${encodeURIComponent(slug)}`),
+			{
+				cache: "no-store",
+			},
+		);
 
 		if (!response.ok) {
 			// Return a fallback image for not found

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getAppOrigin } from "@/lib/app-origin";
 
 // Base configuration for the site
 export const siteConfig = {
@@ -6,7 +7,7 @@ export const siteConfig = {
 	title: "positive.help - Share Positive Messages and Vibes",
 	description:
 		"A platform for sharing positive messages, uplifting quotes, and spreading good vibes. Submit your own positive content to brighten someone's day.",
-	url: process.env.NEXT_PUBLIC_APP_URL || "https://positive.help",
+	url: getAppOrigin(),
 	author: "positive.help team",
 	keywords: [
 		"positive messages",

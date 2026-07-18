@@ -1,6 +1,7 @@
 "use server";
 
 import { auth } from "@clerk/nextjs/server";
+import { getAppUrl } from "@/lib/app-origin";
 import logger from "@/lib/logger";
 import { formSchemas, validateFormData } from "@/lib/validation/types";
 
@@ -12,7 +13,7 @@ export async function createMessage(formData: FormData) {
 
 		// API call logic
 		try {
-			const apiUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/messages`;
+			const apiUrl = getAppUrl("/api/messages");
 			// console.log( 'Attempting to post to:', apiUrl );
 
 			// Get the auth token
