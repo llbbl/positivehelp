@@ -65,12 +65,37 @@ describe("generateSlug", () => {
 
 	describe("Special Character Handling", () => {
 		it("should transliterate accented characters", () => {
-			expect(generateSlug("Héllo Wørld")).toBe(
-				"5b2fa713c25cd166e41f3acd508dde86",
-			);
-			expect(generateSlug("über straße")).toBe(
-				"e71b89e76622ae8eea516dc0999e9785",
-			);
+			const cases = [
+				["Héllo Wørld", "hello-world"],
+				["über straße", "uber-strasse"],
+				["Ærøskøbing Œuvre Škoda", "aeroskobing-oeuvre-skoda"],
+			] as const;
+
+			for (const [input, readableSlug] of cases) {
+				expect(generateSlug(input)).toBe(
+					`${readableSlug}-${generateMD5(input).slice(0, 8)}`,
+				);
+			}
+		});
+
+		it.each([
+			["Héllo Wørld", "Hello World"],
+			["straße", "strasse"],
+		])(
+			"disambiguates transliterated %s from ASCII-equivalent %s",
+			(accented, ascii) => {
+				const accentedSlug = generateSlug(accented);
+				const asciiSlug = generateSlug(ascii);
+
+				expect(accentedSlug).not.toBe(asciiSlug);
+				expect(accentedSlug).toBe(
+					`${asciiSlug}-${generateMD5(accented).slice(0, 8)}`,
+				);
+			},
+		);
+
+		it("uses an explicit content hash for the transliteration suffix", () => {
+			expect(generateSlug("café", "abcdef1234567890")).toBe("cafe-abcdef12");
 		});
 
 		it("should use hash for non-transliterable special characters", () => {
@@ -100,15 +125,17 @@ describe("generateSlug", () => {
 		it("should handle combination of spaces, hyphens, and special characters (from charMap)", () => {
 			expect(generateSlug("  -Héllo---wørld!  ")).toBe(
 				"5d09492d4c5826758d27211b9fc71402",
-			); // '!' is removed
+			); // Unsupported punctuation preserves the hash fallback.
 		});
 
 		it("should handle long string of characters mapped by charMap, then truncated", () => {
 			const longSpecial = "é".repeat(60); // 'é' maps to 'e'
 
-			expect(generateSlug(longSpecial)).toBe(
-				"45698e682c350ba8a3844fb8efbab899",
+			const slug = generateSlug(longSpecial);
+			expect(slug).toBe(
+				`${"e".repeat(41)}-${generateMD5(longSpecial).slice(0, 8)}`,
 			);
+			expect(slug).toHaveLength(50);
 		});
 
 		it("should handle a long string of characters", () => {
@@ -188,14 +215,16 @@ describe("generateSlug with non-Latin handling", () => {
 		expect(generateSlug(text, hash)).toBe(hash);
 	});
 
-	it("should return hash for non-Latin text", () => {
+	it("should transliterate supported accented Latin text", () => {
 		const text1 = "Héllo World";
-		const expectedHash1 = generateMD5(text1);
-		expect(generateSlug(text1)).toBe(expectedHash1);
+		expect(generateSlug(text1)).toBe(
+			`hello-world-${generateMD5(text1).slice(0, 8)}`,
+		);
 
 		const text2 = "über straße";
-		const expectedHash2 = generateMD5(text2);
-		expect(generateSlug(text2)).toBe(expectedHash2);
+		expect(generateSlug(text2)).toBe(
+			`uber-strasse-${generateMD5(text2).slice(0, 8)}`,
+		);
 	});
 });
 

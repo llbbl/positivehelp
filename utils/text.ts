@@ -1,5 +1,8 @@
 import { createHash } from "node:crypto";
 
+const MAX_SLUG_LENGTH = 50;
+const HASH_SUFFIX_LENGTH = 8;
+
 const charMap: { [key: string]: string } = {
 	À: "A",
 	Á: "A",
@@ -90,15 +93,18 @@ export function generateMD5(content: string): string {
 }
 
 export function generateSlug(text: string, hash?: string): string {
-	if (containsNonLatinCharacters(text)) {
-		return hash || generateMD5(text);
-	}
-
 	// 1. Map characters using charMap
 	const mappedText = text
 		.split("")
 		.map((char) => charMap[char] || char)
 		.join("");
+	const wasTransliterated = mappedText !== text;
+
+	// Reject unsupported scripts and punctuation only after supported accented
+	// characters have been converted to the allowed ASCII set.
+	if (containsNonLatinCharacters(mappedText)) {
+		return hash || generateMD5(text);
+	}
 
 	// 2. Convert to lowercase
 	const lowercasedText = mappedText.toLowerCase();
@@ -115,6 +121,20 @@ export function generateSlug(text: string, hash?: string): string {
 	// 6. Handle empty string case
 	if (!trimmedText) return "";
 
-	// 7. Limit length
-	return trimmedText.substring(0, 50);
+	// 7. Disambiguate transliterated text from its ASCII equivalent while keeping
+	// the readable portion and the complete slug within the length limit.
+	if (wasTransliterated) {
+		const suffix = (hash || generateMD5(text))
+			.toLowerCase()
+			.replace(/[^a-z0-9]/g, "")
+			.slice(0, HASH_SUFFIX_LENGTH);
+		const readableLength = MAX_SLUG_LENGTH - suffix.length - 1;
+		const readableSlug = trimmedText
+			.substring(0, readableLength)
+			.replace(/-+$/g, "");
+		return `${readableSlug}-${suffix}`;
+	}
+
+	// 8. Limit length
+	return trimmedText.substring(0, MAX_SLUG_LENGTH);
 }

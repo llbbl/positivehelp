@@ -1,4 +1,11 @@
-import { describe, it, expect, beforeEach, afterEach, jest } from "@jest/globals";
+import {
+	afterEach,
+	beforeEach,
+	describe,
+	expect,
+	it,
+	jest,
+} from "@jest/globals";
 
 // Mock Next.js modules before importing rate-limit
 jest.mock("next/headers", () => ({
@@ -8,7 +15,10 @@ jest.mock("next/headers", () => ({
 jest.mock("next/server", () => ({
 	NextResponse: {
 		json: jest.fn(
-			(body: unknown, init?: { status?: number; headers?: Record<string, string> }) => ({
+			(
+				body: unknown,
+				init?: { status?: number; headers?: Record<string, string> },
+			) => ({
 				body,
 				status: init?.status || 200,
 				headers: {
@@ -59,52 +69,63 @@ describe("rate-limit", () => {
 		});
 
 		it("falls back to x-real-ip when x-forwarded-for is absent", async () => {
-			jest.mocked(headers).mockResolvedValue(
-				new Map([["x-real-ip", "203.0.113.7"]]) as unknown as Awaited<
-					ReturnType<typeof headers>
-				>,
-			);
+			jest
+				.mocked(headers)
+				.mockResolvedValue(
+					new Map([["x-real-ip", "203.0.113.7"]]) as unknown as Awaited<
+						ReturnType<typeof headers>
+					>,
+				);
 			const ip = await getClientIP();
 			expect(ip).toBe("203.0.113.7");
 		});
 
 		it("returns 'unknown' when no headers are present", async () => {
-			jest.mocked(headers).mockResolvedValue(
-				new Map() as unknown as Awaited<ReturnType<typeof headers>>,
-			);
+			jest
+				.mocked(headers)
+				.mockResolvedValue(
+					new Map() as unknown as Awaited<ReturnType<typeof headers>>,
+				);
 			const ip = await getClientIP();
 			expect(ip).toBe("unknown");
 		});
 
 		it("underflows to leftmost for a single XFF entry with TRUSTED_PROXY_HOPS=1", async () => {
 			process.env.TRUSTED_PROXY_HOPS = "1";
-			jest.mocked(headers).mockResolvedValue(
-				new Map([["x-forwarded-for", "1.2.3.4"]]) as unknown as Awaited<
-					ReturnType<typeof headers>
-				>,
-			);
+			jest
+				.mocked(headers)
+				.mockResolvedValue(
+					new Map([["x-forwarded-for", "1.2.3.4"]]) as unknown as Awaited<
+						ReturnType<typeof headers>
+					>,
+				);
 			const ip = await getClientIP();
 			expect(ip).toBe("1.2.3.4");
 		});
 
-		it("returns the single entry with TRUSTED_PROXY_HOPS=0", async () => {
+		it("ignores XFF with TRUSTED_PROXY_HOPS=0", async () => {
 			process.env.TRUSTED_PROXY_HOPS = "0";
-			jest.mocked(headers).mockResolvedValue(
-				new Map([["x-forwarded-for", "1.2.3.4"]]) as unknown as Awaited<
-					ReturnType<typeof headers>
-				>,
-			);
+			jest
+				.mocked(headers)
+				.mockResolvedValue(
+					new Map([["x-forwarded-for", "1.2.3.4"]]) as unknown as Awaited<
+						ReturnType<typeof headers>
+					>,
+				);
 			const ip = await getClientIP();
-			expect(ip).toBe("1.2.3.4");
+			expect(ip).toBe("unknown");
+			expect(headers).not.toHaveBeenCalled();
 		});
 
 		it("returns the rightmost (Railway-recorded) entry for two XFF entries with TRUSTED_PROXY_HOPS=1", async () => {
 			process.env.TRUSTED_PROXY_HOPS = "1";
-			jest.mocked(headers).mockResolvedValue(
-				new Map([["x-forwarded-for", "1.2.3.4, 5.6.7.8"]]) as unknown as Awaited<
-					ReturnType<typeof headers>
-				>,
-			);
+			jest
+				.mocked(headers)
+				.mockResolvedValue(
+					new Map([
+						["x-forwarded-for", "1.2.3.4, 5.6.7.8"],
+					]) as unknown as Awaited<ReturnType<typeof headers>>,
+				);
 			const ip = await getClientIP();
 			expect(ip).toBe("5.6.7.8");
 		});
@@ -112,11 +133,13 @@ describe("rate-limit", () => {
 		it("ignores a client-spoofed leading XFF entry (rate-limit anti-bypass)", async () => {
 			// Attacker sends "9.9.9.9"; Railway appends the real socket IP on the
 			// right. With one trusted hop we must key on the real IP, not the spoof.
-			jest.mocked(headers).mockResolvedValue(
-				new Map([
-					["x-forwarded-for", "9.9.9.9, 203.0.113.5"],
-				]) as unknown as Awaited<ReturnType<typeof headers>>,
-			);
+			jest
+				.mocked(headers)
+				.mockResolvedValue(
+					new Map([
+						["x-forwarded-for", "9.9.9.9, 203.0.113.5"],
+					]) as unknown as Awaited<ReturnType<typeof headers>>,
+				);
 			const ip = await getClientIP();
 			expect(ip).toBe("203.0.113.5");
 		});
@@ -124,65 +147,77 @@ describe("rate-limit", () => {
 		it("selects the client entry behind two trusted hops (Cloudflare→Railway)", async () => {
 			process.env.TRUSTED_PROXY_HOPS = "2";
 			// spoof, real client (added by CF), CF ip (added by Railway)
-			jest.mocked(headers).mockResolvedValue(
-				new Map([
-					["x-forwarded-for", "9.9.9.9, 203.0.113.5, 10.0.0.1"],
-				]) as unknown as Awaited<ReturnType<typeof headers>>,
-			);
+			jest
+				.mocked(headers)
+				.mockResolvedValue(
+					new Map([
+						["x-forwarded-for", "9.9.9.9, 203.0.113.5, 10.0.0.1"],
+					]) as unknown as Awaited<ReturnType<typeof headers>>,
+				);
 			const ip = await getClientIP();
 			expect(ip).toBe("203.0.113.5");
 		});
 
 		it("returns the leftmost entry for two XFF entries with TRUSTED_PROXY_HOPS=2", async () => {
 			process.env.TRUSTED_PROXY_HOPS = "2";
-			jest.mocked(headers).mockResolvedValue(
-				new Map([["x-forwarded-for", "1.2.3.4, 5.6.7.8"]]) as unknown as Awaited<
-					ReturnType<typeof headers>
-				>,
-			);
+			jest
+				.mocked(headers)
+				.mockResolvedValue(
+					new Map([
+						["x-forwarded-for", "1.2.3.4, 5.6.7.8"],
+					]) as unknown as Awaited<ReturnType<typeof headers>>,
+				);
 			const ip = await getClientIP();
 			expect(ip).toBe("1.2.3.4");
 		});
 
 		it("trims extra whitespace in malformed XFF entries", async () => {
 			process.env.TRUSTED_PROXY_HOPS = "1";
-			jest.mocked(headers).mockResolvedValue(
-				new Map([["x-forwarded-for", " 1.2.3.4 , 5.6.7.8 "]]) as unknown as Awaited<
-					ReturnType<typeof headers>
-				>,
-			);
+			jest
+				.mocked(headers)
+				.mockResolvedValue(
+					new Map([
+						["x-forwarded-for", " 1.2.3.4 , 5.6.7.8 "],
+					]) as unknown as Awaited<ReturnType<typeof headers>>,
+				);
 			const ip = await getClientIP();
 			expect(ip).toBe("5.6.7.8");
 		});
 
 		it("defaults to 1 hop when TRUSTED_PROXY_HOPS is not set", async () => {
-			jest.mocked(headers).mockResolvedValue(
-				new Map([["x-forwarded-for", "1.2.3.4, 5.6.7.8"]]) as unknown as Awaited<
-					ReturnType<typeof headers>
-				>,
-			);
+			jest
+				.mocked(headers)
+				.mockResolvedValue(
+					new Map([
+						["x-forwarded-for", "1.2.3.4, 5.6.7.8"],
+					]) as unknown as Awaited<ReturnType<typeof headers>>,
+				);
 			const ip = await getClientIP();
 			expect(ip).toBe("5.6.7.8");
 		});
 
-		it("uses 0 when TRUSTED_PROXY_HOPS=0 (critical case)", async () => {
+		it("does not trust spoofed forwarding headers with TRUSTED_PROXY_HOPS=0", async () => {
 			process.env.TRUSTED_PROXY_HOPS = "0";
 			jest.mocked(headers).mockResolvedValue(
-				new Map([["x-forwarded-for", "1.2.3.4, 5.6.7.8"]]) as unknown as Awaited<
-					ReturnType<typeof headers>
-				>,
+				new Map([
+					["x-forwarded-for", "1.2.3.4, 5.6.7.8"],
+					["x-real-ip", "9.9.9.9"],
+				]) as unknown as Awaited<ReturnType<typeof headers>>,
 			);
 			const ip = await getClientIP();
-			expect(ip).toBe("5.6.7.8");
+			expect(ip).toBe("unknown");
+			expect(headers).not.toHaveBeenCalled();
 		});
 
 		it("falls back to 1 when TRUSTED_PROXY_HOPS is invalid", async () => {
 			process.env.TRUSTED_PROXY_HOPS = "invalid";
-			jest.mocked(headers).mockResolvedValue(
-				new Map([["x-forwarded-for", "1.2.3.4, 5.6.7.8"]]) as unknown as Awaited<
-					ReturnType<typeof headers>
-				>,
-			);
+			jest
+				.mocked(headers)
+				.mockResolvedValue(
+					new Map([
+						["x-forwarded-for", "1.2.3.4, 5.6.7.8"],
+					]) as unknown as Awaited<ReturnType<typeof headers>>,
+				);
 			const ip = await getClientIP();
 			expect(ip).toBe("5.6.7.8");
 		});
@@ -190,7 +225,7 @@ describe("rate-limit", () => {
 
 	describe("checkRateLimit", () => {
 		it("should allow requests within the limit", () => {
-			const options = { limit: 5, windowMs: 60000 };
+			const options = { policy: "allow-test", limit: 5, windowMs: 60000 };
 
 			// First 5 requests should be allowed
 			for (let i = 0; i < 5; i++) {
@@ -201,7 +236,7 @@ describe("rate-limit", () => {
 		});
 
 		it("should block requests exceeding the limit", () => {
-			const options = { limit: 3, windowMs: 60000 };
+			const options = { policy: "block-test", limit: 3, windowMs: 60000 };
 
 			// Use up the limit
 			for (let i = 0; i < 3; i++) {
@@ -215,7 +250,7 @@ describe("rate-limit", () => {
 		});
 
 		it("should track different IPs separately", () => {
-			const options = { limit: 2, windowMs: 60000 };
+			const options = { policy: "ip-test", limit: 2, windowMs: 60000 };
 
 			// Use up limit for IP 1
 			checkRateLimit("ip-1", options);
@@ -230,17 +265,21 @@ describe("rate-limit", () => {
 		});
 
 		it("should provide correct resetAt timestamp", () => {
-			const options = { limit: 5, windowMs: 60000 };
+			const options = { policy: "reset-test", limit: 5, windowMs: 60000 };
 			const beforeTime = Date.now();
 
 			const result = checkRateLimit("test-ip-reset", options);
 
-			expect(result.resetAt).toBeGreaterThanOrEqual(beforeTime + options.windowMs);
-			expect(result.resetAt).toBeLessThanOrEqual(Date.now() + options.windowMs + 10);
+			expect(result.resetAt).toBeGreaterThanOrEqual(
+				beforeTime + options.windowMs,
+			);
+			expect(result.resetAt).toBeLessThanOrEqual(
+				Date.now() + options.windowMs + 10,
+			);
 		});
 
 		it("should correctly calculate remaining requests", () => {
-			const options = { limit: 10, windowMs: 60000 };
+			const options = { policy: "remaining-test", limit: 10, windowMs: 60000 };
 
 			const result1 = checkRateLimit("test-ip-remaining", options);
 			expect(result1.remaining).toBe(9);
@@ -250,6 +289,27 @@ describe("rate-limit", () => {
 
 			const result3 = checkRateLimit("test-ip-remaining", options);
 			expect(result3.remaining).toBe(7);
+		});
+
+		it("should isolate counters for different policies on the same IP", () => {
+			const publicOptions = {
+				policy: "public-test",
+				limit: 2,
+				windowMs: 60000,
+			};
+			const adminOptions = {
+				policy: "admin-test",
+				limit: 2,
+				windowMs: 60000,
+			};
+
+			expect(checkRateLimit("shared-ip", publicOptions).remaining).toBe(1);
+			expect(checkRateLimit("shared-ip", publicOptions).remaining).toBe(0);
+			expect(checkRateLimit("shared-ip", publicOptions).allowed).toBe(false);
+
+			expect(checkRateLimit("shared-ip", adminOptions).remaining).toBe(1);
+			expect(checkRateLimit("shared-ip", adminOptions).remaining).toBe(0);
+			expect(checkRateLimit("shared-ip", adminOptions).allowed).toBe(false);
 		});
 	});
 
@@ -277,7 +337,7 @@ describe("rate-limit", () => {
 
 	describe("clearRateLimitStore", () => {
 		it("should clear all entries from the store", () => {
-			const options = { limit: 10, windowMs: 60000 };
+			const options = { policy: "clear-test", limit: 10, windowMs: 60000 };
 
 			// Add some entries
 			checkRateLimit("ip-a", options);
@@ -294,7 +354,7 @@ describe("rate-limit", () => {
 
 	describe("getRateLimitStoreSize", () => {
 		it("should return correct count of entries", () => {
-			const options = { limit: 10, windowMs: 60000 };
+			const options = { policy: "size-test", limit: 10, windowMs: 60000 };
 
 			expect(getRateLimitStoreSize()).toBe(0);
 

@@ -21,3 +21,60 @@ export const SUBMISSION_STATUS = {
 	APPROVED: 2,
 } as const;
 
+export type ApprovalResult =
+	| "approved"
+	| "already-approved"
+	| "already-rejected"
+	| "conflict"
+	| "not-found";
+
+export function getApprovalResult(
+	wasClaimed: boolean,
+	currentStatus?: number,
+): ApprovalResult {
+	if (wasClaimed) {
+		return "approved";
+	}
+	if (currentStatus === undefined) {
+		return "not-found";
+	}
+	if (currentStatus === SUBMISSION_STATUS.APPROVED) {
+		return "already-approved";
+	}
+	return currentStatus === SUBMISSION_STATUS.DENIED
+		? "already-rejected"
+		: "conflict";
+}
+
+export type RejectionTransition = "reject" | "already-rejected" | "conflict";
+export type RejectionResult =
+	| "rejected"
+	| "already-rejected"
+	| "conflict"
+	| "not-found";
+
+export function getRejectionTransition(status: number): RejectionTransition {
+	switch (status) {
+		case SUBMISSION_STATUS.PENDING:
+			return "reject";
+		case SUBMISSION_STATUS.DENIED:
+			return "already-rejected";
+		default:
+			return "conflict";
+	}
+}
+
+export function getRejectionResult(
+	wasUpdated: boolean,
+	currentStatus?: number,
+): RejectionResult {
+	if (wasUpdated) {
+		return "rejected";
+	}
+	if (currentStatus === undefined) {
+		return "not-found";
+	}
+	return getRejectionTransition(currentStatus) === "already-rejected"
+		? "already-rejected"
+		: "conflict";
+}

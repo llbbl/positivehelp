@@ -53,9 +53,7 @@ export const authors = sqliteTable(
 		id: integer("id", { mode: "number" }).primaryKey(),
 		name: text("name"),
 	},
-	(table) => [
-		uniqueIndex("idx_authors_name").on(table.name),
-	],
+	(table) => [uniqueIndex("idx_authors_name").on(table.name)],
 );
 
 export const message_authors = sqliteTable(
@@ -77,10 +75,6 @@ export const message_authors = sqliteTable(
 // Relations
 
 export const messagesRelations = relations(messages, ({ many }) => ({
-	authors: many(message_authors),
-}));
-
-export const submissionsRelations = relations(submissions, ({ many }) => ({
 	authors: many(message_authors),
 }));
 
@@ -137,9 +131,9 @@ export const statements = sqliteTable(
 		createdAt: text("createdAt").notNull(),
 		clerkUserId: text("clerkUserId").notNull(),
 		promotedAt: text("promotedAt"),
-		promotedMessageId: integer("promotedMessageId", { mode: "number" }).references(
-			() => messages.id,
-		),
+		promotedMessageId: integer("promotedMessageId", {
+			mode: "number",
+		}).references(() => messages.id),
 	},
 	(table) => [
 		index("idx_statements_clerkUserId").on(table.clerkUserId),
@@ -161,9 +155,7 @@ export const comparisons = sqliteTable(
 		clerkUserId: text("clerkUserId").notNull(),
 		timestamp: text("timestamp").notNull(),
 	},
-	(table) => [
-		index("idx_comparisons_clerkUserId").on(table.clerkUserId),
-	],
+	(table) => [index("idx_comparisons_clerkUserId").on(table.clerkUserId)],
 );
 
 // Relations for statements

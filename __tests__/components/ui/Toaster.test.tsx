@@ -188,7 +188,9 @@ describe("Toaster", () => {
 
 		await waitFor(() => {
 			const toastItems = screen.getAllByRole("listitem");
-			const toast = toastItems.find((el) => el.textContent?.includes("Test Title"));
+			const toast = toastItems.find((el) =>
+				el.textContent?.includes("Test Title"),
+			);
 			const gridContainer = toast?.querySelector(".grid.gap-1");
 			expect(gridContainer).toBeInTheDocument();
 		});

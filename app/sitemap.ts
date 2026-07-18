@@ -1,7 +1,8 @@
 import type { MetadataRoute } from "next";
 import client from "@/lib/db";
-import { siteConfig } from "@/lib/seo";
 import logger from "@/lib/logger";
+import { siteConfig } from "@/lib/seo";
+import { resolveSitemapLastModified } from "@/lib/sitemap-date";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 	const baseUrl = siteConfig.url;
@@ -35,31 +36,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 		});
 
 		const messagePages: MetadataRoute.Sitemap = result.rows.map((row) => {
-			// Use approval date if available, otherwise use original date
-			let lastModified: Date;
-
-			try {
-				if (row.approvalDate && Number(row.approvalDate) > 0) {
-					lastModified = new Date(Number(row.approvalDate) * 1000);
-				} else if (row.date && Number(row.date) > 0) {
-					lastModified = new Date(Number(row.date) * 1000);
-				} else {
-					// Fallback to current date if dates are invalid
-					lastModified = new Date();
-				}
-
-				// Validate the date
-				if (Number.isNaN(lastModified.getTime())) {
-					lastModified = new Date();
-				}
-			} catch (_error) {
-				// Fallback to current date if there's any error
-				lastModified = new Date();
-			}
+			const lastModified = resolveSitemapLastModified(
+				row.approvalDate,
+				row.date,
+			);
 
 			return {
 				url: `${baseUrl}/msg/${row.slug}`,
-				lastModified,
+				...(lastModified ? { lastModified } : {}),
 				changeFrequency: "weekly" as const,
 				priority: 0.9,
 			};

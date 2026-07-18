@@ -129,7 +129,12 @@ export async function GET(
 				>
 					<div
 						style={{
-							fontSize: messageText.length > 100 ? 48 : messageText.length > 50 ? 56 : 72,
+							fontSize:
+								messageText.length > 100
+									? 48
+									: messageText.length > 50
+										? 56
+										: 72,
 							fontWeight: 500,
 							textAlign: "center",
 							lineHeight: 1.2,

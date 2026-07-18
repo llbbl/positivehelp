@@ -8,7 +8,7 @@ import logger from "@/lib/logger";
 import { SubmissionsTable } from "./submissions-table";
 
 // Force dynamic rendering - this page requires authentication and database
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export default async function SubmissionsPage() {
 	const user = await currentUser();
@@ -22,51 +22,54 @@ export default async function SubmissionsPage() {
 		logger.info("Fetching submissions for user", { userId: user.id });
 
 		// Fetch all submission types in parallel for better performance
-		const [pendingSubmissions, deniedSubmissions, approvedSubmissions] = await Promise.all([
-			// Fetch pending (not reviewed) submissions
-			db
-				.select({
-					id: submissions.id,
-					message: submissions.msg,
-					date: submissions.date,
-					submissionStatus: submissions.status,
-				})
-				.from(submissions)
-				.where(
-					and(
-						eq(submissions.clerkUserId, user.id),
-						eq(submissions.status, SUBMISSION_STATUS.PENDING),
+		const [pendingSubmissions, deniedSubmissions, approvedSubmissions] =
+			await Promise.all([
+				// Fetch pending (not reviewed) submissions
+				db
+					.select({
+						id: submissions.id,
+						message: submissions.msg,
+						date: submissions.date,
+						submissionStatus: submissions.status,
+					})
+					.from(submissions)
+					.where(
+						and(
+							eq(submissions.clerkUserId, user.id),
+							eq(submissions.status, SUBMISSION_STATUS.PENDING),
+						),
 					),
-				),
 
-			// Fetch denied submissions
-			db
-				.select({
-					id: submissions.id,
-					message: submissions.msg,
-					date: submissions.date,
-					submissionStatus: submissions.status,
-				})
-				.from(submissions)
-				.where(
-					and(
-						eq(submissions.clerkUserId, user.id),
-						eq(submissions.status, SUBMISSION_STATUS.DENIED),
+				// Fetch denied submissions
+				db
+					.select({
+						id: submissions.id,
+						message: submissions.msg,
+						date: submissions.date,
+						submissionStatus: submissions.status,
+					})
+					.from(submissions)
+					.where(
+						and(
+							eq(submissions.clerkUserId, user.id),
+							eq(submissions.status, SUBMISSION_STATUS.DENIED),
+						),
 					),
-				),
 
-			// Fetch approved submissions (from messages table)
-			db
-				.select({
-					id: messages.id,
-					message: messages.msg,
-					date: messages.date,
-					submissionStatus: sql<number>`${SUBMISSION_STATUS.APPROVED}`.as("submissionStatus"),
-				})
-				.from(messages)
-				.where(eq(messages.clerkUserId, user.id))
-				.orderBy(sql`${messages.date} DESC`),
-		]);
+				// Fetch approved submissions (from messages table)
+				db
+					.select({
+						id: messages.id,
+						message: messages.msg,
+						date: messages.date,
+						submissionStatus: sql<number>`${SUBMISSION_STATUS.APPROVED}`.as(
+							"submissionStatus",
+						),
+					})
+					.from(messages)
+					.where(eq(messages.clerkUserId, user.id))
+					.orderBy(sql`${messages.date} DESC`),
+			]);
 
 		logger.info("Successfully fetched submissions", {
 			pendingCount: pendingSubmissions.length,

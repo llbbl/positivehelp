@@ -1,9 +1,5 @@
-import { describe, it, expect } from "@jest/globals";
-import {
-	generateAPIToken,
-	hashToken,
-	verifyApiToken,
-} from "@/lib/tokens";
+import { describe, expect, it } from "@jest/globals";
+import { generateAPIToken, hashToken, verifyApiToken } from "@/lib/tokens";
 
 describe("tokens", () => {
 	describe("generateAPIToken", () => {

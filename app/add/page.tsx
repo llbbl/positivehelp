@@ -4,7 +4,7 @@ import { generateSEOMetadata } from "@/lib/seo";
 import { AddMessageForm } from "./add-message-form";
 
 // Force dynamic rendering - this page requires authentication
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 // Metadata for the add message page
 export const metadata = generateSEOMetadata({

@@ -81,7 +81,8 @@ export function ApiKeysManager() {
 
 			toast({
 				title: "Success",
-				description: "API key created successfully. Copy it now - you won't be able to see it again!",
+				description:
+					"API key created successfully. Copy it now - you won't be able to see it again!",
 			});
 		} catch {
 			toast({
@@ -182,7 +183,10 @@ export function ApiKeysManager() {
 						className="flex-1"
 						disabled={isCreating}
 					/>
-					<Button onClick={createToken} disabled={isCreating || !tokenName.trim()}>
+					<Button
+						onClick={createToken}
+						disabled={isCreating || !tokenName.trim()}
+					>
 						{isCreating ? (
 							"Generating..."
 						) : (
@@ -211,13 +215,14 @@ export function ApiKeysManager() {
 						<Button
 							variant="outline"
 							size="icon"
+							aria-label="Copy API key"
 							onClick={copyToken}
 							className="shrink-0"
 						>
 							{copied ? (
-								<Check className="h-4 w-4 text-green-600" />
+								<Check className="h-4 w-4 text-green-600" aria-hidden="true" />
 							) : (
-								<Copy className="h-4 w-4" />
+								<Copy className="h-4 w-4" aria-hidden="true" />
 							)}
 						</Button>
 					</div>

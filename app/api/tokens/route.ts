@@ -15,7 +15,9 @@ import { generateAPIToken, hashToken } from "@/lib/tokens";
 export async function GET() {
 	try {
 		// Apply rate limiting for authenticated read endpoint
-		const rateLimitResponse = await applyRateLimit(RATE_LIMITS.AUTHENTICATED_WRITE);
+		const rateLimitResponse = await applyRateLimit(
+			RATE_LIMITS.AUTHENTICATED_WRITE,
+		);
 		if (rateLimitResponse) return rateLimitResponse;
 
 		const user = await currentUser();

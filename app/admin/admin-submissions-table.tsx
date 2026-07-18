@@ -165,20 +165,22 @@ export function AdminSubmissionsTable({
 						<Button
 							variant="ghost"
 							size="icon"
+							aria-label={`Approve submission ${submission.id}`}
 							onClick={() => handleApprove(submission.id)}
 							disabled={isProcessing}
 							className="hover:text-green-600"
 						>
-							<ThumbsUp className="h-4 w-4" />
+							<ThumbsUp className="h-4 w-4" aria-hidden="true" />
 						</Button>
 						<Button
 							variant="ghost"
 							size="icon"
+							aria-label={`Reject submission ${submission.id}`}
 							onClick={() => handleReject(submission.id)}
 							disabled={isProcessing}
 							className="hover:text-red-600"
 						>
-							<ThumbsDown className="h-4 w-4" />
+							<ThumbsDown className="h-4 w-4" aria-hidden="true" />
 						</Button>
 					</div>
 				);
