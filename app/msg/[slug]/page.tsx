@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import type { Message } from "@/app/api/messages/[slug]/route";
+import { getAppUrl } from "@/lib/app-origin";
 import logger from "@/lib/logger";
 import { classifyMessageResponse } from "@/lib/message-fetch";
 import {
@@ -38,7 +39,7 @@ type MessageWithNavigation = Message & {
 // Cached fetch function to deduplicate requests between generateMetadata and page component
 const fetchMessage = cache(
 	async (slug: string): Promise<MessageWithNavigation | null> => {
-		const absoluteUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/messages/${slug}`;
+		const absoluteUrl = getAppUrl(`/api/messages/${encodeURIComponent(slug)}`);
 		logger.info(`Fetching message for slug: ${slug}`);
 
 		let response: Response;
@@ -108,9 +109,8 @@ export async function generateMetadata({
 		cleanMessage.length > 50
 			? `${cleanMessage.substring(0, 50)}...`
 			: cleanMessage;
-	const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://positive.help";
-	const messageUrl = `${baseUrl}/msg/${slug}`;
-	const ogImageUrl = `${baseUrl}/og/${slug}`;
+	const messageUrl = getAppUrl(`/msg/${encodeURIComponent(slug)}`);
+	const ogImageUrl = getAppUrl(`/og/${encodeURIComponent(slug)}`);
 
 	return generateSEOMetadata({
 		title,
@@ -151,15 +151,14 @@ export default async function MessagePage({
 		message.authors && message.authors.length > 0
 			? message.authors[0].name
 			: undefined;
-	const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://positive.help";
 	const articleStructuredData = generateStructuredData("article", {
 		title: cleanTextForMeta(message.text),
 		description: generateMessageDescription(
 			cleanTextForMeta(message.text),
 			authorName,
 		),
-		url: `${baseUrl}/msg/${slug}`,
-		image: `${baseUrl}/og/${slug}`,
+		url: getAppUrl(`/msg/${encodeURIComponent(slug)}`),
+		image: getAppUrl(`/og/${encodeURIComponent(slug)}`),
 		publishedTime: message.date,
 		author: authorName || "Anonymous",
 	});

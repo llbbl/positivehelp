@@ -1,3 +1,5 @@
+import { getAppUrl } from "@/lib/app-origin";
+
 export interface Message {
 	id: number;
 	text: string;
@@ -5,15 +7,12 @@ export interface Message {
 }
 
 export async function getMessages(): Promise<Message[]> {
-	const response = await fetch(
-		`${process.env.NEXT_PUBLIC_APP_URL}/api/messages`,
-		{
-			method: "GET",
-			headers: {
-				"Content-Type": "application/json",
-			},
+	const response = await fetch(getAppUrl("/api/messages"), {
+		method: "GET",
+		headers: {
+			"Content-Type": "application/json",
 		},
-	);
+	});
 
 	if (!response.ok) {
 		throw new Error("Failed to fetch messages");

@@ -78,7 +78,7 @@ describe("Environment Variable Validation", () => {
 		}).not.toThrow();
 	});
 
-	it("allows NEXT_PUBLIC_APP_URL to be optional", () => {
+	it("resolves NEXT_PUBLIC_APP_URL when it is not configured", () => {
 		process.env.TURSO_DATABASE_URL = "https://db.turso.io";
 		process.env.TURSO_AUTH_TOKEN = "test-token";
 		process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = "pk_test_123";
@@ -92,7 +92,7 @@ describe("Environment Variable Validation", () => {
 		expect(() => {
 			jest.isolateModules(() => {
 				const { env } = require("@/lib/env");
-				expect(env.NEXT_PUBLIC_APP_URL).toBeUndefined();
+				expect(env.NEXT_PUBLIC_APP_URL).toBe("http://localhost:3000");
 			});
 		}).not.toThrow();
 	});
