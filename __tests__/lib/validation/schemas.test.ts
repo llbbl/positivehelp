@@ -1,6 +1,21 @@
 import { formSchemas, messageSchemas } from "@/lib/validation/schemas";
 
 describe("Validation Schemas with Sanitization", () => {
+	describe("messageSchemas.query", () => {
+		it("accepts bounded message page limits", () => {
+			expect(messageSchemas.query.parse({ limit: "50" })).toEqual({
+				limit: 50,
+			});
+		});
+
+		it.each(["0", "101", "not-a-number"])(
+			"rejects an invalid message page limit of %s",
+			(limit) => {
+				expect(() => messageSchemas.query.parse({ limit })).toThrow();
+			},
+		);
+	});
+
 	describe("messageSchemas.create", () => {
 		it("should sanitize XSS attacks in message text", () => {
 			const maliciousInput = {

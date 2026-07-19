@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import clientLogger from "@/lib/client-logger";
-import { MESSAGE_POLL_INTERVAL_MS } from "@/lib/constants";
+import { MESSAGE_PAGE_SIZE, MESSAGE_POLL_INTERVAL_MS } from "@/lib/constants";
 import { MessageListSkeleton } from "./MessageSkeleton";
 
 export interface Message {
@@ -45,17 +45,22 @@ export default function MessageList({ initialMessages }: MessageListProps) {
 					? Math.max(...currentMessages.map((msg) => msg.id))
 					: 0;
 
-			// Add cache-busting and lastId parameters to only fetch new messages
-			const response = await fetch(
-				`/api/messages?t=${Date.now()}&lastId=${highestId}`,
-				{
-					cache: "no-store",
-					headers: {
-						"Cache-Control": "no-cache",
-						Pragma: "no-cache",
-					},
+			const searchParams = new URLSearchParams({
+				t: Date.now().toString(),
+				limit: MESSAGE_PAGE_SIZE.toString(),
+			});
+			if (highestId > 0) {
+				searchParams.set("lastId", highestId.toString());
+			}
+
+			// Poll only the bounded page after the latest message already displayed.
+			const response = await fetch(`/api/messages?${searchParams}`, {
+				cache: "no-store",
+				headers: {
+					"Cache-Control": "no-cache",
+					Pragma: "no-cache",
 				},
-			);
+			});
 
 			if (!response.ok) {
 				throw new Error("Failed to fetch latest messages");
@@ -73,7 +78,7 @@ export default function MessageList({ initialMessages }: MessageListProps) {
 						new Map(combined.map((msg) => [msg.id, msg])).values(),
 					).sort((a, b) => b.id - a.id);
 
-					return uniqueMessages;
+					return uniqueMessages.slice(0, MESSAGE_PAGE_SIZE);
 				});
 			}
 		} catch (error) {

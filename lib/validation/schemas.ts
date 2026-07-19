@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MESSAGE_MAX_PAGE_SIZE } from "@/lib/constants";
 import { sanitizeContent } from "@/utils/sanitize";
 
 // Common validation patterns
@@ -42,6 +43,16 @@ export const messageSchemas = {
 
 	// For GET /api/messages query parameters
 	query: z.object({
+		limit: z
+			.string()
+			.regex(/^\d+$/, "limit must be a positive integer")
+			.transform((val) => parseInt(val, 10))
+			.refine((val) => val > 0, "limit must be greater than 0")
+			.refine(
+				(val) => val <= MESSAGE_MAX_PAGE_SIZE,
+				`limit must be at most ${MESSAGE_MAX_PAGE_SIZE}`,
+			)
+			.optional(),
 		lastId: z
 			.string()
 			.regex(/^\d+$/, "lastId must be a positive integer")
