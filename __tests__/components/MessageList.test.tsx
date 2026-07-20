@@ -1,6 +1,6 @@
 import { act, render, screen, waitFor } from "@testing-library/react";
 import MessageList, { type Message } from "@/components/MessageList";
-import { MESSAGE_POLL_INTERVAL_MS } from "@/lib/constants";
+import { MESSAGE_PAGE_SIZE, MESSAGE_POLL_INTERVAL_MS } from "@/lib/constants";
 
 // Mock fetch globally
 global.fetch = jest.fn();
@@ -94,6 +94,10 @@ describe("MessageList", () => {
 				}),
 			);
 		});
+
+		const [requestUrl] = mockFetch.mock.calls[0];
+		expect(requestUrl).toEqual(expect.stringContaining("limit=50"));
+		expect(requestUrl).toEqual(expect.stringContaining("lastId=2"));
 	});
 
 	it("shows loading indicator when fetching messages", async () => {
@@ -146,6 +150,34 @@ describe("MessageList", () => {
 		});
 	});
 
+	it("keeps the rendered message window bounded", async () => {
+		const newMessages = Array.from(
+			{ length: MESSAGE_PAGE_SIZE },
+			(_, index): Message => ({
+				id: index + 3,
+				text: `New message ${index + 3}`,
+				date: "2026-01-01",
+				url: `new-message-${index + 3}`,
+			}),
+		);
+		const mockFetch = global.fetch as jest.MockedFunction<typeof fetch>;
+		mockFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => newMessages,
+		} as Response);
+
+		await act(async () => {
+			render(<MessageList initialMessages={mockMessages} />);
+		});
+
+		await waitFor(() => {
+			expect(screen.getAllByRole("link")).toHaveLength(MESSAGE_PAGE_SIZE);
+		});
+		expect(
+			screen.queryByText("This is a positive message"),
+		).not.toBeInTheDocument();
+	});
+
 	it("handles fetch errors gracefully", async () => {
 		const mockFetch = global.fetch as jest.MockedFunction<typeof fetch>;
 		mockFetch.mockRejectedValueOnce(new Error("Network error"));
@@ -188,12 +220,21 @@ describe("MessageList", () => {
 	});
 
 	it("renders empty list when no messages provided", async () => {
+		const mockFetch = global.fetch as jest.MockedFunction<typeof fetch>;
+		mockFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => [],
+		} as Response);
+
 		await act(async () => {
 			render(<MessageList initialMessages={[]} />);
 		});
 
-		// Should not crash and container should exist
-		const container = document.querySelector(".space-y-3");
-		expect(container).toBeInTheDocument();
+		await waitFor(() => {
+			expect(document.querySelector(".space-y-3")).toBeInTheDocument();
+		});
+		const [requestUrl] = mockFetch.mock.calls[0];
+		expect(requestUrl).toEqual(expect.stringContaining("limit=50"));
+		expect(requestUrl).not.toEqual(expect.stringContaining("lastId="));
 	});
 });

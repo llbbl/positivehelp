@@ -2,7 +2,7 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { isUserAdmin } from "@/lib/auth";
 import { getOrCreateAuthor } from "@/lib/authors";
-import { CACHE_MAX_AGE_SECONDS } from "@/lib/constants";
+import { CACHE_MAX_AGE_SECONDS, MESSAGE_PAGE_SIZE } from "@/lib/constants";
 import client from "@/lib/db";
 import { APIError, handleAPIError } from "@/lib/error-handler";
 import logger from "@/lib/logger";
@@ -30,10 +30,10 @@ export async function GET(request: Request) {
 		);
 
 		// Extract validated parameters
-		const { lastId, t } = validatedQuery;
+		const { lastId, limit = MESSAGE_PAGE_SIZE, t } = validatedQuery;
 		const bypassCache = t !== undefined;
 
-		const messages = await getMessages(lastId);
+		const messages = await getMessages(lastId, limit);
 
 		// Set appropriate cache control headers based on the request
 		const headers = new Headers();

@@ -8,6 +8,12 @@
 export const MESSAGE_POLL_INTERVAL_MS = 30000;
 
 /**
+ * Default and maximum number of messages returned by the collection endpoint.
+ */
+export const MESSAGE_PAGE_SIZE = 50;
+export const MESSAGE_MAX_PAGE_SIZE = 100;
+
+/**
  * Cache max age for API responses (in seconds)
  */
 export const CACHE_MAX_AGE_SECONDS = 300;
