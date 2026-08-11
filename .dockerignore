@@ -1,0 +1,28 @@
+# Never ship host build artifacts into the image. Without this, `COPY . .` in
+# the builder stage overwrites the alpine node_modules installed in the deps
+# stage with the host's (wrong platform), and pnpm's `verifyDepsBeforeRun`
+# then aborts the build trying to purge the modules directory.
+node_modules
+.next
+out
+
+# VCS and local tooling
+.git
+.gitignore
+.github
+.beads
+.dolt
+.claude
+
+# Env files: build args supply these, they must not be baked into the image
+.env
+.env.*
+!.env.example
+
+# Tests, coverage and editor noise
+coverage
+__tests__
+*.log
+.DS_Store
+.vscode
+.idea
