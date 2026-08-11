@@ -45,6 +45,7 @@ describe("AddMessageForm", () => {
 			forward: jest.fn(),
 			prefetch: jest.fn(),
 			replace: jest.fn(),
+			bfcacheId: "test-bfcache-id",
 		});
 
 		mockUseToast.mockReturnValue({

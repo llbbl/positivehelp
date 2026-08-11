@@ -1,4 +1,6 @@
-import { beforeEach, describe, expect, it, jest } from "@jest/globals";
+// `jest` is intentionally the injected global rather than an @jest/globals
+// import: @swc/jest only hoists bare `jest.mock(...)` calls above the requires.
+import { beforeEach, describe, expect, it } from "@jest/globals";
 import { MESSAGE_MAX_PAGE_SIZE, MESSAGE_PAGE_SIZE } from "@/lib/constants";
 import client from "@/lib/db";
 import { getMessages } from "@/lib/messages";

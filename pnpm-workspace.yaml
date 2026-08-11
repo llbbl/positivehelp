@@ -7,11 +7,15 @@ verifyDepsBeforeRun: install # re-check lockfile before `pnpm run`
 # Postinstall allowlist. Empty map = block all build scripts.
 # Add entries only after auditing each package's postinstall.
 allowBuilds:
-  '@clerk/shared': true   # Clerk SDK setup
-  better-sqlite3: true    # native sqlite binding (prebuild-install)
-  esbuild: true           # native binary download
-  sharp: true             # native libvips bindings (Next.js image opt)
-  unrs-resolver: true     # native module resolver
+  '@clerk/shared': true # Clerk SDK setup
+  # Postinstall only validates the native binding and, on failure, shells out to
+  # `npm install @swc/wasm` over the network. The binding ships via
+  # optionalDependencies and loads fine without it, so keep the script blocked.
+  '@swc/core': false
+  better-sqlite3: true # native sqlite binding (prebuild-install)
+  esbuild: true # native binary download
+  sharp: true # native libvips bindings (Next.js image opt)
+  unrs-resolver: true # native module resolver
 
 # Version pins (moved from package.json#pnpm.overrides in pnpm 11)
 overrides:
@@ -21,7 +25,3 @@ overrides:
   js-yaml: ^4.1.2 # CVE: js-yaml quadratic-complexity DoS via merge keys
   '@babel/core': ^7.29.1 # CVE: @babel/core arbitrary file read via sourceMappingURL
   postcss: ^8.5.19
-  # CVE: sharp inherited libvips flaws (CVE-2026-33327/33328/35590/35591).
-  # next 16.2.12 pins sharp 0.34.5; next 16.3.0 ships the fix but regresses
-  # Turbopack (panics tracing @libsql/core), so override instead of upgrading.
-  sharp: ^0.35.0
