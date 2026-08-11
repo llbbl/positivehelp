@@ -7,11 +7,20 @@ verifyDepsBeforeRun: install # re-check lockfile before `pnpm run`
 # Postinstall allowlist. Empty map = block all build scripts.
 # Add entries only after auditing each package's postinstall.
 allowBuilds:
-  '@clerk/shared': true   # Clerk SDK setup
-  better-sqlite3: true    # native sqlite binding (prebuild-install)
-  esbuild: true           # native binary download
-  sharp: true             # native libvips bindings (Next.js image opt)
-  unrs-resolver: true     # native module resolver
+  '@clerk/shared': true # Clerk SDK setup
+  # Postinstall only validates the native binding and, on failure, shells out to
+  # `npm install @swc/wasm` over the network. The binding ships via
+  # optionalDependencies and loads fine without it, so keep the script blocked.
+  '@swc/core': false
+  # v13 dropped the `prebuild-install` install script but still ships a
+  # binding.gyp, so npm/pnpm implicitly run `node-gyp rebuild`. That needs
+  # Python + a C++ toolchain and fails `pnpm install` on node:*-alpine.
+  # Prebuilt binaries ship inside the package (prebuilds/linuxmusl-x64.node
+  # and friends) and are loaded directly, so compiling is pure waste.
+  better-sqlite3: false
+  esbuild: true # native binary download
+  sharp: true # native libvips bindings (Next.js image opt)
+  unrs-resolver: true # native module resolver
 
 # Version pins (moved from package.json#pnpm.overrides in pnpm 11)
 overrides:

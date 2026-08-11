@@ -1,7 +1,9 @@
 /** @jest-environment node */
 
 import { currentUser } from "@clerk/nextjs/server";
-import { beforeEach, describe, expect, it, jest } from "@jest/globals";
+// `jest` is intentionally the injected global rather than an @jest/globals
+// import: @swc/jest only hoists bare `jest.mock(...)` calls above the requires.
+import { beforeEach, describe, expect, it } from "@jest/globals";
 import type { NextRequest } from "next/server";
 import { POST } from "@/app/api/admin/submissions/[id]/approve/route";
 import { db } from "@/db/client";
@@ -40,16 +42,16 @@ jest.mock("@/lib/rate-limit", () => ({
 type FakeTransaction = ReturnType<typeof createFakeTransaction>;
 
 function createFakeTransaction() {
-	const claimReturning = jest.fn<() => Promise<unknown[]>>();
+	const claimReturning = jest.fn<Promise<unknown[]>, []>();
 	const claimWhere = jest.fn(() => ({ returning: claimReturning }));
 	const claimSet = jest.fn(() => ({ where: claimWhere }));
 	const update = jest.fn(() => ({ set: claimSet }));
 
-	const statusWhere = jest.fn<() => Promise<Array<{ status: number }>>>();
+	const statusWhere = jest.fn<Promise<Array<{ status: number }>>, []>();
 	const selectFrom = jest.fn(() => ({ where: statusWhere }));
 	const select = jest.fn(() => ({ from: selectFrom }));
 
-	const messageReturning = jest.fn<() => Promise<Array<{ id: number }>>>();
+	const messageReturning = jest.fn<Promise<Array<{ id: number }>>, []>();
 	const insertValues = jest.fn(() => ({ returning: messageReturning }));
 	const insert = jest.fn(() => ({ values: insertValues }));
 

@@ -1,11 +1,6 @@
-import {
-	afterEach,
-	beforeEach,
-	describe,
-	expect,
-	it,
-	jest,
-} from "@jest/globals";
+// `jest` is intentionally the injected global rather than an @jest/globals
+// import: @swc/jest only hoists bare `jest.mock(...)` calls above the requires.
+import { afterEach, beforeEach, describe, expect, it } from "@jest/globals";
 
 // Mock Next.js modules before importing rate-limit
 jest.mock("next/headers", () => ({
