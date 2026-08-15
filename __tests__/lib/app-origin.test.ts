@@ -31,13 +31,73 @@ describe("canonical application origin", () => {
 		).toBe("https://positivehelp.vercel.app");
 	});
 
-	it("uses Railway's public domain for preview deployments", () => {
+	it("uses the URL Coolify injects for the deployment", () => {
 		expect(
 			getAppOrigin({
 				NODE_ENV: "production",
-				RAILWAY_PUBLIC_DOMAIN: "positivehelp-pr-269.up.railway.app",
+				COOLIFY_URL: "https://positivehelp-pr-269.preview.positive.help",
 			}),
-		).toBe("https://positivehelp-pr-269.up.railway.app");
+		).toBe("https://positivehelp-pr-269.preview.positive.help");
+	});
+
+	it("accepts a bare COOLIFY_FQDN when COOLIFY_URL is absent", () => {
+		expect(
+			getAppOrigin({
+				NODE_ENV: "production",
+				COOLIFY_FQDN: "positivehelp-pr-269.preview.positive.help",
+			}),
+		).toBe("https://positivehelp-pr-269.preview.positive.help");
+	});
+
+	it("takes the first domain when Coolify injects a comma-separated list", () => {
+		expect(
+			getAppOrigin({
+				NODE_ENV: "production",
+				COOLIFY_URL: "https://positive.help,https://www.positive.help:8080",
+			}),
+		).toBe("https://positive.help");
+	});
+
+	it("falls back to the production origin when Coolify injects a mangled value", () => {
+		// coollabsio/coolify#10824 can emit an unparseable COOLIFY_URL. A bad
+		// platform-injected value must not take the deployment down.
+		expect(
+			getAppOrigin({
+				NODE_ENV: "production",
+				COOLIFY_URL: "https://positive.help:https://www.positive.help",
+			}),
+		).toBe("https://positive.help");
+	});
+
+	it("falls through to COOLIFY_FQDN when COOLIFY_URL is set but empty", () => {
+		expect(
+			getAppOrigin({
+				NODE_ENV: "production",
+				COOLIFY_URL: "",
+				COOLIFY_FQDN: "pr-269.preview.positive.help",
+			}),
+		).toBe("https://pr-269.preview.positive.help");
+	});
+
+	it("recovers via COOLIFY_FQDN when COOLIFY_URL is mangled", () => {
+		// coollabsio/coolify#10824 corrupts COOLIFY_URL but leaves COOLIFY_FQDN
+		// usable, so an unparseable URL must not stop the fallback being tried.
+		expect(
+			getAppOrigin({
+				NODE_ENV: "production",
+				COOLIFY_URL: "https://positive.help:https://www.positive.help",
+				COOLIFY_FQDN: "pr-269.preview.positive.help",
+			}),
+		).toBe("https://pr-269.preview.positive.help");
+	});
+
+	it("ignores an empty Coolify value rather than treating it as configured", () => {
+		expect(
+			getAppOrigin({
+				NODE_ENV: "production",
+				COOLIFY_URL: "   ",
+			}),
+		).toBe("https://positive.help");
 	});
 
 	it.each(["development", "test", undefined] as const)(
