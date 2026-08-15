@@ -222,16 +222,31 @@ Get this wrong in either direction and it bites:
 
 ### Preview deployments
 
-Preview deployments are served from `*.preview.positive.help`, which is
-allowlisted in the CSP in `middleware.ts`.
+Preview deployments use **single-level** hostnames — `<pr-id>-preview.positive.help`,
+set in Coolify under Configuration → Preview Deployments as the template
+`{{pr_id}}-preview.positive.help`.
 
-Note that this allowlist entry is **not** what makes Clerk work on a preview
-host, despite appearances. A preview page is its own origin and is already
-covered by `'self'`, and Clerk's assets load from the separately-allowlisted
-`*.clerk.com` / `*.clerk.accounts.dev`. The entry only matters if a page ever
-loads a resource *from a different* preview subdomain. The `*.up.railway.app`
-entries it replaced were no-ops for the same reason. Changing the preview
-hostname therefore does not require a CSP edit.
+The dash is deliberate and load-bearing. Cloudflare's free Universal SSL covers
+only the apex and *first-level* subdomains (`positive.help` and
+`*.positive.help`), so a dotted `pr-123.preview.positive.help` would be a
+second-level subdomain with no edge certificate, failing TLS on every preview.
+Covering that shape requires Total TLS or Advanced Certificate Manager, which
+are paid. `pr-123-preview.positive.help` is first-level and already covered.
+
+DNS is a single proxied wildcard: `A  *  →  <origin IP>`, orange-clouded.
+Explicit records such as `clerk.positive.help` still take precedence over it.
+Keeping previews proxied (rather than DNS-only) matters for more than TLS: it
+keeps the origin IP unpublished so the origin can stay firewalled to
+Cloudflare's ranges, and it keeps the proxy-hop count at 2 on previews, so
+`TRUSTED_PROXY_HOPS` is correct there too.
+
+The matching `https://*.positive.help` entry in the CSP is **not** what makes
+Clerk work on a preview host, despite appearances. A preview page is its own
+origin and is already covered by `'self'`, and Clerk's assets load from the
+separately-allowlisted `*.clerk.com` / `*.clerk.accounts.dev`. The entry only
+matters if a page ever loads a resource *from a different* subdomain. The
+`*.up.railway.app` entries it replaced were no-ops for the same reason.
+Changing the preview hostname therefore does not require a CSP edit.
 
 ### Database migrations
 
