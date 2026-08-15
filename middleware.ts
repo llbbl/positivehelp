@@ -21,21 +21,27 @@ const securityHeaders = {
 	"Referrer-Policy": "strict-origin-when-cross-origin",
 
 	// Content Security Policy
-	// Allows Clerk, Next.js inline scripts, and self-hosted resources
+	// Allows Clerk, Next.js inline scripts, and self-hosted resources.
+	//
+	// Deliberately no wildcard for preview deployments. A preview page is its
+	// own origin and is already covered by 'self', and Clerk loads from the
+	// Clerk domains listed below — so a preview wildcard grants nothing, while
+	// widening every directive to any subdomain of the apex. Earlier revisions
+	// carried one; it was always a no-op. Do not re-add it.
 	"Content-Security-Policy": [
 		"default-src 'self'",
 		// Scripts: self, inline (Next.js), eval (Next.js dev), Clerk domains (including custom proxy domain)
-		"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.com https://*.clerk.accounts.dev https://clerk.positive.help https://*.preview.positive.help",
+		"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.com https://*.clerk.accounts.dev https://clerk.positive.help",
 		// Styles: self, inline (Tailwind)
 		"style-src 'self' 'unsafe-inline'",
-		// Images: self, data URIs, Clerk images, Coolify preview deployments
-		"img-src 'self' data: https://*.clerk.com https://img.clerk.com https://clerk.positive.help https://*.preview.positive.help",
+		// Images: self, data URIs, Clerk images
+		"img-src 'self' data: https://*.clerk.com https://img.clerk.com https://clerk.positive.help",
 		// Fonts: self, data URIs
 		"font-src 'self' data:",
-		// API connections: self, Clerk (including custom proxy domain), Coolify preview deployments
-		"connect-src 'self' https://*.clerk.com https://*.clerk.accounts.dev https://clerk.positive.help https://*.preview.positive.help",
+		// API connections: self, Clerk (including custom proxy domain)
+		"connect-src 'self' https://*.clerk.com https://*.clerk.accounts.dev https://clerk.positive.help",
 		// Iframes: self, Clerk (for OAuth flows)
-		"frame-src 'self' https://*.clerk.com https://*.clerk.accounts.dev https://clerk.positive.help https://*.preview.positive.help",
+		"frame-src 'self' https://*.clerk.com https://*.clerk.accounts.dev https://clerk.positive.help",
 		// Web workers: self and blob URLs (used by Clerk)
 		"worker-src 'self' blob:",
 		// Form submissions
