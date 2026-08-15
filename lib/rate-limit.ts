@@ -2,7 +2,7 @@ import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
 /**
- * In-memory rate limiter for single-instance deployments (e.g., Railway).
+ * In-memory rate limiter for single-instance deployments (e.g., Coolify).
  *
  * This implementation uses a sliding window approach with automatic cleanup
  * of expired entries to prevent memory leaks.
@@ -57,10 +57,11 @@ function cleanupExpiredEntries(windowMs: number): void {
  *
  * Trust model: trusted reverse proxies append to the RIGHT of `x-forwarded-for`,
  * so the real client IP is the entry `TRUSTED_PROXY_HOPS` positions from the
- * right end. Railway adds one hop, so TRUSTED_PROXY_HOPS=1 (default) selects the
- * rightmost entry — the one Railway recorded — and ignores any client-supplied
- * entries to its left (which would otherwise allow a rate-limit bypass via a
- * forged XFF header). Set to 2 behind Cloudflare→Railway, or 0 for a
+ * right end. Coolify's Traefik adds one hop and Cloudflare adds another, so the
+ * production chain uses TRUSTED_PROXY_HOPS=2: that selects the entry Cloudflare
+ * recorded and ignores any client-supplied entries to its left (which would
+ * otherwise allow a rate-limit bypass via a forged XFF header). Set to 1 for
+ * Coolify's Traefik alone — the built-in default — or 0 for a
  * direct-to-origin deploy with no trusted proxy. With 0 trusted hops, both
  * forwarding headers are untrusted and the client identifier is "unknown";
  * Next's headers API does not expose the underlying socket address.

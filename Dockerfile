@@ -29,6 +29,12 @@ ARG NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
 ARG CLERK_SECRET_KEY
 ARG TURSO_DATABASE_URL
 ARG TURSO_AUTH_TOKEN
+# next.config.ts resolves the canonical origin during `next build` and inlines it
+# into the client bundle, so Coolify's injected vars must be visible as build
+# args too — otherwise the COOLIFY_URL fallback only works server-side at
+# runtime, and preview builds bake the production origin into the browser.
+ARG COOLIFY_URL
+ARG COOLIFY_FQDN
 
 # Set environment variables for build
 ENV NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
@@ -36,6 +42,8 @@ ENV NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
 ENV CLERK_SECRET_KEY=${CLERK_SECRET_KEY}
 ENV TURSO_DATABASE_URL=${TURSO_DATABASE_URL}
 ENV TURSO_AUTH_TOKEN=${TURSO_AUTH_TOKEN}
+ENV COOLIFY_URL=${COOLIFY_URL}
+ENV COOLIFY_FQDN=${COOLIFY_FQDN}
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV SKIP_ENV_VALIDATION=1
 
@@ -62,6 +70,12 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# Next's standalone server reads HOSTNAME (not the HOST variable Coolify
+# injects), and defaults to localhost — which is unreachable from Coolify's
+# Traefik proxy. Bind all interfaces explicitly.
+ENV HOSTNAME=0.0.0.0
+ENV PORT=3000
+
 RUN addgroup -g 1001 -S nodejs
 RUN adduser -S nextjs -u 1001
 
@@ -76,6 +90,15 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
+
+# Coolify infers the container port from EXPOSE when configuring Traefik.
+EXPOSE 3000
+
+# Reads PORT at runtime rather than hardcoding 3000: PORT is an overridable ENV,
+# and probing a fixed port would mark a healthy container unhealthy — and send
+# Coolify into a restart loop — the moment someone changes it.
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD node -e "require('http').get('http://127.0.0.1:' + (process.env.PORT || 3000) + '/api/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))"
 
 # Run the application with Node.js
 CMD ["node", "server.js"]
