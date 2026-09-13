@@ -5,6 +5,7 @@ import { ThumbsDown, ThumbsUp } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import type { basicTableFeatures } from "@/app/_components/table-features";
 import {
 	fetchWithErrorHandling,
 	showErrorToast,
@@ -121,7 +122,7 @@ export function AdminSubmissionsTable({
 		}
 	};
 
-	const columns: ColumnDef<AdminSubmission>[] = [
+	const columns: ColumnDef<typeof basicTableFeatures, AdminSubmission>[] = [
 		{
 			accessorKey: "message",
 			header: "Message",

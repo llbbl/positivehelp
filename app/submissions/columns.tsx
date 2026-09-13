@@ -1,6 +1,7 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
+import type { basicTableFeatures } from "@/app/_components/table-features";
 
 export type Submission = {
 	id: number;
@@ -9,7 +10,7 @@ export type Submission = {
 	status: string;
 };
 
-export const columns: ColumnDef<Submission>[] = [
+export const columns: ColumnDef<typeof basicTableFeatures, Submission>[] = [
 	{
 		accessorKey: "message",
 		header: "Message",
