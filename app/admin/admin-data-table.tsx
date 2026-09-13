@@ -1,12 +1,8 @@
 "use client";
 
-import {
-	type ColumnDef,
-	flexRender,
-	getCoreRowModel,
-	useReactTable,
-} from "@tanstack/react-table";
+import { type ColumnDef, type RowData, useTable } from "@tanstack/react-table";
 
+import { basicTableFeatures } from "@/app/_components/table-features";
 import {
 	Table,
 	TableBody,
@@ -16,19 +12,19 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 
-interface DataTableProps<TData> {
-	columns: ColumnDef<TData, unknown>[];
+interface DataTableProps<TData extends RowData> {
+	columns: ColumnDef<typeof basicTableFeatures, TData, unknown>[];
 	data: TData[];
 }
 
-export function AdminDataTable<TData>({
+export function AdminDataTable<TData extends RowData>({
 	columns,
 	data,
 }: DataTableProps<TData>) {
-	const table = useReactTable({
+	const table = useTable({
+		features: basicTableFeatures,
 		data,
 		columns,
-		getCoreRowModel: getCoreRowModel(),
 	});
 
 	return (
@@ -40,12 +36,9 @@ export function AdminDataTable<TData>({
 							{headerGroup.headers.map((header) => {
 								return (
 									<TableHead key={header.id} className="bg-custom-cream">
-										{header.isPlaceholder
-											? null
-											: flexRender(
-													header.column.columnDef.header,
-													header.getContext(),
-												)}
+										{header.isPlaceholder ? null : (
+											<table.FlexRender header={header} />
+										)}
 									</TableHead>
 								);
 							})}
@@ -55,13 +48,10 @@ export function AdminDataTable<TData>({
 				<TableBody>
 					{table.getRowModel().rows?.length ? (
 						table.getRowModel().rows.map((row) => (
-							<TableRow
-								key={row.id}
-								data-state={row.getIsSelected() && "selected"}
-							>
-								{row.getVisibleCells().map((cell) => (
+							<TableRow key={row.id}>
+								{row.getAllCells().map((cell) => (
 									<TableCell key={cell.id} className="bg-custom-cream">
-										{flexRender(cell.column.columnDef.cell, cell.getContext())}
+										<table.FlexRender cell={cell} />
 									</TableCell>
 								))}
 							</TableRow>
