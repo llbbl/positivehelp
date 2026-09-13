@@ -23,12 +23,11 @@ RUN pnpm install --frozen-lockfile
 FROM base AS builder
 WORKDIR /app
 
-# Accept environment variables as build arguments
+# Accept non-secret environment variables as build arguments. Credentials are
+# provided only to the build command through BuildKit secret mounts below.
 ARG NEXT_PUBLIC_APP_URL
 ARG NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
-ARG CLERK_SECRET_KEY
 ARG TURSO_DATABASE_URL
-ARG TURSO_AUTH_TOKEN
 # next.config.ts resolves the canonical origin during `next build` and inlines it
 # into the client bundle, so Coolify's injected vars must be visible as build
 # args too — otherwise the COOLIFY_URL fallback only works server-side at
@@ -39,9 +38,7 @@ ARG COOLIFY_FQDN
 # Set environment variables for build
 ENV NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
 ENV NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
-ENV CLERK_SECRET_KEY=${CLERK_SECRET_KEY}
 ENV TURSO_DATABASE_URL=${TURSO_DATABASE_URL}
-ENV TURSO_AUTH_TOKEN=${TURSO_AUTH_TOKEN}
 ENV COOLIFY_URL=${COOLIFY_URL}
 ENV COOLIFY_FQDN=${COOLIFY_FQDN}
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -50,8 +47,23 @@ ENV SKIP_ENV_VALIDATION=1
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Build with Node.js (stable and reliable)
-RUN pnpm run build
+# Coolify's build-secret mode transports every build variable as a BuildKit
+# secret. The non-sensitive mounts keep those variables available there while
+# remaining optional for direct/Compose builds, where their ARG/ENV values are
+# used instead. Credentials are required and exist only for this command.
+RUN --mount=type=secret,id=NEXT_PUBLIC_APP_URL \
+    --mount=type=secret,id=NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY \
+    --mount=type=secret,id=TURSO_DATABASE_URL \
+    --mount=type=secret,id=COOLIFY_URL \
+    --mount=type=secret,id=COOLIFY_FQDN \
+    --mount=type=secret,id=CLERK_SECRET_KEY,env=CLERK_SECRET_KEY,required=true \
+    --mount=type=secret,id=TURSO_AUTH_TOKEN,env=TURSO_AUTH_TOKEN,required=true \
+    --mount=type=secret,id=COOLIFY_BUILD_SECRETS_HASH,env=COOLIFY_BUILD_SECRETS_HASH \
+    for name in NEXT_PUBLIC_APP_URL NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY TURSO_DATABASE_URL COOLIFY_URL COOLIFY_FQDN; do \
+        secret_path="/run/secrets/${name}"; \
+        if [ -f "${secret_path}" ]; then export "${name}=$(cat "${secret_path}")"; fi; \
+    done && \
+    pnpm run build
 
 # Production image, use Node.js for better Next.js compatibility
 FROM node:24-alpine AS runner

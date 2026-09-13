@@ -156,3 +156,9 @@ The `.github/workflows/migrate.yml` workflow automatically runs database migrati
 - **Staging**: Triggers when a PR is opened, updated, or reopened targeting the `staging` branch
 
 Both workflows run `pnpm run db:migrate` with the appropriate environment credentials.
+
+## Deployment
+
+Production runs on Coolify using the repository Dockerfile. See
+[Coolify deployment](docs/coolify-deployment.md) for the required build-secret
+and runtime-variable settings.
