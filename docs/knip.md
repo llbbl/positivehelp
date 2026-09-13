@@ -1,13 +1,14 @@
-# Knip reporting policy
+# Knip dead-code policy
 
-Knip is configured as a report-only maintenance aid. Run it with:
+Knip is the blocking dead-code and unused-export check. Run it directly with:
 
 ```bash
 pnpm knip
 ```
 
-The command uses `--no-exit-code`, so findings do not fail CI or local quality
-gates. Knip is intentionally not part of `just check`.
+The command exits non-zero when it finds unused files, dependencies, or exports.
+It also runs in GitHub Actions and as part of the canonical `just check` quality
+gate.
 
 ## Safety boundary
 
@@ -28,10 +29,13 @@ Never run Knip with `--fix` or `--allow-remove-files` in this repository.
 
 ## Configuration
 
-`knip.json` declares operational TypeScript scripts as entry points so they are
-not mistaken for unused files. `ignoreExportsUsedInFile` suppresses exports that
-are also used internally while continuing to report symbols with no local
+`knip.json` explicitly enables the Next.js plugin and declares operational
+TypeScript scripts as entry points so framework routes and maintenance scripts
+are not mistaken for unused files. `ignoreExportsUsedInFile` suppresses exports
+that are also used internally while continuing to report symbols with no local
 references.
 
-Any future CI enforcement belongs in a separate change after the baseline has
-been reviewed and intentional contracts have been documented.
+The initial baseline was manually reviewed before enforcement. In particular,
+`verifyApiToken` is marked `@public` because the companion Go API depends on the
+shared token-authentication contract even though no local TypeScript import can
+demonstrate that relationship.

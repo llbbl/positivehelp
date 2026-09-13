@@ -1,4 +1,5 @@
 {
 	"entry": ["scripts/*.ts"],
-	"ignoreExportsUsedInFile": true
+	"ignoreExportsUsedInFile": true,
+	"next": true
 }

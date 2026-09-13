@@ -125,13 +125,6 @@ export const formSchemas = {
 	}),
 };
 
-// Type exports for use in components and API routes
-export type MessageCreateInput = z.infer<typeof messageSchemas.create>;
-export type MessageQueryInput = z.infer<typeof messageSchemas.query>;
-export type SubmissionIdInput = z.infer<typeof adminSchemas.submissionId>;
-export type UserIdInput = z.infer<typeof adminSchemas.userId>;
-export type CreateMessageFormInput = z.infer<typeof formSchemas.createMessage>;
-
 // Error formatting utility
 export function formatZodError(error: z.ZodError): string {
 	return error.issues

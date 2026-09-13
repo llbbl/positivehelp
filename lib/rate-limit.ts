@@ -174,21 +174,6 @@ export function createRateLimitedResponse(resetAt: number): NextResponse {
 	);
 }
 
-/**
- * Add rate limit headers to a successful response
- */
-export function addRateLimitHeaders(
-	response: NextResponse,
-	remaining: number,
-	resetAt: number,
-	limit: number,
-): NextResponse {
-	response.headers.set("X-RateLimit-Limit", String(limit));
-	response.headers.set("X-RateLimit-Remaining", String(remaining));
-	response.headers.set("X-RateLimit-Reset", String(Math.ceil(resetAt / 1000)));
-	return response;
-}
-
 // Default rate limit configurations for different route types
 export const RATE_LIMITS = {
 	// Public read endpoints - generous limits

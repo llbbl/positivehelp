@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import { z } from "zod";
 import { APIError } from "@/lib/error-handler";
 import { formatZodError } from "./schemas";
@@ -88,72 +87,4 @@ export function validateFormData<T>(schema: z.ZodSchema<T>) {
 			throw error;
 		}
 	};
-}
-
-/**
- * Higher-order function to wrap API route handlers with validation
- */
-export function withValidation<
-	TBody = unknown,
-	TParams = unknown,
-	TQuery = unknown,
->(options: {
-	body?: z.ZodSchema<TBody>;
-	params?: z.ZodSchema<TParams>;
-	query?: z.ZodSchema<TQuery>;
-}) {
-	return <TContext extends { params?: Promise<Record<string, string>> }>(
-		handler: (
-			request: Request,
-			context: TContext,
-			validated: {
-				body?: TBody;
-				params?: TParams;
-				query?: TQuery;
-			},
-		) => Promise<NextResponse>,
-	) =>
-		async (request: Request, context: TContext) => {
-			try {
-				const validated: {
-					body?: TBody;
-					params?: TParams;
-					query?: TQuery;
-				} = {};
-
-				// Validate body if schema provided
-				if (options.body) {
-					validated.body = await validateBody(options.body)(request);
-				}
-
-				// Validate params if schema provided
-				if (options.params && context.params) {
-					const params = await context.params;
-					validated.params = await validateParams(options.params)(params);
-				}
-
-				// Validate query if schema provided
-				if (options.query) {
-					const url = new URL(request.url);
-					validated.query = await validateQuery(options.query)(
-						url.searchParams,
-					);
-				}
-
-				return await handler(request, context, validated);
-			} catch (error) {
-				if (error instanceof APIError) {
-					return NextResponse.json(
-						{ error: error.message, code: error.code },
-						{ status: error.statusCode },
-					);
-				}
-
-				// Fallback for unexpected errors
-				return NextResponse.json(
-					{ error: "Internal server error" },
-					{ status: 500 },
-				);
-			}
-		};
 }
