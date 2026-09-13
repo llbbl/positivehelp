@@ -52,8 +52,3 @@ export const env = envSchema.parse({
 	NEXT_PUBLIC_APP_URL: getAppOrigin(),
 	NODE_ENV: process.env.NODE_ENV,
 });
-
-/**
- * Type-safe environment variables
- */
-export type Env = z.infer<typeof envSchema>;

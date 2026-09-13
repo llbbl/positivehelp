@@ -63,6 +63,10 @@ biome-check:
 biome-fix:
     pnpm exec biome check --write .
 
+# Detect unused files, dependencies, and exports
+knip:
+    pnpm run knip
+
 # Type-check a specific file (using Bun for speed)
 typecheck file:
     pnpm run bun-tsc {{ file }}
@@ -161,8 +165,8 @@ delete-message id:
 pre-commit: lint test
     @echo "✓ Pre-commit checks passed"
 
-# Full CI check (format-check + lint + test + build)
-ci: format-check lint test build
+# Full CI check (format-check + lint + dead code + test + build)
+ci: format-check lint knip test build
     @echo "✓ All CI checks passed"
 
 # Canonical aggregate quality gate used by maintenance workflows

@@ -99,22 +99,3 @@ export async function fetchWithErrorHandling(
 		);
 	}
 }
-
-export function withErrorHandling<T extends unknown[], R>(
-	fn: (...args: T) => Promise<R>,
-	context?: string,
-) {
-	return async (...args: T): Promise<R> => {
-		try {
-			return await fn(...args);
-		} catch (error) {
-			logger.error(`Error in ${context || "function"}`, {
-				error: error instanceof Error ? error.message : "Unknown error",
-				stack: error instanceof Error ? error.stack : undefined,
-			});
-
-			showErrorToast(error);
-			throw error;
-		}
-	};
-}

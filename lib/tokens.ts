@@ -30,6 +30,7 @@ export function hashToken(token: string): string {
  * @param presentedToken - The raw `ph_`-prefixed token from the client
  * @param storedHash - The SHA-256 hex digest persisted in the database
  * @returns true if the presented token hashes to the stored hash
+ * @public Consumed by the companion Go API's authentication contract.
  */
 export function verifyApiToken(
 	presentedToken: string,
