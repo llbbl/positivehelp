@@ -34,7 +34,7 @@ just build    # Build for production
 | `just dev` | Start dev server with Turbopack |
 | `just build` | Build for production |
 | `just test` | Run tests |
-| `just lint` | Run Next.js linter |
+| `just lint` | Run Biome linter |
 | `just format` | Format code with Biome |
 | `just db-migrate` | Apply database migrations |
 | `just docker-up` | Start Docker containers |
@@ -46,8 +46,8 @@ just build    # Build for production
 
 ### Prerequisites
 
-- Node.js (version 18 or later)
-- pnpm
+- Node.js 22.18 or later in the 22.x line, or Node.js 24.11 or later
+- pnpm 12.8.1 (pinned in `package.json`)
 - Turso database credentials (URL and authentication token)
 - Clerk API keys (e.g., `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`)
 
@@ -60,11 +60,25 @@ git clone <repository_url>
 cd positivehelp
 ```
 
-2.  Install dependencies:
+2.  Enable the pinned package manager and install dependencies:
 
 ```bash
+curl -fsSL https://get.pnpm.io/install.sh | env PNPM_VERSION="$(node -p 'require("./package.json").packageManager.slice(5)')" sh -
+# Reload your shell as instructed by the installer, then:
 pnpm install
 ```
+
+This uses pnpm's native installer from the
+[official installation guide](https://pnpm.io/installation), avoiding older
+Corepack versions that cannot launch pnpm 12. pnpm follows the
+`packageManager` pin in this repository; verify it with `pnpm --version`.
+`.node-version` selects Node 22 for CI setup. Tests cover Node 22 and 24, and the
+production Docker image uses Node 24. GitHub Actions uses `pnpm/setup@v3` to read
+the pnpm pin, select Node, cache the store, and install with a frozen lockfile.
+
+Dependency install scripts require an explicit decision in
+`pnpm-workspace.yaml`. Preserve the build-script restrictions, the 24-hour
+minimum release age, and the existing security overrides when updating packages.
 
 3.  Create a `.env` file in the root directory (you can use a provided `.env.example` as a reference if it exists) and add your environment variables for Turso and Clerk.  **Important:** Use `NEXT_PUBLIC_` prefix for Clerk's publishable key so it's available in the browser. For example:
 

@@ -4,6 +4,11 @@ Positive.help deploys from the repository `Dockerfile` with Coolify's Dockerfile
 build pack. The Next.js build prerenders database-backed pages, so Clerk and
 Turso credentials must be available during both the image build and at runtime.
 
+The image uses Node 24 and reads the exact pnpm version from `package.json`
+(currently pnpm 12.8.1). Dependency installation uses a frozen lockfile with the
+repository's build-script and supply-chain policies.
+Update the manifest and regenerate `pnpm-lock.yaml` together before deploying.
+
 ## Environment variables
 
 Configure these application variables in Coolify with both **Build Variable**

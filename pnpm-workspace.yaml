@@ -1,4 +1,4 @@
-# Supply-chain hardening (pnpm 11 defaults shown explicitly)
+# Supply-chain hardening (pnpm 12 defaults shown explicitly)
 minimumReleaseAge: 1440 # block packages younger than 24h
 blockExoticSubdeps: true # no git/tarball transitive deps
 strictDepBuilds: true # fail install on unapproved postinstalls
@@ -8,6 +8,9 @@ verifyDepsBeforeRun: install # re-check lockfile before `pnpm run`
 # Add entries only after auditing each package's postinstall.
 allowBuilds:
   '@clerk/shared': true # Clerk SDK setup
+  # Prebuilt native bindings ship as optional dependencies. The install script
+  # only compiles from source when npm_config_build_from_source=true.
+  '@parcel/watcher': false
   # Postinstall only validates the native binding and, on failure, shells out to
   # `npm install @swc/wasm` over the network. The binding ships via
   # optionalDependencies and loads fine without it, so keep the script blocked.
