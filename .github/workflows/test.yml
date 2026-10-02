@@ -17,19 +17,12 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
+      - name: Set up pnpm, Node.js, and dependencies
+        uses: pnpm/setup@v3
         with:
-          version: 11.1.3
-
-      - name: Use Node.js 22.x
-        uses: actions/setup-node@v3
-        with:
-          node-version: 22.x
-          cache: 'pnpm'
-
-      - name: Install Dependencies
-        run: pnpm install --frozen-lockfile
+          require-lockfile: true
+          cache: true
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Run Lint
         run: pnpm run lint
@@ -41,19 +34,12 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
+      - name: Set up pnpm, Node.js, and dependencies
+        uses: pnpm/setup@v3
         with:
-          version: 11.1.3
-
-      - name: Use Node.js 22.x
-        uses: actions/setup-node@v3
-        with:
-          node-version: 22.x
-          cache: 'pnpm'
-
-      - name: Install Dependencies
-        run: pnpm install --frozen-lockfile
+          require-lockfile: true
+          cache: true
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Run Typecheck
         run: pnpm run typecheck
@@ -65,19 +51,12 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
+      - name: Set up pnpm, Node.js, and dependencies
+        uses: pnpm/setup@v3
         with:
-          version: 11.1.3
-
-      - name: Use Node.js 22.x
-        uses: actions/setup-node@v3
-        with:
-          node-version: 22.x
-          cache: 'pnpm'
-
-      - name: Install Dependencies
-        run: pnpm install --frozen-lockfile
+          require-lockfile: true
+          cache: true
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Run Knip
         run: pnpm run knip
@@ -93,19 +72,13 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
+      - name: Set up pnpm, Node.js, and dependencies
+        uses: pnpm/setup@v3
         with:
-          version: 11.1.3
-
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'pnpm'
-
-      - name: Install Dependencies
-        run: pnpm install --frozen-lockfile
+          runtime: node@${{ matrix.node-version }}
+          require-lockfile: true
+          cache: true
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Run Tests
         run: pnpm run test

@@ -1,8 +1,18 @@
 # syntax=docker/dockerfile:1
 # Use Node.js with pnpm for building (most stable option)
 FROM node:24-alpine AS base
-# Use corepack to enable pnpm (avoids npm dependency)
-RUN corepack enable && corepack prepare pnpm@11.1.3 --activate
+# Read the same package-manager pin used by development and CI.
+ENV PNPM_HOME=/pnpm
+ENV PATH="/pnpm/bin:$PATH"
+WORKDIR /app
+COPY package.json ./
+# Use the native installer: older Corepack versions cannot launch pnpm 12.
+# OpenSSL lets the installer verify npm signatures as well as checksums.
+RUN apk add --no-cache curl openssl && \
+    curl -fsSL https://get.pnpm.io/install.sh -o /tmp/install-pnpm.sh && \
+    PNPM_VERSION="$(node -p 'require("./package.json").packageManager.slice(5)')" \
+      ENV=/root/.shrc SHELL=/bin/sh sh /tmp/install-pnpm.sh && \
+    rm -f /tmp/install-pnpm.sh
 
 # Install dependencies only when needed
 FROM base AS deps
