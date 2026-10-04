@@ -1,4 +1,4 @@
-# positive.help
+# Positive.help
 
 Positive.help is a place where people share positivity. Currently, the ability to add new messages is invite-only, and user registration and sign up are managed through Clerk. Our database is with Turso.
 
