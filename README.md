@@ -173,6 +173,6 @@ Both workflows run `pnpm run db:migrate` with the appropriate environment creden
 
 ## Deployment
 
-Production runs on Coolify using the repository Dockerfile. See
+Production runs on Coolify using this repository's Dockerfile. See
 [Coolify deployment](docs/coolify-deployment.md) for the required build-secret
 and runtime-variable settings.
