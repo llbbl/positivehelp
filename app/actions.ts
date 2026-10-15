@@ -28,7 +28,7 @@ export async function createMessage(formData: FormData) {
 				},
 				body: JSON.stringify({
 					text: sanitizedContent,
-					author: author && typeof author === "string" ? author : null,
+					author,
 					clerkUserId: userId,
 				}),
 			});
