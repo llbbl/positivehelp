@@ -4,6 +4,7 @@ import type React from "react";
 import "./globals.css";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Navigation } from "@/components/Navigation";
+import { Toaster } from "@/components/ui/toaster";
 import { generateSEOMetadata, generateStructuredData } from "@/lib/seo";
 
 const geistSans = Geist({
@@ -64,6 +65,7 @@ export default function RootLayout({
 				>
 					<Navigation />
 					<main>{children}</main>
+					<Toaster />
 				</body>
 			</html>
 		</ClerkProvider>

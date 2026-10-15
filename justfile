@@ -103,12 +103,6 @@ db-generate:
 db-migrate:
     pnpm run db:migrate
 
-# Reset database to latest migration (DESTRUCTIVE)
-db-reset:
-    @echo "⚠️  This will reset the database. Press Ctrl+C to cancel."
-    @sleep 2
-    pnpm run db:reset
-
 # ─────────────────────────────────────────────────────────────────────────────
 # Docker
 # ─────────────────────────────────────────────────────────────────────────────

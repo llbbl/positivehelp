@@ -1,5 +1,10 @@
 # positive.help Project Improvements
 
+Historical improvement ideas: this checklist is not maintained as the active
+tracker, and its completion markers may not reflect the current application.
+Use [GitHub issues](https://github.com/llbbl/positivehelp/issues) for current work
+and the [documentation index](README.md) for current setup and operations guides.
+
 This document outlines suggested improvements to enhance the positive.help application across performance, user experience, security, and maintainability.
 
 ## Performance & User Experience
