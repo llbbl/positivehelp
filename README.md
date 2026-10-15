@@ -31,4 +31,4 @@ Open [localhost:3000](http://localhost:3000).
 
 Ideas, fixes, and improvements are welcome. Start with the
 [development guide](docs/development.md) and [open issues](https://github.com/llbbl/positivehelp/issues).
-See the [documentation index](docs/README.md) for database, CI, deployment, and API guides.
+See the [documentation index](docs/README.md) for database, CI, and API guides.
