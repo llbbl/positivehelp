@@ -129,14 +129,14 @@ describe("Admin submission user lookups", () => {
 	});
 
 	it.each(["network", "http"])(
-		"clears loading after a %s failure and retries on a later rows update",
+		"clears loading after a %s failure and does not retry when other lookups resolve",
 		async (failure) => {
 			const firstAttempt = deferred<Response>();
-			const retry = deferred<Response>();
+			const other = deferred<Response>();
 			fetchMock
 				.mockReturnValueOnce(firstAttempt.promise)
-				.mockReturnValueOnce(retry.promise);
-			const submissions = [submission(1, "user-a")];
+				.mockReturnValueOnce(other.promise);
+			const submissions = [submission(1, "user-a"), submission(2, "user-b")];
 			const { rerender, container } = render(
 				<AdminSubmissionsTable submissions={submissions} />,
 			);
@@ -149,15 +149,15 @@ describe("Admin submission user lookups", () => {
 				}
 			});
 			expect(screen.getByRole("cell", { name: "user-a" })).toBeVisible();
-			expect(container.querySelector(".animate-pulse")).not.toBeInTheDocument();
-			expect(fetchMock).toHaveBeenCalledTimes(1);
+			expect(fetchMock).toHaveBeenCalledTimes(2);
 
+			await act(async () => other.resolve(userResponse("user-b")));
+			expect(fetchMock).toHaveBeenCalledTimes(2);
 			rerender(<AdminSubmissionsTable submissions={[...submissions]} />);
 			expect(fetchMock).toHaveBeenCalledTimes(2);
-			expect(container.querySelector(".animate-pulse")).toBeInTheDocument();
-			await act(async () => retry.resolve(userResponse("user-a")));
+			expect(screen.getByRole("cell", { name: "user-a" })).toBeVisible();
 			expect(
-				screen.getByRole("cell", { name: "username-user-a" }),
+				screen.getByRole("cell", { name: "username-user-b" }),
 			).toBeVisible();
 			expect(container.querySelector(".animate-pulse")).not.toBeInTheDocument();
 		},

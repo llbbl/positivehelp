@@ -48,8 +48,5 @@ the [GitHub workflow](ci.md) handles production migrations separately.
 
 ## Resetting a development database
 
-The existing `db:reset` script and `just db-reset` recipe invoke
-`drizzle-kit reset`, which is not a supported command in the installed version.
-Do not use them as a reset procedure. Recreating a database also encounters the
-fresh-database limitation above. There is no verified reset or rollback procedure
-documented for this project yet.
+There is no verified reset or rollback procedure yet, and recreating a database
+hits the fresh-database limitation above.

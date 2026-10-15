@@ -40,11 +40,12 @@ export function AdminSubmissionsTable({
 	const [processingIds, setProcessingIds] = useState<Set<number>>(new Set());
 	const [userInfo, setUserInfo] = useState<Record<string, UserInfo>>({});
 	const [loadingUserIds, setLoadingUserIds] = useState<Set<string>>(new Set());
-	const inFlightUserIds = useRef(new Set<string>());
+	// Never cleared, so a failed lookup is not retried until remount.
+	const requestedUserIds = useRef(new Set<string>());
 
 	useEffect(() => {
 		const fetchUserInfo = async (userId: string) => {
-			inFlightUserIds.current.add(userId);
+			requestedUserIds.current.add(userId);
 			setLoadingUserIds((prev) => new Set([...prev, userId]));
 			try {
 				const response = await fetch(`/api/admin/users/${userId}`);
@@ -61,7 +62,6 @@ export function AdminSubmissionsTable({
 					error: error instanceof Error ? error.message : "Unknown error",
 				});
 			} finally {
-				inFlightUserIds.current.delete(userId);
 				setLoadingUserIds((prev) => {
 					const newSet = new Set(prev);
 					newSet.delete(userId);
@@ -73,11 +73,11 @@ export function AdminSubmissionsTable({
 		// Fetch user info for all unique user IDs
 		const uniqueUserIds = new Set(submissions.map((sub) => sub.clerkUserId));
 		uniqueUserIds.forEach((userId) => {
-			if (userId && !userInfo[userId] && !inFlightUserIds.current.has(userId)) {
+			if (userId && !requestedUserIds.current.has(userId)) {
 				fetchUserInfo(userId);
 			}
 		});
-	}, [submissions, userInfo]);
+	}, [submissions]);
 
 	const handleApprove = async (id: number) => {
 		setProcessingIds((prev) => new Set([...prev, id]));

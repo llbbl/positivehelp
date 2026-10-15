@@ -15,7 +15,6 @@
 		"typecheck": "tsc --noEmit",
 		"db:generate": "drizzle-kit generate --config drizzle.config.ts",
 		"db:migrate": "drizzle-kit migrate --config drizzle.config.ts",
-		"db:reset": "drizzle-kit reset --config drizzle.config.ts",
 		"test": "jest",
 		"test:watch": "jest --watch",
 		"knip": "knip --no-progress",

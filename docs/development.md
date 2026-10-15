@@ -89,7 +89,9 @@ the separate project-wide `pnpm typecheck` check. Run that as well.
 
 Next.js and Drizzle load `.env.local`, but Just's dotenv loader and Docker Compose
 use `.env` by default. Export variables into the shell when invoking those tools
-if they need them; see [deployment](coolify-deployment.md) for Docker details.
+if they need them. With the variables exported, `docker compose up --build` builds
+and runs the production image locally; use a development database, since the
+build prerenders database-backed pages.
 
 ## Contributions
 
