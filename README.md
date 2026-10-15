@@ -1,178 +1,34 @@
-# positive.help
+# Positive.help
 
-Positive.help is a place where people share positivity. Currently, the ability to add new messages is invite-only, and user registration and sign up are managed through Clerk. Our database is with Turso.
+A place to share a little encouragement. Browse uplifting messages, share a
+favorite, or submit your own for the community.
 
-## Quick Start with Just
+[Visit Positive.help](https://positive.help) · [Documentation](docs/README.md)
 
-This project uses [Just](https://github.com/casey/just) as a command runner. Install it first:
+## Build something positive
 
-```bash
-# macOS
-brew install just
+Explore a working Next.js app with React, TypeScript, and Tailwind CSS, backed by
+Clerk authentication and a Turso database with Drizzle ORM.
 
-# Linux (via cargo)
-cargo install just
+- Shareable message pages with social previews.
+- Authenticated submissions and an admin moderation queue.
+- A message API for companion apps and integrations.
 
-# Other options: https://github.com/casey/just#installation
-```
+## Get started
 
-Then run `just` to see all available commands:
-
-```bash
-just          # Show all available commands
-just install  # Install dependencies
-just dev      # Start development server
-just test     # Run tests
-just build    # Build for production
-```
-
-### Common Just Commands
-
-| Command | Description |
-|---------|-------------|
-| `just install` | Install dependencies with pnpm |
-| `just dev` | Start dev server with Turbopack |
-| `just build` | Build for production |
-| `just test` | Run tests |
-| `just lint` | Run Biome linter |
-| `just format` | Format code with Biome |
-| `just db-migrate` | Apply database migrations |
-| `just docker-up` | Start Docker containers |
-| `just ci` | Run full CI checks locally |
-
-> **Note:** Just wraps existing pnpm scripts. You can still use `pnpm run <script>` directly.
-
-## Running the Project Locally
-
-### Prerequisites
-
-- Node.js 22.18 or later in the 22.x line, or Node.js 24.11 or later
-- pnpm 12.8.1 (pinned in `package.json`)
-- Turso database credentials (URL and authentication token)
-- Clerk API keys (e.g., `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`)
-
-### Setup Instructions
-
-1.  Clone the repository:
+Use Node.js 22.18+ in the 22.x line or 24.11+, and pnpm 12.8.1.
+Follow the [development guide](docs/development.md) to configure Clerk and Turso,
+then run:
 
 ```bash
-git clone <repository_url>
-cd positivehelp
+pnpm install --frozen-lockfile
+pnpm dev
 ```
 
-2.  Enable the pinned package manager and install dependencies:
+Open [localhost:3000](http://localhost:3000).
 
-```bash
-curl -fsSL https://get.pnpm.io/install.sh | env PNPM_VERSION="$(node -p 'require("./package.json").packageManager.slice(5)')" sh -
-# Reload your shell as instructed by the installer, then:
-pnpm install
-```
+## Contribute
 
-This uses pnpm's native installer from the
-[official installation guide](https://pnpm.io/installation), avoiding older
-Corepack versions that cannot launch pnpm 12. pnpm follows the
-`packageManager` pin in this repository; verify it with `pnpm --version`.
-`.node-version` selects Node 22 for CI setup. Tests cover Node 22 and 24, and the
-production Docker image uses Node 24. GitHub Actions uses `pnpm/setup@v3` to read
-the pnpm pin, select Node, cache the store, and install with a frozen lockfile.
-
-Dependency install scripts require an explicit decision in
-`pnpm-workspace.yaml`. Preserve the build-script restrictions, the 24-hour
-minimum release age, and the existing security overrides when updating packages.
-
-3.  Create a `.env` file in the root directory (you can use a provided `.env.example` as a reference if it exists) and add your environment variables for Turso and Clerk.  **Important:** Use `NEXT_PUBLIC_` prefix for Clerk's publishable key so it's available in the browser. For example:
-
-```env
-DATABASE_URL="libsql://<your-database-url>"
-DATABASE_AUTH_TOKEN="<your-auth-token>"
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="your_clerk_publishable_key"
-CLERK_SECRET_KEY="your_clerk_secret_key"
-```
-
-4.  Start the development server:
-
-```bash
-pnpm run dev
-```
-
-5.  Run the unit tests to ensure everything is working properly:
-
-```bash
-pnpm run test
-```
-
-6.  Open your browser and visit http://localhost:3000 to view the application.
-
-## Database Setup (Drizzle ORM with Turso)
-
-This project uses Drizzle ORM for database management and is configured to work with a [Turso](https://turso.tech/) database.
-
-### Prerequisites (for database management)
-
-*   You should have a Turso database created and have the database URL and authentication token (already covered in the main setup).
-*   We will be using the drizzle-kit CLI in the node_modules/.bin directory.
-
-* Ensure `drizzle.config.ts` file is correctly configured.
-
-### 1. Generating a New Migration
-
-After modifying your Drizzle schema (e.g., `src/db/schema.ts`), generate a migration:
-
-```bash
-pnpm drizzle-kit generate
-```
-
-### 2. Applying Migrations
-
-To apply the migrations to your database:
-
-```bash
-pnpm drizzle-kit migrate
-```
-
-### 3. Resetting the Database
-
-To reset the database to the latest migration:
-
-```bash
-pnpm drizzle-kit reset
-```
-
-## GitHub Actions & CI/CD
-
-This project uses GitHub Actions for automated testing and database migrations.
-
-### Required GitHub Secrets
-
-To enable automated database migrations in CI/CD, you must configure the following secrets in your GitHub repository:
-
-**Navigate to:** Repository Settings → Secrets and variables → Actions → New repository secret
-
-#### Production Secrets
-
-These secrets are used when code is merged to the `main` branch:
-
-- **`TURSO_DATABASE_URL_PROD`** - Production Turso database URL (e.g., `libsql://your-prod-database-url`)
-- **`TURSO_AUTH_TOKEN_PROD`** - Production Turso authentication token
-
-#### Staging Secrets
-
-These secrets are used when pull requests are created for the `staging` branch:
-
-- **`TURSO_DATABASE_URL_STAGING`** - Staging/non-production Turso database URL (e.g., `libsql://your-staging-database-url`)
-- **`TURSO_AUTH_TOKEN_STAGING`** - Staging/non-production Turso authentication token
-
-### Automated Migration Workflow
-
-The `.github/workflows/migrate.yml` workflow automatically runs database migrations:
-
-- **Production**: Triggers when code is pushed to `main` (after PR merge)
-- **Staging**: Triggers when a PR is opened, updated, or reopened targeting the `staging` branch
-
-Both workflows run `pnpm run db:migrate` with the appropriate environment credentials.
-
-## Deployment
-
-Production runs on Coolify using the repository Dockerfile. See
-[Coolify deployment](docs/coolify-deployment.md) for the required build-secret
-and runtime-variable settings.
+Ideas, fixes, and improvements are welcome. Start with the
+[development guide](docs/development.md) and [open issues](https://github.com/llbbl/positivehelp/issues).
+See the [documentation index](docs/README.md) for database, CI, deployment, and API guides.

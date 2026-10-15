@@ -9,6 +9,11 @@ The image uses Node 24 and reads the exact pnpm version from `package.json`
 repository's build-script and supply-chain policies.
 Update the manifest and regenerate `pnpm-lock.yaml` together before deploying.
 
+See [local development](development.md) for workstation setup and
+[CI](ci.md) for the separate database migration workflow. The production image
+starts Next.js's standalone `node server.js`; it does not run migrations at
+startup. Apply the required schema before deploying database-dependent changes.
+
 ## Environment variables
 
 Configure these application variables in Coolify with both **Build Variable**
@@ -61,3 +66,26 @@ docker build \
 
 The secret values are available only while the build command runs and are not
 stored in the resulting image configuration or layer history.
+
+## Runtime and health checks
+
+Coolify must supply both Clerk keys and the Turso configuration at runtime as
+well as at build time. The container listens on port 3000, binds to `0.0.0.0`,
+and checks `/api/health`. `PORT` can be overridden in the Docker image; update
+the platform's port mapping to match.
+
+Docker Compose reads `.env` or exported shell variables, rather than Next.js's
+`.env.local`. The current Compose service forwards Turso variables but does not
+forward the Clerk keys at runtime. For a local run, export the variables from
+the environment-variable list above into your shell, build the image, then
+pass the Clerk keys explicitly:
+
+```bash
+docker compose run --rm --service-ports \
+  -e NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY \
+  -e CLERK_SECRET_KEY app
+```
+
+Use a development database for local builds and runs. The build prerenders
+database-backed pages and requires a compatible schema; see the
+[database guide](database.md) for the fresh-database limitation.
