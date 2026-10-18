@@ -4,11 +4,8 @@
  * Runs on node rather than the project-default jsdom: `next/server` needs the
  * Web `Request`/`Response` globals, which jsdom does not provide.
  *
- * Guards the health-probe bypass added for Coolify.
- *
- * The container healthcheck must not depend on Clerk, but the bypass must also
- * not become a hole that skips security headers for the rest of the site — so
- * both halves are asserted here.
+ * The container healthcheck must not depend on Clerk, but its bypass must not
+ * skip security headers for the rest of the site, so both halves are asserted.
  */
 
 // The handler is created inside the factory because jest hoists `jest.mock`

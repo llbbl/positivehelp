@@ -2,7 +2,7 @@ import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
 /**
- * In-memory rate limiter for single-instance deployments (e.g., Coolify).
+ * In-memory rate limiter for single-instance deployments.
  *
  * This implementation uses a sliding window approach with automatic cleanup
  * of expired entries to prevent memory leaks.
@@ -53,18 +53,10 @@ function cleanupExpiredEntries(windowMs: number): void {
 }
 
 /**
- * Get the client IP address from request headers.
- *
- * Trust model: trusted reverse proxies append to the RIGHT of `x-forwarded-for`,
- * so the real client IP is the entry `TRUSTED_PROXY_HOPS` positions from the
- * right end. Coolify's Traefik adds one hop and Cloudflare adds another, so the
- * production chain uses TRUSTED_PROXY_HOPS=2: that selects the entry Cloudflare
- * recorded and ignores any client-supplied entries to its left (which would
- * otherwise allow a rate-limit bypass via a forged XFF header). Set to 1 for
- * Coolify's Traefik alone — the built-in default — or 0 for a
- * direct-to-origin deploy with no trusted proxy. With 0 trusted hops, both
- * forwarding headers are untrusted and the client identifier is "unknown";
- * Next's headers API does not expose the underlying socket address.
+ * Trusted proxies append to the right of `x-forwarded-for`, so the client is the
+ * entry `TRUSTED_PROXY_HOPS` from the right; entries further left are
+ * client-controlled. With 0 hops the result is "unknown", because Next does not
+ * expose the socket address.
  */
 export async function getClientIP(): Promise<string> {
 	const parsed = Number.parseInt(process.env.TRUSTED_PROXY_HOPS ?? "1", 10);
@@ -75,9 +67,8 @@ export async function getClientIP(): Promise<string> {
 
 	const headersList = await headers();
 
-	// x-forwarded-for is a comma-separated list; trusted proxies append on the
-	// right, so the client IP is `trustedHops` entries from the right. Clamp into
-	// range so short lists / oversized hop counts fall back to a defined entry.
+	// Clamp into range so short lists or oversized hop counts fall back to a
+	// defined entry.
 	const forwarded = headersList.get("x-forwarded-for");
 	if (forwarded) {
 		const ips = forwarded.split(",").map((entry) => entry.trim());

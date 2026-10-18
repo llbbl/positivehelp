@@ -7,8 +7,6 @@ type AppOriginEnvironment = Partial<
 		| "NEXT_PUBLIC_APP_URL"
 		| "NEXT_PUBLIC_VERCEL_BRANCH_URL"
 		| "NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL"
-		| "COOLIFY_URL"
-		| "COOLIFY_FQDN"
 		| "VERCEL_ENV"
 		| "NODE_ENV"
 	>
@@ -47,42 +45,6 @@ function deploymentDomainOrigin(value: string): string {
 }
 
 /**
- * Resolve the origin Coolify injected for this deployment.
- *
- * Coolify sets COOLIFY_URL/COOLIFY_FQDN to a *comma-separated list* when the
- * service has more than one domain, and is known to mangle the value in that
- * case (coollabsio/coolify#10824), so only the first entry is considered.
- *
- * Unlike NEXT_PUBLIC_APP_URL, this value is platform-supplied rather than
- * operator-supplied, so a malformed one is ignored instead of thrown: a bad
- * injected variable should not take the whole deployment down when a sane
- * fallback origin exists. Set NEXT_PUBLIC_APP_URL to pin the origin explicitly.
- *
- * Each variable is tried in turn rather than short-circuiting on the first one
- * that is merely *set*: #10824 corrupts COOLIFY_URL while leaving COOLIFY_FQDN
- * intact, so falling through on an unusable value is what makes the recovery
- * path reachable at all.
- */
-function coolifyOrigin(environment: AppOriginEnvironment): string | undefined {
-	const candidates = [environment.COOLIFY_URL, environment.COOLIFY_FQDN];
-
-	for (const candidate of candidates) {
-		const first = candidate?.split(",")[0]?.trim();
-		if (!first) {
-			continue;
-		}
-
-		try {
-			return normalizeOrigin(deploymentDomainOrigin(first), "COOLIFY_URL");
-		} catch {
-			// Unusable value — try the next variable rather than giving up.
-		}
-	}
-
-	return undefined;
-}
-
-/**
  * Resolve the one canonical application origin used by server-side fetches and
  * metadata. Explicit configuration wins, followed by deployment-provided URLs,
  * localhost outside production, and the public production domain.
@@ -111,11 +73,6 @@ export function getAppOrigin(
 			deploymentDomainOrigin(vercelProductionUrl),
 			"NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL",
 		);
-	}
-
-	const coolifyInjectedOrigin = coolifyOrigin(environment);
-	if (coolifyInjectedOrigin) {
-		return coolifyInjectedOrigin;
 	}
 
 	if (

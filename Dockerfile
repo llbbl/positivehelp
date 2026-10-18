@@ -38,38 +38,26 @@ WORKDIR /app
 ARG NEXT_PUBLIC_APP_URL
 ARG NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
 ARG TURSO_DATABASE_URL
-# next.config.ts resolves the canonical origin during `next build` and inlines it
-# into the client bundle, so Coolify's injected vars must be visible as build
-# args too — otherwise the COOLIFY_URL fallback only works server-side at
-# runtime, and preview builds bake the production origin into the browser.
-ARG COOLIFY_URL
-ARG COOLIFY_FQDN
 
 # Set environment variables for build
 ENV NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
 ENV NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
 ENV TURSO_DATABASE_URL=${TURSO_DATABASE_URL}
-ENV COOLIFY_URL=${COOLIFY_URL}
-ENV COOLIFY_FQDN=${COOLIFY_FQDN}
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV SKIP_ENV_VALIDATION=1
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Coolify's build-secret mode transports every build variable as a BuildKit
-# secret. The non-sensitive mounts keep those variables available there while
-# remaining optional for direct/Compose builds, where their ARG/ENV values are
-# used instead. Credentials are required and exist only for this command.
+# Some platforms pass build variables as BuildKit secrets; these optional mounts
+# cover that, and plain builds fall back to ARG/ENV. Secret values do not key the
+# layer cache, so rebuild without cache after changing one on an unchanged tree.
 RUN --mount=type=secret,id=NEXT_PUBLIC_APP_URL \
     --mount=type=secret,id=NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY \
     --mount=type=secret,id=TURSO_DATABASE_URL \
-    --mount=type=secret,id=COOLIFY_URL \
-    --mount=type=secret,id=COOLIFY_FQDN \
     --mount=type=secret,id=CLERK_SECRET_KEY,env=CLERK_SECRET_KEY,required=true \
     --mount=type=secret,id=TURSO_AUTH_TOKEN,env=TURSO_AUTH_TOKEN,required=true \
-    --mount=type=secret,id=COOLIFY_BUILD_SECRETS_HASH,env=COOLIFY_BUILD_SECRETS_HASH \
-    for name in NEXT_PUBLIC_APP_URL NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY TURSO_DATABASE_URL COOLIFY_URL COOLIFY_FQDN; do \
+    for name in NEXT_PUBLIC_APP_URL NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY TURSO_DATABASE_URL; do \
         secret_path="/run/secrets/${name}"; \
         if [ -f "${secret_path}" ]; then export "${name}=$(cat "${secret_path}")"; fi; \
     done && \
@@ -92,9 +80,8 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Next's standalone server reads HOSTNAME (not the HOST variable Coolify
-# injects), and defaults to localhost — which is unreachable from Coolify's
-# Traefik proxy. Bind all interfaces explicitly.
+# Docker sets HOSTNAME to the container ID, which the standalone server would
+# bind to, leaving the 127.0.0.1 healthcheck below unreachable.
 ENV HOSTNAME=0.0.0.0
 ENV PORT=3000
 
@@ -113,12 +100,11 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
 
-# Coolify infers the container port from EXPOSE when configuring Traefik.
 EXPOSE 3000
 
 # Reads PORT at runtime rather than hardcoding 3000: PORT is an overridable ENV,
-# and probing a fixed port would mark a healthy container unhealthy — and send
-# Coolify into a restart loop — the moment someone changes it.
+# and probing a fixed port would mark a healthy container unhealthy and cause
+# restart loops the moment someone changes it.
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD node -e "require('http').get('http://127.0.0.1:' + (process.env.PORT || 3000) + '/api/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))"
 
