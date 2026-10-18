@@ -112,7 +112,7 @@ describe("rate-limit", () => {
 			expect(headers).not.toHaveBeenCalled();
 		});
 
-		it("returns the rightmost (Traefik-recorded) entry for two XFF entries with TRUSTED_PROXY_HOPS=1", async () => {
+		it("returns the rightmost (proxy-recorded) entry for two XFF entries with TRUSTED_PROXY_HOPS=1", async () => {
 			process.env.TRUSTED_PROXY_HOPS = "1";
 			jest
 				.mocked(headers)
@@ -126,7 +126,7 @@ describe("rate-limit", () => {
 		});
 
 		it("ignores a client-spoofed leading XFF entry (rate-limit anti-bypass)", async () => {
-			// Attacker sends "9.9.9.9"; Traefik appends the real socket IP on the
+			// Attacker sends "9.9.9.9"; the proxy appends the real socket IP on the
 			// right. With one trusted hop we must key on the real IP, not the spoof.
 			jest
 				.mocked(headers)
@@ -139,9 +139,9 @@ describe("rate-limit", () => {
 			expect(ip).toBe("203.0.113.5");
 		});
 
-		it("selects the client entry behind two trusted hops (Cloudflare→Coolify)", async () => {
+		it("selects the client entry behind two trusted hops (CDN → proxy)", async () => {
 			process.env.TRUSTED_PROXY_HOPS = "2";
-			// spoof, real client (added by CF), CF ip (added by Traefik)
+			// spoof, real client (added by CDN), CDN ip (added by proxy)
 			jest
 				.mocked(headers)
 				.mockResolvedValue(

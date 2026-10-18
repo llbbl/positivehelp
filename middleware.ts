@@ -68,10 +68,9 @@ function addSecurityHeaders(response: NextResponse): NextResponse {
 }
 
 /**
- * Path of the container liveness probe, which must stay reachable independently
- * of Clerk. Routing it through clerkMiddleware would let a missing or rotated
- * Clerk key fail the healthcheck, causing Coolify to restart a container that is
- * up and serving — the exact failure the probe exists to rule out.
+ * Liveness probe path, kept outside clerkMiddleware so a missing or rotated
+ * Clerk key cannot fail the healthcheck and make the orchestrator restart a
+ * container that is up and serving.
  */
 export const HEALTH_PATH = "/api/health";
 
