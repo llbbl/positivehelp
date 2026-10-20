@@ -1,10 +1,12 @@
-/** @jest-environment node */
+/** @vitest-environment node */
+
 import { createHash } from "node:crypto";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createClient } from "@libsql/client";
 import { loadEnvConfig } from "@next/env";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
 	CORPUS_QUERY,
 	createSnapshot,
@@ -15,8 +17,8 @@ import {
 	writeSnapshot,
 } from "../../scripts/message-corpus";
 
-jest.mock("@libsql/client", () => ({ createClient: jest.fn() }));
-jest.mock("@next/env", () => ({ loadEnvConfig: jest.fn() }));
+vi.mock("@libsql/client", () => ({ createClient: vi.fn() }));
+vi.mock("@next/env", () => ({ loadEnvConfig: vi.fn() }));
 
 const message = {
 	id: 1,
@@ -25,7 +27,7 @@ const message = {
 	date: "2026-10-18",
 };
 const response = (body: unknown, status = 200) =>
-	jest
+	vi
 		.fn()
 		.mockResolvedValue({ ok: status === 200, status, json: async () => body });
 
@@ -72,7 +74,7 @@ describe("public published corpus", () => {
 	it("rejects invalid JSON and transport errors", async () => {
 		await expect(
 			fetchPublicCorpus(
-				jest.fn().mockResolvedValue({
+				vi.fn().mockResolvedValue({
 					ok: true,
 					json: async () => {
 						throw new Error("invalid JSON");
@@ -81,7 +83,7 @@ describe("public published corpus", () => {
 			),
 		).rejects.toThrow();
 		await expect(
-			fetchPublicCorpus(jest.fn().mockRejectedValue(new Error("offline"))),
+			fetchPublicCorpus(vi.fn().mockRejectedValue(new Error("offline"))),
 		).rejects.toThrow();
 	});
 });
@@ -162,24 +164,24 @@ describe("explicit read-only database export", () => {
 		else process.env.TURSO_DATABASE_URL = previousUrl;
 		if (previousToken === undefined) delete process.env.TURSO_AUTH_TOKEN;
 		else process.env.TURSO_AUTH_TOKEN = previousToken;
-		jest.clearAllMocks();
+		vi.clearAllMocks();
 	});
 
 	it("only selects published fields in a read transaction and closes both handles", async () => {
 		process.env.TURSO_DATABASE_URL = "libsql://example.invalid";
 		process.env.TURSO_AUTH_TOKEN = "secret-not-for-artifacts";
 		const transaction = {
-			execute: jest.fn().mockResolvedValue({ rows: [message] }),
-			rollback: jest.fn(),
-			close: jest.fn(),
+			execute: vi.fn().mockResolvedValue({ rows: [message] }),
+			rollback: vi.fn(),
+			close: vi.fn(),
 		};
 		const client = {
-			transaction: jest.fn().mockResolvedValue(transaction),
-			close: jest.fn(),
+			transaction: vi.fn().mockResolvedValue(transaction),
+			close: vi.fn(),
 		};
-		jest
-			.mocked(createClient)
-			.mockReturnValue(client as unknown as ReturnType<typeof createClient>);
+		vi.mocked(createClient).mockReturnValue(
+			client as unknown as ReturnType<typeof createClient>,
+		);
 		await expect(readDatabaseCorpus()).resolves.toEqual([message]);
 		expect(loadEnvConfig).toHaveBeenCalled();
 		expect(client.transaction).toHaveBeenCalledWith("read");
@@ -194,14 +196,14 @@ describe("explicit read-only database export", () => {
 		process.env.TURSO_DATABASE_URL = "libsql://example.invalid";
 		process.env.TURSO_AUTH_TOKEN = "secret-not-for-artifacts";
 		const client = {
-			transaction: jest
+			transaction: vi
 				.fn()
 				.mockRejectedValue(new Error("secret-not-for-artifacts")),
-			close: jest.fn(),
+			close: vi.fn(),
 		};
-		jest
-			.mocked(createClient)
-			.mockReturnValue(client as unknown as ReturnType<typeof createClient>);
+		vi.mocked(createClient).mockReturnValue(
+			client as unknown as ReturnType<typeof createClient>,
+		);
 		await expect(readDatabaseCorpus()).rejects.toThrow(
 			"Read-only published database export failed; no snapshot written.",
 		);

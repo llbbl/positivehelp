@@ -11,10 +11,6 @@ allowBuilds:
   # Prebuilt native bindings ship as optional dependencies. The install script
   # only compiles from source when npm_config_build_from_source=true.
   '@parcel/watcher': false
-  # Postinstall only validates the native binding and, on failure, shells out to
-  # `npm install @swc/wasm` over the network. The binding ships via
-  # optionalDependencies and loads fine without it, so keep the script blocked.
-  '@swc/core': false
   esbuild: true # native binary download
   sharp: true # native libvips bindings (Next.js image opt)
   unrs-resolver: true # native module resolver

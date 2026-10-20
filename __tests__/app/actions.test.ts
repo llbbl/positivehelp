@@ -1,25 +1,24 @@
-/** @jest-environment node */
+/** @vitest-environment node */
 
 import { auth } from "@clerk/nextjs/server";
-import { afterEach, beforeEach, describe, expect, it } from "@jest/globals";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createMessage } from "@/app/actions";
 import { messageSchemas } from "@/lib/validation/schemas";
 
-jest.mock("@clerk/nextjs/server", () => ({ auth: jest.fn() }));
-jest.mock("@/lib/app-origin", () => ({
+vi.mock("@clerk/nextjs/server", () => ({ auth: vi.fn() }));
+vi.mock("@/lib/app-origin", () => ({
 	getAppUrl: () => "https://positive.help/api/messages",
 }));
-jest.mock("@/lib/logger", () => ({
-	__esModule: true,
-	default: { error: jest.fn() },
+vi.mock("@/lib/logger", () => ({
+	default: { error: vi.fn() },
 }));
 
 describe("createMessage", () => {
 	beforeEach(() => {
-		jest.mocked(auth).mockResolvedValue({
-			getToken: jest.fn().mockResolvedValue("test-token"),
+		vi.mocked(auth).mockResolvedValue({
+			getToken: vi.fn().mockResolvedValue("test-token"),
 		} as unknown as Awaited<ReturnType<typeof auth>>);
-		jest.spyOn(globalThis, "fetch").mockImplementation(async (_url, init) => {
+		vi.spyOn(globalThis, "fetch").mockImplementation(async (_url, init) => {
 			const result = messageSchemas.create.safeParse(
 				JSON.parse(String(init?.body)),
 			);
@@ -30,7 +29,7 @@ describe("createMessage", () => {
 	});
 
 	afterEach(() => {
-		jest.restoreAllMocks();
+		vi.restoreAllMocks();
 	});
 
 	it.each([undefined, "", "   "])(
@@ -42,9 +41,7 @@ describe("createMessage", () => {
 			if (author !== undefined) formData.set("author", author);
 
 			const result = await createMessage(formData);
-			const body = JSON.parse(
-				String(jest.mocked(fetch).mock.calls[0][1]?.body),
-			);
+			const body = JSON.parse(String(vi.mocked(fetch).mock.calls[0][1]?.body));
 
 			expect(body).toEqual({ text: "Keep going!", clerkUserId: "user_test" });
 			expect(messageSchemas.create.safeParse(body).success).toBe(true);
@@ -59,7 +56,7 @@ describe("createMessage", () => {
 		formData.set("author", "  Maya Angelou  ");
 
 		const result = await createMessage(formData);
-		const body = JSON.parse(String(jest.mocked(fetch).mock.calls[0][1]?.body));
+		const body = JSON.parse(String(vi.mocked(fetch).mock.calls[0][1]?.body));
 
 		expect(body).toEqual({
 			text: "Keep going!",

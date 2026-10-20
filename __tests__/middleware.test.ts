@@ -1,5 +1,5 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  *
  * Runs on node rather than the project-default jsdom: `next/server` needs the
  * Web `Request`/`Response` globals, which jsdom does not provide.
@@ -7,14 +7,15 @@
  * The container healthcheck must not depend on Clerk, but its bypass must not
  * skip security headers for the rest of the site, so both halves are asserted.
  */
+import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 
-// The handler is created inside the factory because jest hoists `jest.mock`
+// The handler is created inside the factory because Vitest hoists `vi.mock`
 // above module-scope declarations, so a `const` defined here would still be in
 // its temporal dead zone when the mocked module is first required.
-jest.mock("@clerk/nextjs/server", () => {
-	const handler = jest.fn();
+vi.mock("@clerk/nextjs/server", () => {
+	const handler = vi.fn();
 	return {
-		clerkMiddleware: jest.fn(() => handler),
+		clerkMiddleware: vi.fn(() => handler),
 		__handler: handler,
 	};
 });
@@ -23,8 +24,7 @@ import * as clerkServer from "@clerk/nextjs/server";
 import type { NextFetchEvent, NextRequest } from "next/server";
 import middleware, { HEALTH_PATH } from "@/middleware";
 
-const clerkHandler = (clerkServer as unknown as { __handler: jest.Mock })
-	.__handler;
+const clerkHandler = (clerkServer as unknown as { __handler: Mock }).__handler;
 
 function requestFor(pathname: string): NextRequest {
 	return {

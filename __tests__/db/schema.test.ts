@@ -1,4 +1,4 @@
-import { describe, expect, it } from "@jest/globals";
+import { describe, expect, it } from "vitest";
 import * as schema from "@/db/schema";
 
 describe("schema relations", () => {

@@ -1,14 +1,14 @@
 import { act, render, screen } from "@testing-library/react";
 import { StrictMode } from "react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AdminSubmissionsTable } from "@/app/admin/admin-submissions-table";
 
-jest.mock("next/navigation", () => ({
-	useRouter: () => ({ refresh: jest.fn() }),
+vi.mock("next/navigation", () => ({
+	useRouter: () => ({ refresh: vi.fn() }),
 }));
 
-jest.mock("@/lib/client-logger", () => ({
-	__esModule: true,
-	default: { error: jest.fn() },
+vi.mock("@/lib/client-logger", () => ({
+	default: { error: vi.fn() },
 }));
 
 function deferred<T>() {
@@ -44,7 +44,7 @@ function userResponse(id: string) {
 }
 
 describe("Admin submission user lookups", () => {
-	const fetchMock = jest.fn();
+	const fetchMock = vi.fn();
 
 	beforeEach(() => {
 		fetchMock.mockReset();

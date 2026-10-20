@@ -1,9 +1,10 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/hooks/use-toast";
 
 // Mock the lucide-react icon
-jest.mock("lucide-react", () => ({
+vi.mock("lucide-react", () => ({
 	X: ({ className }: { className?: string }) => (
 		<div data-testid="x-icon" className={className}>
 			X
@@ -55,7 +56,7 @@ const TestComponent = () => {
 describe("Toaster", () => {
 	beforeEach(() => {
 		// Clear any existing toasts before each test
-		jest.clearAllMocks();
+		vi.clearAllMocks();
 	});
 
 	it("renders with default props", () => {

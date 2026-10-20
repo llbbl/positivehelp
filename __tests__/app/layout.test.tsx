@@ -1,20 +1,21 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
+import { describe, expect, it, vi } from "vitest";
 import RootLayout from "@/app/layout";
 import { toast } from "@/hooks/use-toast";
 
-jest.mock("@/app/globals.css", () => ({}));
+vi.mock("@/app/globals.css", () => ({}));
 
-jest.mock("@clerk/nextjs", () => ({
+vi.mock("@clerk/nextjs", () => ({
 	ClerkProvider: ({ children }: { children: ReactNode }) => children,
 }));
 
-jest.mock("next/font/google", () => ({
+vi.mock("next/font/google", () => ({
 	Geist: () => ({ variable: "--font-geist-sans" }),
 	Geist_Mono: () => ({ variable: "--font-geist-mono" }),
 }));
 
-jest.mock("@/components/Navigation", () => ({
+vi.mock("@/components/Navigation", () => ({
 	Navigation: () => <nav aria-label="Main navigation" />,
 }));
 

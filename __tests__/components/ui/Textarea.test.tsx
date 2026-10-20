@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import * as React from "react";
+import { describe, expect, it, vi } from "vitest";
 import { Textarea } from "@/components/ui/textarea";
 
 describe("Textarea", () => {
@@ -65,7 +66,7 @@ describe("Textarea", () => {
 	});
 
 	it("handles onChange event", () => {
-		const handleChange = jest.fn();
+		const handleChange = vi.fn();
 		render(<Textarea onChange={handleChange} />);
 
 		const textarea = screen.getByRole("textbox");

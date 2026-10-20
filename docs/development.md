@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- Node.js matching `package.json`: `^22.18.0 || >=24.11.0`. CI tests Node 22 and
+- Node.js matching `package.json`: `^22.18.0 || ^24.11.0 || >=26.0.0`. CI tests Node 22 and
   24; `.node-version` selects Node 22 by default, and Docker uses Node 24.
 - pnpm 12.8.1, pinned in `package.json`.
 - A Clerk application and a development Turso database with a compatible schema.
@@ -66,8 +66,9 @@ controlled by Clerk user public metadata `isAdmin` (`true` or `"true"`).
 | `pnpm dev` | Development server with Turbopack |
 | `pnpm lint` | Biome lint checks |
 | `pnpm typecheck` | TypeScript checks for the project |
-| `pnpm test --runInBand` | Jest tests without parallel workers |
+| `pnpm test` | Vitest tests (one complete run) |
 | `pnpm test:watch` | Tests in watch mode |
+| `pnpm test:coverage` | Vitest run with V8 coverage (text and LCOV) |
 | `pnpm knip` | Unused files, dependencies, and exports |
 | `pnpm build` | Production build; needs working Clerk and database configuration |
 | `pnpm start` | Apply database migrations, then start the production server |
@@ -75,6 +76,21 @@ controlled by Clerk user public metadata `isAdmin` (`true` or `"true"`).
 Before proposing a change, run lint, typecheck, tests, and Knip. Run a production
 build for changes that affect rendering or deployment. See [CI](ci.md) for the
 checks GitHub runs, and [Knip policy](knip.md) before removing reported code.
+
+Vitest uses `vitest.config.mts` and `vitest.setup.ts`. Component tests run in
+jsdom; server tests use `@vitest-environment node`. Import test functions and
+mock helpers from `vitest`, and use `@testing-library/jest-dom/vitest` for DOM
+matchers. The matcher package works with Vitest and does not require Jest.
+jsdom stays on major 27 to support the Node versions in `package.json`.
+
+Test observable behavior and failure boundaries. Use valid fixtures that reach
+the intended guard, assert the particular refusal and absence of side effects,
+and check that a focused defect makes the test fail. Avoid adding tests only to
+increase counts or pin incidental classes and implementation details.
+
+Next.js supports Vitest for unit tests and synchronous Server/Client Components.
+Rendering async Server Components requires a different testing approach; see
+the [Next.js Vitest guide](https://nextjs.org/docs/app/guides/testing/vitest).
 
 `pnpm start` and `pnpm vercel-build` apply migrations to the configured database.
 Use `pnpm build` for build validation without applying migrations.

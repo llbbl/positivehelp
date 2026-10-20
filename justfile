@@ -89,7 +89,7 @@ test-watch:
 
 # Run tests with coverage
 test-coverage:
-    pnpm exec jest --coverage
+    pnpm test:coverage
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Database (Drizzle + Turso)

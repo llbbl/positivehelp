@@ -16,7 +16,7 @@ Clerk authentication and a Turso database with Drizzle ORM.
 
 ## Get started
 
-Use Node.js 22.18+ in the 22.x line or 24.11+, and pnpm 12.8.1.
+Use Node.js 22.18+ in the 22.x line, 24.11+ in the 24.x line, or 26+, and pnpm 12.8.1.
 Follow the [development guide](docs/development.md) to configure Clerk and Turso,
 then run:
 

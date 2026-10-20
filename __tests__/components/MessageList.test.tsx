@@ -1,29 +1,38 @@
 import { act, render, screen, waitFor } from "@testing-library/react";
+import {
+	afterEach,
+	beforeEach,
+	describe,
+	expect,
+	it,
+	type MockedFunction,
+	vi,
+} from "vitest";
 import MessageList, { type Message } from "@/components/MessageList";
+import clientLogger from "@/lib/client-logger";
 import { MESSAGE_PAGE_SIZE, MESSAGE_POLL_INTERVAL_MS } from "@/lib/constants";
 
 // Mock fetch globally
-global.fetch = jest.fn();
+global.fetch = vi.fn();
 
 // Mock clientLogger
-jest.mock("@/lib/client-logger", () => ({
-	__esModule: true,
+vi.mock("@/lib/client-logger", () => ({
 	default: {
-		error: jest.fn(),
-		info: jest.fn(),
-		warn: jest.fn(),
-		debug: jest.fn(),
+		error: vi.fn(),
+		info: vi.fn(),
+		warn: vi.fn(),
+		debug: vi.fn(),
 	},
 }));
 
 // Mock Next.js Link component
-jest.mock("next/link", () => {
-	return ({ children, href, ...props }: any) => (
+vi.mock("next/link", () => ({
+	default: ({ children, href, ...props }: any) => (
 		<a href={href} {...props}>
 			{children}
 		</a>
-	);
-});
+	),
+}));
 
 const mockMessages: Message[] = [
 	{
@@ -43,15 +52,11 @@ const mockMessages: Message[] = [
 
 describe("MessageList", () => {
 	beforeEach(() => {
-		jest.clearAllMocks();
-		// Clear any existing timers
-		jest.clearAllTimers();
-		jest.useFakeTimers();
+		vi.mocked(fetch).mockReset();
 	});
 
 	afterEach(() => {
-		jest.runOnlyPendingTimers();
-		jest.useRealTimers();
+		vi.useRealTimers();
 	});
 
 	it("renders initial messages correctly", () => {
@@ -72,7 +77,7 @@ describe("MessageList", () => {
 	});
 
 	it("fetches new messages on mount", async () => {
-		const mockFetch = global.fetch as jest.MockedFunction<typeof fetch>;
+		const mockFetch = global.fetch as MockedFunction<typeof fetch>;
 		mockFetch.mockResolvedValueOnce({
 			ok: true,
 			json: async () => [],
@@ -101,7 +106,7 @@ describe("MessageList", () => {
 	});
 
 	it("shows loading indicator when fetching messages", async () => {
-		const mockFetch = global.fetch as jest.MockedFunction<typeof fetch>;
+		const mockFetch = global.fetch as MockedFunction<typeof fetch>;
 		let resolvePromise: (value: any) => void;
 		const fetchPromise = new Promise((resolve) => {
 			resolvePromise = resolve;
@@ -135,7 +140,7 @@ describe("MessageList", () => {
 			url: "new-message",
 		};
 
-		const mockFetch = global.fetch as jest.MockedFunction<typeof fetch>;
+		const mockFetch = global.fetch as MockedFunction<typeof fetch>;
 		mockFetch.mockResolvedValueOnce({
 			ok: true,
 			json: async () => [newMessage],
@@ -160,7 +165,7 @@ describe("MessageList", () => {
 				url: `new-message-${index + 3}`,
 			}),
 		);
-		const mockFetch = global.fetch as jest.MockedFunction<typeof fetch>;
+		const mockFetch = global.fetch as MockedFunction<typeof fetch>;
 		mockFetch.mockResolvedValueOnce({
 			ok: true,
 			json: async () => newMessages,
@@ -179,10 +184,8 @@ describe("MessageList", () => {
 	});
 
 	it("handles fetch errors gracefully", async () => {
-		const mockFetch = global.fetch as jest.MockedFunction<typeof fetch>;
+		const mockFetch = global.fetch as MockedFunction<typeof fetch>;
 		mockFetch.mockRejectedValueOnce(new Error("Network error"));
-
-		const clientLogger = require("@/lib/client-logger").default;
 
 		await act(async () => {
 			render(<MessageList initialMessages={mockMessages} />);
@@ -199,7 +202,8 @@ describe("MessageList", () => {
 	});
 
 	it("sets up polling interval for fetching messages", async () => {
-		const mockFetch = global.fetch as jest.MockedFunction<typeof fetch>;
+		vi.useFakeTimers();
+		const mockFetch = global.fetch as MockedFunction<typeof fetch>;
 		mockFetch.mockResolvedValue({
 			ok: true,
 			json: async () => [],
@@ -211,16 +215,14 @@ describe("MessageList", () => {
 
 		// Fast-forward 30 seconds
 		await act(async () => {
-			jest.advanceTimersByTime(MESSAGE_POLL_INTERVAL_MS);
+			await vi.advanceTimersByTimeAsync(MESSAGE_POLL_INTERVAL_MS);
 		});
 
-		await waitFor(() => {
-			expect(mockFetch).toHaveBeenCalledTimes(2); // Initial call + one poll
-		});
+		expect(mockFetch).toHaveBeenCalledTimes(2); // Initial call + one poll
 	});
 
 	it("renders empty list when no messages provided", async () => {
-		const mockFetch = global.fetch as jest.MockedFunction<typeof fetch>;
+		const mockFetch = global.fetch as MockedFunction<typeof fetch>;
 		mockFetch.mockResolvedValueOnce({
 			ok: true,
 			json: async () => [],

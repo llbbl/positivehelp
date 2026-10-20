@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 import { Input } from "@/components/ui/input";
 
 describe("Input", () => {
@@ -17,7 +18,7 @@ describe("Input", () => {
 	});
 
 	it("handles value changes", () => {
-		const handleChange = jest.fn();
+		const handleChange = vi.fn();
 		render(<Input onChange={handleChange} />);
 
 		const input = screen.getByRole("textbox");
@@ -78,7 +79,7 @@ describe("Input", () => {
 	});
 
 	it("handles focus events", () => {
-		const handleFocus = jest.fn();
+		const handleFocus = vi.fn();
 		render(<Input onFocus={handleFocus} />);
 
 		const input = screen.getByRole("textbox");

@@ -1,3 +1,4 @@
+import { describe, expect, it } from "vitest";
 import { sanitizeContent } from "@/utils/sanitize";
 
 describe("sanitizeContent", () => {
