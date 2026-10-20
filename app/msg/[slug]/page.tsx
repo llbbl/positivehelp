@@ -7,6 +7,7 @@ import type { Message } from "@/app/api/messages/[slug]/route";
 import { getAppUrl } from "@/lib/app-origin";
 import logger from "@/lib/logger";
 import { classifyMessageResponse } from "@/lib/message-fetch";
+import { createRequestTiming } from "@/lib/request-timing";
 import {
 	cleanTextForMeta,
 	generateMessageDescription,
@@ -40,42 +41,66 @@ type MessageWithNavigation = Message & {
 const fetchMessage = cache(
 	async (slug: string): Promise<MessageWithNavigation | null> => {
 		const absoluteUrl = getAppUrl(`/api/messages/${encodeURIComponent(slug)}`);
-		logger.info(`Fetching message for slug: ${slug}`);
-
-		let response: Response;
+		const timing = createRequestTiming();
+		let response: Response | undefined;
+		let outcome: "found" | "not-found" | "error" = "error";
 		try {
-			response = await fetch(absoluteUrl, {
-				method: "GET",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				cache: "no-store",
-			});
-		} catch (error) {
-			logger.error("Error fetching message:", { error, slug });
-			throw error;
-		}
+			try {
+				response = await timing.measure("fetch", () =>
+					fetch(absoluteUrl, {
+						method: "GET",
+						headers: {
+							"Content-Type": "application/json",
+						},
+						cache: "no-store",
+					}),
+				);
+			} catch (error) {
+				logger.error("Error fetching message:", { error, slug });
+				throw error;
+			}
 
-		if (!response.ok && response.status !== 404) {
-			logger.error("API request failed", {
-				status: response.status,
-				statusText: response.statusText,
-				url: absoluteUrl,
+			if (!response.ok && response.status !== 404) {
+				logger.error("API request failed", {
+					status: response.status,
+					statusText: response.statusText,
+					url: absoluteUrl,
+				});
+			}
+			if (classifyMessageResponse(response) === "not-found") {
+				outcome = "not-found";
+				return null;
+			}
+
+			const fetchedResponse = response;
+			let message: MessageWithNavigation;
+			try {
+				message = (await timing.measure("parse", () =>
+					fetchedResponse.json(),
+				)) as MessageWithNavigation;
+			} catch (error) {
+				logger.error("Error parsing message response", { slug });
+				throw error;
+			}
+			outcome = "found";
+			return message;
+		} finally {
+			const id = response?.headers.get("X-Message-Request-Id");
+			// Accept only the server-generated UUID shape; never log arbitrary header text.
+			const requestId =
+				id &&
+				/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+					id,
+				)
+					? id
+					: undefined;
+			logger.info("message_page_fetch_timing", {
+				requestId,
+				status: response?.status,
+				outcome,
+				timings: timing.snapshot(),
 			});
 		}
-		if (classifyMessageResponse(response) === "not-found") {
-			return null;
-		}
-
-		let message: MessageWithNavigation;
-		try {
-			message = (await response.json()) as MessageWithNavigation;
-		} catch (error) {
-			logger.error("Error parsing message response", { slug });
-			throw error;
-		}
-		logger.info(`Successfully fetched message`, { messageId: message.id });
-		return message;
 	},
 );
 

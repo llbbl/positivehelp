@@ -1,9 +1,12 @@
+import { randomUUID } from "node:crypto";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import client from "@/lib/db";
 import { handleAPIError } from "@/lib/error-handler";
 import logger from "@/lib/logger";
 import { applyRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+
+import { createRequestTiming, serverTimingHeader } from "@/lib/request-timing";
 
 const isString = (value: unknown): value is string => typeof value === "string";
 
@@ -21,12 +24,33 @@ interface RouteContext {
 }
 
 export async function GET(request: NextRequest, context: RouteContext) {
+	const requestId = randomUUID();
+	const timing = createRequestTiming();
+	const response = await readMessage(request, context, timing);
+	const timings = timing.snapshot();
+	response.headers.set("Server-Timing", serverTimingHeader(timings));
+	response.headers.set("X-Message-Request-Id", requestId);
+	logger.info("message_api_timing", {
+		requestId,
+		status: response.status,
+		timings,
+	});
+	return response;
+}
+
+async function readMessage(
+	request: NextRequest,
+	context: RouteContext,
+	timing: ReturnType<typeof createRequestTiming>,
+) {
 	// Extract slug from Next.js route params (proper method for App Router)
 	const { slug } = await context.params;
 
 	try {
 		// Apply rate limiting for public read endpoint
-		const rateLimitResponse = await applyRateLimit(RATE_LIMITS.PUBLIC_READ);
+		const rateLimitResponse = await timing.measure("rate_limit", () =>
+			applyRateLimit(RATE_LIMITS.PUBLIC_READ),
+		);
 		if (rateLimitResponse) return rateLimitResponse;
 
 		logger.info("API Route: Processing request", { url: request.url, slug });
@@ -37,10 +61,12 @@ export async function GET(request: NextRequest, context: RouteContext) {
 		}
 
 		// First get the current message's ID
-		const currentMessage = await client.execute({
-			sql: `SELECT id FROM messages WHERE slug = ?`,
-			args: [slug],
-		});
+		const currentMessage = await timing.measure("lookup", () =>
+			client.execute({
+				sql: `SELECT id FROM messages WHERE slug = ?`,
+				args: [slug],
+			}),
+		);
 
 		if (!currentMessage.rows.length) {
 			logger.warn("API Route: Message not found", { slug });
@@ -49,14 +75,16 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
 		const currentId = currentMessage.rows[0].id;
 
-		const navigationResult = await client.execute({
-			sql: `
+		const navigationResult = await timing.measure("navigation", () =>
+			client.execute({
+				sql: `
         SELECT
           (SELECT slug FROM messages WHERE id < ? ORDER BY id DESC LIMIT 1) as prevSlug,
           (SELECT slug FROM messages WHERE id > ? ORDER BY id ASC LIMIT 1) as nextSlug
       `,
-			args: [currentId, currentId],
-		});
+				args: [currentId, currentId],
+			}),
+		);
 
 		const navigation = {
 			prevSlug: navigationResult.rows[0].prevSlug,
@@ -64,8 +92,9 @@ export async function GET(request: NextRequest, context: RouteContext) {
 		};
 
 		// Get the message details
-		const result = await client.execute({
-			sql: `
+		const result = await timing.measure("message", () =>
+			client.execute({
+				sql: `
         SELECT
           m.id,
           m.msg as text,
@@ -89,8 +118,9 @@ export async function GET(request: NextRequest, context: RouteContext) {
         WHERE m.slug = ?
         GROUP BY m.id, m.msg, m.slug, m.date
       `,
-			args: [slug],
-		});
+				args: [slug],
+			}),
+		);
 
 		if (!result.rows.length) {
 			logger.warn("API Route: Full message details not found", { slug });

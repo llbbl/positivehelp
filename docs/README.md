@@ -8,6 +8,7 @@ Start with [local development](development.md) to configure the app and run it.
 | [Database](database.md) | Turso, Drizzle schema changes, migrations, and the fresh-database limitation |
 | [CI](ci.md) | GitHub Actions checks, Node matrix, dependency policies, and migration secrets |
 | [Message API](message-api.md) | Reading messages and using the incremental cursor |
+| [Navigation timing](message-navigation-timing.md) | Correlating message API and page timings to investigate slow navigation |
 | [Message corpus export](message-corpus.md) | Read-only published-message snapshots with completeness checks |
 | [Knip policy](knip.md) | Dead-code checks and contracts with external consumers |
 
