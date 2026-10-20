@@ -1,8 +1,9 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 import { Navigation } from "@/components/Navigation";
 
 // Mock Clerk components
-jest.mock("@clerk/nextjs", () => ({
+vi.mock("@clerk/nextjs", () => ({
 	SignInButton: ({ children }: any) => (
 		<div data-testid="sign-in-button">{children}</div>
 	),
@@ -11,7 +12,7 @@ jest.mock("@clerk/nextjs", () => ({
 }));
 
 // Mock SettingsDropdown component
-jest.mock("@/components/settings-dropdown", () => ({
+vi.mock("@/components/settings-dropdown", () => ({
 	SettingsDropdown: () => (
 		<div data-testid="settings-dropdown">Settings Dropdown</div>
 	),

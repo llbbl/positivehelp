@@ -1,14 +1,22 @@
 import { render, screen } from "@testing-library/react";
+import {
+	beforeEach,
+	describe,
+	expect,
+	it,
+	type MockedFunction,
+	vi,
+} from "vitest";
 import { AdminLink } from "@/components/admin-link";
 
 // Mock Clerk
-jest.mock("@clerk/nextjs", () => ({
-	useUser: jest.fn(),
+vi.mock("@clerk/nextjs", () => ({
+	useUser: vi.fn(),
 }));
 
 // Mock Next.js Link
-jest.mock("next/link", () => {
-	return ({
+vi.mock("next/link", () => ({
+	default: ({
 		children,
 		href,
 		...props
@@ -19,16 +27,16 @@ jest.mock("next/link", () => {
 		<a href={href} {...props}>
 			{children}
 		</a>
-	);
-});
+	),
+}));
 
 import { useUser } from "@clerk/nextjs";
 
-const mockUseUser = useUser as jest.MockedFunction<typeof useUser>;
+const mockUseUser = useUser as MockedFunction<typeof useUser>;
 
 describe("AdminLink", () => {
 	beforeEach(() => {
-		jest.clearAllMocks();
+		vi.clearAllMocks();
 	});
 
 	it("renders admin link when user is admin (string 'true')", () => {

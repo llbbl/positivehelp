@@ -1,15 +1,13 @@
-// `jest` is intentionally the injected global rather than an @jest/globals
-// import: @swc/jest only hoists bare `jest.mock(...)` calls above the requires.
-import { afterEach, beforeEach, describe, expect, it } from "@jest/globals";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock Next.js modules before importing rate-limit
-jest.mock("next/headers", () => ({
-	headers: jest.fn(),
+vi.mock("next/headers", () => ({
+	headers: vi.fn(),
 }));
 
-jest.mock("next/server", () => ({
+vi.mock("next/server", () => ({
 	NextResponse: {
-		json: jest.fn(
+		json: vi.fn(
 			(
 				body: unknown,
 				init?: { status?: number; headers?: Record<string, string> },
@@ -17,15 +15,15 @@ jest.mock("next/server", () => ({
 				body,
 				status: init?.status || 200,
 				headers: {
-					set: jest.fn(),
-					get: jest.fn(),
+					set: vi.fn(),
+					get: vi.fn(),
 				},
 			}),
 		),
-		next: jest.fn(() => ({
+		next: vi.fn(() => ({
 			headers: {
-				set: jest.fn(),
-				get: jest.fn(),
+				set: vi.fn(),
+				get: vi.fn(),
 			},
 		})),
 	},
@@ -60,53 +58,45 @@ describe("rate-limit", () => {
 			} else {
 				process.env.TRUSTED_PROXY_HOPS = originalTrustedHops;
 			}
-			jest.mocked(headers).mockReset();
+			vi.mocked(headers).mockReset();
 		});
 
 		it("falls back to x-real-ip when x-forwarded-for is absent", async () => {
-			jest
-				.mocked(headers)
-				.mockResolvedValue(
-					new Map([["x-real-ip", "203.0.113.7"]]) as unknown as Awaited<
-						ReturnType<typeof headers>
-					>,
-				);
+			vi.mocked(headers).mockResolvedValue(
+				new Map([["x-real-ip", "203.0.113.7"]]) as unknown as Awaited<
+					ReturnType<typeof headers>
+				>,
+			);
 			const ip = await getClientIP();
 			expect(ip).toBe("203.0.113.7");
 		});
 
 		it("returns 'unknown' when no headers are present", async () => {
-			jest
-				.mocked(headers)
-				.mockResolvedValue(
-					new Map() as unknown as Awaited<ReturnType<typeof headers>>,
-				);
+			vi.mocked(headers).mockResolvedValue(
+				new Map() as unknown as Awaited<ReturnType<typeof headers>>,
+			);
 			const ip = await getClientIP();
 			expect(ip).toBe("unknown");
 		});
 
 		it("underflows to leftmost for a single XFF entry with TRUSTED_PROXY_HOPS=1", async () => {
 			process.env.TRUSTED_PROXY_HOPS = "1";
-			jest
-				.mocked(headers)
-				.mockResolvedValue(
-					new Map([["x-forwarded-for", "1.2.3.4"]]) as unknown as Awaited<
-						ReturnType<typeof headers>
-					>,
-				);
+			vi.mocked(headers).mockResolvedValue(
+				new Map([["x-forwarded-for", "1.2.3.4"]]) as unknown as Awaited<
+					ReturnType<typeof headers>
+				>,
+			);
 			const ip = await getClientIP();
 			expect(ip).toBe("1.2.3.4");
 		});
 
 		it("ignores XFF with TRUSTED_PROXY_HOPS=0", async () => {
 			process.env.TRUSTED_PROXY_HOPS = "0";
-			jest
-				.mocked(headers)
-				.mockResolvedValue(
-					new Map([["x-forwarded-for", "1.2.3.4"]]) as unknown as Awaited<
-						ReturnType<typeof headers>
-					>,
-				);
+			vi.mocked(headers).mockResolvedValue(
+				new Map([["x-forwarded-for", "1.2.3.4"]]) as unknown as Awaited<
+					ReturnType<typeof headers>
+				>,
+			);
 			const ip = await getClientIP();
 			expect(ip).toBe("unknown");
 			expect(headers).not.toHaveBeenCalled();
@@ -114,13 +104,11 @@ describe("rate-limit", () => {
 
 		it("returns the rightmost (proxy-recorded) entry for two XFF entries with TRUSTED_PROXY_HOPS=1", async () => {
 			process.env.TRUSTED_PROXY_HOPS = "1";
-			jest
-				.mocked(headers)
-				.mockResolvedValue(
-					new Map([
-						["x-forwarded-for", "1.2.3.4, 5.6.7.8"],
-					]) as unknown as Awaited<ReturnType<typeof headers>>,
-				);
+			vi.mocked(headers).mockResolvedValue(
+				new Map([
+					["x-forwarded-for", "1.2.3.4, 5.6.7.8"],
+				]) as unknown as Awaited<ReturnType<typeof headers>>,
+			);
 			const ip = await getClientIP();
 			expect(ip).toBe("5.6.7.8");
 		});
@@ -128,13 +116,11 @@ describe("rate-limit", () => {
 		it("ignores a client-spoofed leading XFF entry (rate-limit anti-bypass)", async () => {
 			// Attacker sends "9.9.9.9"; the proxy appends the real socket IP on the
 			// right. With one trusted hop we must key on the real IP, not the spoof.
-			jest
-				.mocked(headers)
-				.mockResolvedValue(
-					new Map([
-						["x-forwarded-for", "9.9.9.9, 203.0.113.5"],
-					]) as unknown as Awaited<ReturnType<typeof headers>>,
-				);
+			vi.mocked(headers).mockResolvedValue(
+				new Map([
+					["x-forwarded-for", "9.9.9.9, 203.0.113.5"],
+				]) as unknown as Awaited<ReturnType<typeof headers>>,
+			);
 			const ip = await getClientIP();
 			expect(ip).toBe("203.0.113.5");
 		});
@@ -142,58 +128,50 @@ describe("rate-limit", () => {
 		it("selects the client entry behind two trusted hops (CDN → proxy)", async () => {
 			process.env.TRUSTED_PROXY_HOPS = "2";
 			// spoof, real client (added by CDN), CDN ip (added by proxy)
-			jest
-				.mocked(headers)
-				.mockResolvedValue(
-					new Map([
-						["x-forwarded-for", "9.9.9.9, 203.0.113.5, 10.0.0.1"],
-					]) as unknown as Awaited<ReturnType<typeof headers>>,
-				);
+			vi.mocked(headers).mockResolvedValue(
+				new Map([
+					["x-forwarded-for", "9.9.9.9, 203.0.113.5, 10.0.0.1"],
+				]) as unknown as Awaited<ReturnType<typeof headers>>,
+			);
 			const ip = await getClientIP();
 			expect(ip).toBe("203.0.113.5");
 		});
 
 		it("returns the leftmost entry for two XFF entries with TRUSTED_PROXY_HOPS=2", async () => {
 			process.env.TRUSTED_PROXY_HOPS = "2";
-			jest
-				.mocked(headers)
-				.mockResolvedValue(
-					new Map([
-						["x-forwarded-for", "1.2.3.4, 5.6.7.8"],
-					]) as unknown as Awaited<ReturnType<typeof headers>>,
-				);
+			vi.mocked(headers).mockResolvedValue(
+				new Map([
+					["x-forwarded-for", "1.2.3.4, 5.6.7.8"],
+				]) as unknown as Awaited<ReturnType<typeof headers>>,
+			);
 			const ip = await getClientIP();
 			expect(ip).toBe("1.2.3.4");
 		});
 
 		it("trims extra whitespace in malformed XFF entries", async () => {
 			process.env.TRUSTED_PROXY_HOPS = "1";
-			jest
-				.mocked(headers)
-				.mockResolvedValue(
-					new Map([
-						["x-forwarded-for", " 1.2.3.4 , 5.6.7.8 "],
-					]) as unknown as Awaited<ReturnType<typeof headers>>,
-				);
+			vi.mocked(headers).mockResolvedValue(
+				new Map([
+					["x-forwarded-for", " 1.2.3.4 , 5.6.7.8 "],
+				]) as unknown as Awaited<ReturnType<typeof headers>>,
+			);
 			const ip = await getClientIP();
 			expect(ip).toBe("5.6.7.8");
 		});
 
 		it("defaults to 1 hop when TRUSTED_PROXY_HOPS is not set", async () => {
-			jest
-				.mocked(headers)
-				.mockResolvedValue(
-					new Map([
-						["x-forwarded-for", "1.2.3.4, 5.6.7.8"],
-					]) as unknown as Awaited<ReturnType<typeof headers>>,
-				);
+			vi.mocked(headers).mockResolvedValue(
+				new Map([
+					["x-forwarded-for", "1.2.3.4, 5.6.7.8"],
+				]) as unknown as Awaited<ReturnType<typeof headers>>,
+			);
 			const ip = await getClientIP();
 			expect(ip).toBe("5.6.7.8");
 		});
 
 		it("does not trust spoofed forwarding headers with TRUSTED_PROXY_HOPS=0", async () => {
 			process.env.TRUSTED_PROXY_HOPS = "0";
-			jest.mocked(headers).mockResolvedValue(
+			vi.mocked(headers).mockResolvedValue(
 				new Map([
 					["x-forwarded-for", "1.2.3.4, 5.6.7.8"],
 					["x-real-ip", "9.9.9.9"],
@@ -206,13 +184,11 @@ describe("rate-limit", () => {
 
 		it("falls back to 1 when TRUSTED_PROXY_HOPS is invalid", async () => {
 			process.env.TRUSTED_PROXY_HOPS = "invalid";
-			jest
-				.mocked(headers)
-				.mockResolvedValue(
-					new Map([
-						["x-forwarded-for", "1.2.3.4, 5.6.7.8"],
-					]) as unknown as Awaited<ReturnType<typeof headers>>,
-				);
+			vi.mocked(headers).mockResolvedValue(
+				new Map([
+					["x-forwarded-for", "1.2.3.4, 5.6.7.8"],
+				]) as unknown as Awaited<ReturnType<typeof headers>>,
+			);
 			const ip = await getClientIP();
 			expect(ip).toBe("5.6.7.8");
 		});

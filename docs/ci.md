@@ -8,7 +8,7 @@ and pushes to `main`. Separate jobs run:
 - `pnpm run lint` (Biome).
 - `pnpm run typecheck` (TypeScript).
 - `pnpm run knip` (unused files, dependencies, and exports).
-- `pnpm run test` (Jest), on Node 22.x and 24.x with fail-fast disabled.
+- `pnpm run test` (Vitest), on Node 22.x and 24.x with fail-fast disabled.
 
 Production builds and formatting checks are not jobs in this workflow. See
 [development](development.md) for local checks and build requirements.

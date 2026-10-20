@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 import {
 	Toast,
 	ToastAction,
@@ -10,7 +11,7 @@ import {
 } from "@/components/ui/toast";
 
 // Mock the lucide-react icon
-jest.mock("lucide-react", () => ({
+vi.mock("lucide-react", () => ({
 	X: ({ className }: { className?: string }) => (
 		<div data-testid="x-icon" className={className}>
 			X
@@ -229,7 +230,7 @@ describe("Toast Components", () => {
 		});
 
 		it("handles click events", () => {
-			const handleClick = jest.fn();
+			const handleClick = vi.fn();
 			render(
 				<ToastProvider>
 					<Toast open>
@@ -301,7 +302,7 @@ describe("Toast Components", () => {
 		});
 
 		it("handles click events", () => {
-			const handleClick = jest.fn();
+			const handleClick = vi.fn();
 			render(
 				<ToastProvider>
 					<Toast open>

@@ -1,8 +1,9 @@
 import { render } from "@testing-library/react";
+import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 import RuntimeLogger from "@/components/RuntimeLogger";
 
 // Mock console.log to track calls
-const consoleSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
 describe("RuntimeLogger", () => {
 	beforeEach(() => {

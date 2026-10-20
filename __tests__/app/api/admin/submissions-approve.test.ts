@@ -1,59 +1,56 @@
-/** @jest-environment node */
+/** @vitest-environment node */
 
 import { currentUser } from "@clerk/nextjs/server";
-// `jest` is intentionally the injected global rather than an @jest/globals
-// import: @swc/jest only hoists bare `jest.mock(...)` calls above the requires.
-import { beforeEach, describe, expect, it } from "@jest/globals";
 import type { NextRequest } from "next/server";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { POST } from "@/app/api/admin/submissions/[id]/approve/route";
 import { db } from "@/db/client";
 import { isUserAdmin } from "@/lib/auth";
 import { SUBMISSION_STATUS } from "@/lib/constants";
 import { applyRateLimit } from "@/lib/rate-limit";
 
-jest.mock("@clerk/nextjs/server", () => ({
-	currentUser: jest.fn(),
+vi.mock("@clerk/nextjs/server", () => ({
+	currentUser: vi.fn(),
 }));
 
-jest.mock("@/db/client", () => ({
+vi.mock("@/db/client", () => ({
 	db: {
-		transaction: jest.fn(),
+		transaction: vi.fn(),
 	},
 }));
 
-jest.mock("@/lib/auth", () => ({
-	isUserAdmin: jest.fn(),
+vi.mock("@/lib/auth", () => ({
+	isUserAdmin: vi.fn(),
 }));
 
-jest.mock("@/lib/logger", () => ({
-	__esModule: true,
+vi.mock("@/lib/logger", () => ({
 	default: {
-		info: jest.fn(),
-		warn: jest.fn(),
-		error: jest.fn(),
+		info: vi.fn(),
+		warn: vi.fn(),
+		error: vi.fn(),
 	},
 }));
 
-jest.mock("@/lib/rate-limit", () => ({
-	applyRateLimit: jest.fn(),
+vi.mock("@/lib/rate-limit", () => ({
+	applyRateLimit: vi.fn(),
 	RATE_LIMITS: { ADMIN: { windowMs: 1, maxRequests: 1 } },
 }));
 
 type FakeTransaction = ReturnType<typeof createFakeTransaction>;
 
 function createFakeTransaction() {
-	const claimReturning = jest.fn<Promise<unknown[]>, []>();
-	const claimWhere = jest.fn(() => ({ returning: claimReturning }));
-	const claimSet = jest.fn(() => ({ where: claimWhere }));
-	const update = jest.fn(() => ({ set: claimSet }));
+	const claimReturning = vi.fn<() => Promise<unknown[]>>();
+	const claimWhere = vi.fn(() => ({ returning: claimReturning }));
+	const claimSet = vi.fn(() => ({ where: claimWhere }));
+	const update = vi.fn(() => ({ set: claimSet }));
 
-	const statusWhere = jest.fn<Promise<Array<{ status: number }>>, []>();
-	const selectFrom = jest.fn(() => ({ where: statusWhere }));
-	const select = jest.fn(() => ({ from: selectFrom }));
+	const statusWhere = vi.fn<() => Promise<Array<{ status: number }>>>();
+	const selectFrom = vi.fn(() => ({ where: statusWhere }));
+	const select = vi.fn(() => ({ from: selectFrom }));
 
-	const messageReturning = jest.fn<Promise<Array<{ id: number }>>, []>();
-	const insertValues = jest.fn(() => ({ returning: messageReturning }));
-	const insert = jest.fn(() => ({ values: insertValues }));
+	const messageReturning = vi.fn<() => Promise<Array<{ id: number }>>>();
+	const insertValues = vi.fn(() => ({ returning: messageReturning }));
+	const insert = vi.fn(() => ({ values: insertValues }));
 
 	return {
 		tx: { update, select, insert },
@@ -101,7 +98,7 @@ function runTransactionWith(
 
 describe("submission approval transaction", () => {
 	beforeEach(() => {
-		jest.clearAllMocks();
+		vi.clearAllMocks();
 		currentUserMock.mockResolvedValue({ id: "admin-user" });
 		isUserAdminMock.mockResolvedValue(true);
 		applyRateLimitMock.mockResolvedValue(null);

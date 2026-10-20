@@ -1,3 +1,4 @@
+import { describe, expect, it } from "vitest";
 import { getAppOrigin, getAppUrl } from "@/lib/app-origin";
 
 describe("canonical application origin", () => {

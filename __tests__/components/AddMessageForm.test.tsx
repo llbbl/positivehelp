@@ -1,21 +1,29 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+	beforeEach,
+	describe,
+	expect,
+	it,
+	type MockedFunction,
+	vi,
+} from "vitest";
 import { AddMessageForm } from "@/app/add/add-message-form";
 
 // Mock dependencies
-jest.mock("next/navigation", () => ({
-	useRouter: jest.fn(),
+vi.mock("next/navigation", () => ({
+	useRouter: vi.fn(),
 }));
 
-jest.mock("@/app/actions", () => ({
-	createMessage: jest.fn(),
+vi.mock("@/app/actions", () => ({
+	createMessage: vi.fn(),
 }));
 
-jest.mock("@/hooks/use-toast", () => ({
-	useToast: jest.fn(),
+vi.mock("@/hooks/use-toast", () => ({
+	useToast: vi.fn(),
 }));
 
-jest.mock("@clerk/nextjs", () => ({
-	useAuth: jest.fn(),
+vi.mock("@clerk/nextjs", () => ({
+	useAuth: vi.fn(),
 }));
 
 import { useAuth } from "@clerk/nextjs";
@@ -23,34 +31,32 @@ import { useRouter } from "next/navigation";
 import { createMessage } from "@/app/actions";
 import { useToast } from "@/hooks/use-toast";
 
-const mockUseRouter = useRouter as jest.MockedFunction<typeof useRouter>;
-const mockCreateMessage = createMessage as jest.MockedFunction<
-	typeof createMessage
->;
-const mockUseToast = useToast as jest.MockedFunction<typeof useToast>;
-const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
+const mockUseRouter = useRouter as MockedFunction<typeof useRouter>;
+const mockCreateMessage = createMessage as MockedFunction<typeof createMessage>;
+const mockUseToast = useToast as MockedFunction<typeof useToast>;
+const mockUseAuth = useAuth as MockedFunction<typeof useAuth>;
 
 describe("AddMessageForm", () => {
-	const mockPush = jest.fn();
-	const mockRefresh = jest.fn();
-	const mockToast = jest.fn();
+	const mockPush = vi.fn();
+	const mockRefresh = vi.fn();
+	const mockToast = vi.fn();
 
 	beforeEach(() => {
-		jest.clearAllMocks();
+		vi.clearAllMocks();
 
 		mockUseRouter.mockReturnValue({
 			push: mockPush,
 			refresh: mockRefresh,
-			back: jest.fn(),
-			forward: jest.fn(),
-			prefetch: jest.fn(),
-			replace: jest.fn(),
+			back: vi.fn(),
+			forward: vi.fn(),
+			prefetch: vi.fn(),
+			replace: vi.fn(),
 			bfcacheId: "test-bfcache-id",
 		});
 
 		mockUseToast.mockReturnValue({
 			toast: mockToast,
-			dismiss: jest.fn(),
+			dismiss: vi.fn(),
 			toasts: [],
 		});
 
@@ -64,9 +70,9 @@ describe("AddMessageForm", () => {
 			orgId: null,
 			orgRole: null,
 			orgSlug: null,
-			has: jest.fn(),
-			signOut: jest.fn(),
-			getToken: jest.fn(),
+			has: vi.fn(),
+			signOut: vi.fn(),
+			getToken: vi.fn(),
 		});
 	});
 
@@ -118,15 +124,17 @@ describe("AddMessageForm", () => {
 			orgId: null,
 			orgRole: null,
 			orgSlug: null,
-			has: jest.fn(),
-			signOut: jest.fn(),
-			getToken: jest.fn(),
+			has: vi.fn(),
+			signOut: vi.fn(),
+			getToken: vi.fn(),
 		});
 
 		render(<AddMessageForm />);
 
-		const form = document.querySelector("form");
-		fireEvent.submit(form!);
+		fireEvent.change(screen.getByLabelText("Your Message"), {
+			target: { value: "Test positive message" },
+		});
+		fireEvent.click(screen.getByRole("button", { name: "Add Message" }));
 
 		await waitFor(() => {
 			expect(mockToast).toHaveBeenCalledWith({
@@ -135,6 +143,9 @@ describe("AddMessageForm", () => {
 				description: "You must be logged in to add a message",
 			});
 		});
+		expect(mockCreateMessage).not.toHaveBeenCalled();
+		expect(mockPush).not.toHaveBeenCalled();
+		expect(mockRefresh).not.toHaveBeenCalled();
 	});
 
 	it("submits form with correct data when logged in", async () => {
@@ -153,7 +164,13 @@ describe("AddMessageForm", () => {
 		fireEvent.click(submitButton);
 
 		await waitFor(() => {
-			expect(mockCreateMessage).toHaveBeenCalledWith(expect.any(FormData));
+			expect(mockCreateMessage).toHaveBeenCalledTimes(1);
+		});
+		const [formData] = mockCreateMessage.mock.calls[0]!;
+		expect(Object.fromEntries(formData.entries())).toEqual({
+			content: "Test positive message",
+			author: "Test Author",
+			userId: "user123",
 		});
 	});
 
@@ -222,7 +239,7 @@ describe("AddMessageForm", () => {
 		});
 	});
 
-	it("includes userId in form data when submitting", async () => {
+	it("submits an empty author for anonymous attribution", async () => {
 		mockCreateMessage.mockResolvedValue({ success: true });
 
 		render(<AddMessageForm />);
@@ -234,9 +251,13 @@ describe("AddMessageForm", () => {
 		fireEvent.click(submitButton);
 
 		await waitFor(() => {
-			const formDataCall = mockCreateMessage.mock.calls[0][0] as FormData;
-			expect(formDataCall.get("userId")).toBe("user123");
-			expect(formDataCall.get("content")).toBe("Test message");
+			expect(mockCreateMessage).toHaveBeenCalledTimes(1);
+		});
+		const [formData] = mockCreateMessage.mock.calls[0]!;
+		expect(Object.fromEntries(formData.entries())).toEqual({
+			content: "Test message",
+			author: "",
+			userId: "user123",
 		});
 	});
 });

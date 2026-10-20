@@ -1,49 +1,45 @@
-/** @jest-environment node */
+/** @vitest-environment node */
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-// `jest` is intentionally the injected global rather than an @jest/globals
-// import: @swc/jest only hoists bare `jest.mock(...)` calls above the requires.
-import { beforeEach, describe, expect, it } from "@jest/globals";
 import { GET } from "@/app/api/messages/route";
 import { MESSAGE_PAGE_SIZE } from "@/lib/constants";
 import { getMessages } from "@/lib/messages";
 import { applyRateLimit } from "@/lib/rate-limit";
 
-jest.mock("@clerk/nextjs/server", () => ({
-	auth: jest.fn(),
-	currentUser: jest.fn(),
+vi.mock("@clerk/nextjs/server", () => ({
+	auth: vi.fn(),
+	currentUser: vi.fn(),
 }));
 
-jest.mock("@/lib/auth", () => ({
-	isUserAdmin: jest.fn(),
+vi.mock("@/lib/auth", () => ({
+	isUserAdmin: vi.fn(),
 }));
 
-jest.mock("@/lib/authors", () => ({
-	getOrCreateAuthor: jest.fn(),
+vi.mock("@/lib/authors", () => ({
+	getOrCreateAuthor: vi.fn(),
 }));
 
-jest.mock("@/lib/db", () => ({
-	__esModule: true,
+vi.mock("@/lib/db", () => ({
 	default: {
-		execute: jest.fn(),
+		execute: vi.fn(),
 	},
 }));
 
-jest.mock("@/lib/messages", () => ({
-	getMessages: jest.fn(),
+vi.mock("@/lib/messages", () => ({
+	getMessages: vi.fn(),
 }));
 
-jest.mock("@/lib/rate-limit", () => ({
-	applyRateLimit: jest.fn(),
+vi.mock("@/lib/rate-limit", () => ({
+	applyRateLimit: vi.fn(),
 	RATE_LIMITS: {
 		PUBLIC_READ: { windowMs: 1, maxRequests: 1 },
 		AUTHENTICATED_WRITE: { windowMs: 1, maxRequests: 1 },
 	},
 }));
 
-jest.mock("@/lib/logger", () => ({
-	__esModule: true,
+vi.mock("@/lib/logger", () => ({
 	default: {
-		error: jest.fn(),
+		error: vi.fn(),
 	},
 }));
 
@@ -56,7 +52,7 @@ const applyRateLimitMock = applyRateLimit as unknown as AsyncMock;
 
 describe("GET /api/messages", () => {
 	beforeEach(() => {
-		jest.clearAllMocks();
+		vi.clearAllMocks();
 		applyRateLimitMock.mockResolvedValue(null);
 		getMessagesMock.mockResolvedValue([]);
 	});

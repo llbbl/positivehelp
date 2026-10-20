@@ -1,28 +1,29 @@
-// `jest` is intentionally the injected global rather than an @jest/globals
-// import: @swc/jest only hoists bare `jest.mock(...)` calls above the requires.
-import { beforeEach, describe, expect, it } from "@jest/globals";
+import {
+	beforeEach,
+	describe,
+	expect,
+	it,
+	type MockedFunction,
+	vi,
+} from "vitest";
 import { MESSAGE_MAX_PAGE_SIZE, MESSAGE_PAGE_SIZE } from "@/lib/constants";
 import client from "@/lib/db";
 import { getMessages } from "@/lib/messages";
 
-jest.mock("@/lib/db", () => ({
-	__esModule: true,
+vi.mock("@/lib/db", () => ({
 	default: {
-		execute: jest.fn(),
+		execute: vi.fn(),
 	},
 }));
 
-jest.mock("@/lib/logger", () => ({
-	__esModule: true,
+vi.mock("@/lib/logger", () => ({
 	default: {
-		error: jest.fn(),
+		error: vi.fn(),
 	},
 }));
 
 type ExecuteResult = Awaited<ReturnType<typeof client.execute>>;
-const executeMock = client.execute as jest.MockedFunction<
-	typeof client.execute
->;
+const executeMock = client.execute as MockedFunction<typeof client.execute>;
 
 function resultWithRows(rows: Array<Record<string, string | number>>) {
 	return { rows } as unknown as ExecuteResult;
@@ -30,7 +31,7 @@ function resultWithRows(rows: Array<Record<string, string | number>>) {
 
 describe("getMessages", () => {
 	beforeEach(() => {
-		jest.clearAllMocks();
+		vi.clearAllMocks();
 	});
 
 	it("bounds initial retrieval to the default newest-first page", async () => {
