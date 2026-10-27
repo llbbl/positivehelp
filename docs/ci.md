@@ -15,7 +15,7 @@ Production builds and formatting checks are not jobs in this workflow. See
 
 ## Package manager and install policy
 
-All quality and migration jobs use `pnpm/setup@v3`. It reads pnpm 12.8.1 from
+All quality and migration jobs use `pnpm/setup@v3`. It reads pnpm 12.15.0 from
 `package.json`, chooses Node from `.node-version` unless the test matrix supplies
 the runtime, caches the pnpm store using `pnpm-lock.yaml`, and installs with
 `require-lockfile: true` for frozen-lockfile behavior.
