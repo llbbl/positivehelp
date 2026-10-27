@@ -4,7 +4,7 @@
 
 - Node.js matching `package.json`: `^22.18.0 || ^24.11.0 || >=26.0.0`. CI tests Node 22 and
   24; `.node-version` selects Node 22 by default, and Docker uses Node 24.
-- pnpm 12.8.1, pinned in `package.json`.
+- pnpm 12.15.0, pinned in `package.json`.
 - A Clerk application and a development Turso database with a compatible schema.
   See [database setup](database.md) before using an empty database.
 
