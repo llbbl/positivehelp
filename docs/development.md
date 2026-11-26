@@ -2,8 +2,8 @@
 
 ## Requirements
 
-- Node.js matching `package.json`: `^22.18.0 || ^24.11.0 || >=26.0.0`. CI tests Node 22 and
-  24; `.node-version` selects Node 22 by default, and Docker uses Node 24.
+- Node.js matching `package.json`: `^22.22.2 || ^24.15.0 || >=26.0.0`. CI tests Node 22 and
+  24, `.node-version` selects 22.23.5, and Docker uses Node 24.
 - pnpm 12.15.0, pinned in `package.json`.
 - A Clerk application and a development Turso database with a compatible schema.
   See [database setup](database.md) before using an empty database.
@@ -81,7 +81,7 @@ Vitest uses `vitest.config.mts` and `vitest.setup.ts`. Component tests run in
 jsdom; server tests use `@vitest-environment node`. Import test functions and
 mock helpers from `vitest`, and use `@testing-library/jest-dom/vitest` for DOM
 matchers. The matcher package works with Vitest and does not require Jest.
-jsdom stays on major 27 to support the Node versions in `package.json`.
+jsdom 30 sets the minimum Node versions for the test suite.
 
 Test observable behavior and failure boundaries. Use valid fixtures that reach
 the intended guard, assert the particular refusal and absence of side effects,
